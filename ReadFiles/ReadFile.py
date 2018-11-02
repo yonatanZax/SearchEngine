@@ -1,14 +1,15 @@
 
 import Configuration as config
 from Parsing.Parse import Parse
+from Indexing.Document import Document
+from Indexing.Indexer import Indexer
 
 
 class ReadFile():
 
-    def __init__(self, mainPath, indexer):
+    def __init__(self, indexer, mainPath):
         self.path = mainPath
         self.myIndexer = indexer
-        print('ReadFile created')
 
 
     def readTextFile(self,filePath):
@@ -18,8 +19,16 @@ class ReadFile():
             fileAsText = myFile.read()
             documents = fileAsText.split('</DOC>')
             parser = Parse(self.myIndexer)
-            print(documents[0])
-            parser.parseDoc(documents[0])
+            for doc in documents:
+                termsFromParser = parser.parseDoc(doc)
+                if termsFromParser is None:
+                    continue
+                docNo = termsFromParser[0]
+                listOfTerms = termsFromParser[1]
+                newDoc = Document(docNo,listOfTerms)
+                self.myIndexer.addNewDoc(newDoc)
+
+                # print(docNo)
 
         except IOError:
             print('Error while reading file ', filePath)
@@ -28,12 +37,8 @@ class ReadFile():
 
 
 
-    def readFile(self):
-        print('ReadFile')
-
-
-
-
-path = 'D:/SearchEngine/corpus/FB396001/FB396001'
-fileReader = ReadFile(path,None)
-fileReader.readTextFile(path)
+# path = 'D:/SearchEngine/corpus/FB396101/FB396101'
+# fileReader = ReadFile(path,Indexer())
+# fileReader.readTextFile(path)
+#
+# print("done")
