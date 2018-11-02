@@ -1,7 +1,4 @@
 
-from Indexing.Document import Document
-from Indexing.Document import TermData
-
 class Indexer:
 
 
@@ -11,7 +8,7 @@ class Indexer:
 
 
     def addNewDoc(self,doc):
-        # return
+        return
         listOfDataTerms = doc.termList
         for dataTerm in listOfDataTerms:
             term = dataTerm.term
@@ -20,8 +17,7 @@ class Indexer:
             if isLower is not None:
                 term = term.lower()
             if valueFromDic is not None:
-                count = valueFromDic[0] + 1
-                self.dictionary[term] = [count,[doc.docNo, dataTerm.toString()] + valueFromDic[1]]
+                self.dictionary[term] = [doc.docNo, dataTerm.toString()] + valueFromDic[1]
             else:
                 if term[0].islower():
                     term = term.lower()
@@ -29,8 +25,8 @@ class Indexer:
                 else:
                     term = term.upper()
                     dataTerm.term = term
-                self.dictionary[term] = [1,[doc.docNo, dataTerm.toString()]]
+                self.dictionary[term] = [doc.docNo, dataTerm.toString()]
 
-        print(self.dictionary)
+        # print(self.dictionary)
 
 

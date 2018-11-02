@@ -9,8 +9,9 @@ class Document:
 
 class TermData:
 
-    def __init__(self, term, startPos, length, posValue):
+    def __init__(self, term,count, startPos, length, posValue):
         self.term = str(term)
+        self.count = count
         self.startPos = str(startPos)
         self.length = str(length)
         self.posValue = str(posValue)

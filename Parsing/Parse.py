@@ -4,15 +4,15 @@ from Indexing.Indexer import Indexer
 import Parsing.Regex as regex
 
 
-class Parse():
+class Parse:
 
     def __init__(self, indexer):
         self.myIndexer = indexer
 
-    def parseDoc(self,documentAsSring):
-        regexData = regex.tokenizeRegex(documentAsSring)
+    def parseDoc(self, documentAsString):
+        regexData = regex.tokenizeRegex(documentAsString)
         newDoc = Document(regexData[0], regexData[1])
-        self.myIndexer.addNewDoc(newDoc)
+        self.myIndexer.addNewDoc(doc=newDoc)
 
 
 

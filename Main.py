@@ -17,16 +17,20 @@ def main():
 
 
     corpusPath = config.getAbsolutePathToDataFolderAndFileType('corpus')
-    listOfFolders = os.listdir(corpusPath)
+    indexer = Indexer()
+    fileReader = ReadFile(indexer,corpusPath)
+    fileReader.readAllFiles()
 
-    for folder in listOfFolders:
-        print(folder)
-        folderPath = corpusPath + '\\' + folder
-        filePath = folderPath + '\\' + folder
-        myIndexer = Indexer()
-        readFile = ReadFile(myIndexer, corpusPath)
-        readFile.readTextFile(filePath=filePath)
-        print(myIndexer.dictionary)
+    # listOfFolders = os.listdir(corpusPath)
+    #
+    # for folder in listOfFolders:
+    #     print(folder)
+    #     folderPath = corpusPath + '\\' + folder
+    #     filePath = folderPath + '\\' + folder
+    #     myIndexer = Indexer()
+    #     readFile = ReadFile(myIndexer, corpusPath)
+    #     readFile.readTextFile(filePath=filePath)
+    #     # print(myIndexer.dictionary)
 
 
     print('***   Done   ***')

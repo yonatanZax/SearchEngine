@@ -78,7 +78,7 @@ def findByRule(rule, term):
 
 
 def convertTokenToTerm(token):
-    # return token
+    return token
     import Parsing.ConvertMethods as convert
     term = token
     global betweenRule, hasMonthRule, monthBeforeRule, monthAfterRule, combainedRule, percentRule, numWithTMBTRule, dollarRule
@@ -132,7 +132,7 @@ def convertTokenToTerm(token):
 
 
 def getRegexMatches(expression, text):
-    termList = []
+    termDictionary = {}
     pattern = re.compile(expression)
     matches = pattern.finditer(text)
     for match in matches:
@@ -141,14 +141,20 @@ def getRegexMatches(expression, text):
 
         # Data = [ 'Token' , start position, length, 1 - (startPosition/textLength)
         token = match.group()
+        count = 1
         term = convertTokenToTerm(token)
+        termFromDic = termDictionary.get(term)
+        if termFromDic is not None:
+            count = termFromDic.count + 1
+            termFromDic.count = count
+            continue
         if term.lower() in stopWordsList:
             continue
 
-        newTerm = TermData(term,matchStart,match.end()-matchStart,"{0:.2f}".format(tokenLocation))
-        termList.append(newTerm)
+        newTerm = TermData(term,count,matchStart,match.end()-matchStart,"{0:.2f}".format(tokenLocation))
+        termDictionary[token] = newTerm
 
-    return termList
+    return termDictionary
 
 
 def runExpression(regexFunction):
@@ -164,8 +170,8 @@ def runExpression(regexFunction):
 def tokenizeRegex(text, fromFile = True):
 
     tokenizeExpression = '|'.join([betweenRule,monthBeforeRule,monthAfterRule,combainedRule,percentRule,dollarRule,numWithTMBTRule])
-    tokenizeExpression = tokenizeExpression + '|' + "\w+"
-    # tokenizeExpression = "\d+"
+    tokenizeExpression = tokenizeExpression + '|' + "\S+"
+    # tokenizeExpression = "A"
 
 
     docNo = 'test'
@@ -177,8 +183,8 @@ def tokenizeRegex(text, fromFile = True):
         except IndexError:
             print("No <Text>")
         # print(text)
-    tokenList = getRegexMatches(tokenizeExpression,text)
-    return [docNo,tokenList]
+    termList = getRegexMatches(tokenizeExpression,text)
+    return [docNo,termList]
     # return [docNo,None]
 
 
@@ -186,10 +192,12 @@ def tokenizeRegex(text, fromFile = True):
 
 
 
-textToCheck = '''
-2,522,421 Million Dollars ... U.S. Dollars 542 Thousand and 15 Trillion
-March 24 ... between 20 and 40, 80% cost $25 today-tomorrow\n 8,324 U.S. Dollars will be 60 percent"
-'''
+# textToCheck = '''
+# 2,522,421 Million Dollars ... U.S. Dollars 542 Thousand and 15 Trillion
+# March 24 ... between 20 and 40, 80% cost cost cost cost $25 today-tomorrow\n 8,324 U.S. Dollars will be 60 percent"
+# '''
+
+# textToCheck = "cost cost cost csot"
 # tokenizeRegex(textToCheck,False)
 
 
@@ -198,12 +206,14 @@ March 24 ... between 20 and 40, 80% cost $25 today-tomorrow\n 8,324 U.S. Dollars
 
 '''
 .       - Any Character Except New Line
-\d      - Digit (0-9)
-\D      - Not a Digit (0-9)
-\w      - Word Character (a-z, A-Z, 0-9, _)
-\W      - Not a Word Character
-\s      - Whitespace (space, tab, newline)
-\S      - Not Whitespace (space, tab, newline)
+\d	Any decimal digit (equivalent to [0-9])
+\D	Any non-digit character (equivalent to [^0-9])
+\s	Any whitespace character (equivalent to [ \t\n\r\f\v])
+\S	Any non-whitespace character (equivalent to [^ \t\n\r\f\v])
+\w	Any alphanumeric character (equivalent to [a-zA-Z0-9_])
+\W	Any non-alphanumeric character (equivalent to [^a-zA-Z0-9_])
+\t	The tab character
+\n	The newline character
 
 \b      - Word Boundary
 \B      - Not a Word Boundary
