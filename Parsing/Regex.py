@@ -1,209 +1,16 @@
 
 import re
-import BasicMethods as basic
-import Configuration as config
-from Indexing.Document import TermData
-
-
-
-
-
-# *** Tokenize rules ***
-
-# numberWithCommasRule
-nwcr = "[\d,]+"
-betweenRule = "[Bb]etween " + nwcr + " and " + nwcr
-# January | February | March | April | May | June | July | August | September | October | November | December
-monthList = ["[Jj]anuary", "[Ff]ebruary", "[Mm]arch", "[Aa]pril"]
-hasMonthRule = '|'.join(monthList)
-
-
-# '[jJ]anuary \\d{2}|[Ff]ebruary \\d{2}|[Mm]arch \\d{2}|[Aa]pril \\d{2}'
-monthBeforeRule = " \d{2,4}|".join(monthList) + " \d{2,4}"
-twoFourDigitNum = "\d{2,4} "
-tempMonthList = []
-for month in monthList:
-    tempMonthList.append(month + '|')
-monthAfterRule = '{1}{0}'.format(twoFourDigitNum.join(tempMonthList), twoFourDigitNum)
-
-# '\\d{2} [jJ]anuary|\\d{2} [Ff]ebruary|\\d{2} [Mm]arch|\\d{2} [Aa]pril'
-monthAfterRule = monthAfterRule[:-1]
-
-combainedRule = "\w+-\w+"
-percentRule = "\d+ percentage|\d+ percent"
-
-listTMBT = [" [Tt]housand", " [Mm]illion", " [Bb]illion", " [Tt]rillion"]
-listNumWithTMBT = []
-for t in listTMBT:
-    listNumWithTMBT.append(nwcr + t)
-
-numWithTMBTRule = '|'.join(listNumWithTMBT)
-
-# '\\$[\\d,]+ Thousand|\\$[\\d,]+ Million|\\$[\\d,]+ Billion|\\$[\\d,]+ Trillion'
-dSignWithTMBT = '{1}{0}'.format("|\$".join(listNumWithTMBT), "\$")
-
-# '[\\d,]+ Thousand Dollars|[\\d,]+ Million Dollars|[\\d,]+ Billion Dollars|[\\d,]+ Trillion [Dd]ollars|'
-dollarsWithTMBT = " [Dd]ollars|".join(listNumWithTMBT) + " [Dd]ollars"
-
-# '[\\d,]+ Thousand U.S. Dollars|[\\d,]+ Million U.S. Dollars|[\\d,]+ Billion U.S. Dollars|[\\d,]+ Trillion [Dd]ollars|'
-usDollarsWithTMBT = " U.S. [Dd]ollars|".join(listNumWithTMBT) + " U.S. [Dd]ollars"
-
-# \$[\d,]+ Thousand|\$[\d,]+ Million|\$[\d,]+ Billion|\$[\d,]+ Trillion|
-# [\d,]+ Thousand Dollars|[\d,]+ Million Dollars|[\d,]+ Billion Dollars|[\d,]+ Trillion|
-# [\d,]+ Thousand U.S. Dollars|[\d,]+ Million U.S. Dollars|[\d,]+ Billion U.S. Dollars|[\d,]+ Trillion
-dollarRule = "|".join([dSignWithTMBT, dollarsWithTMBT, usDollarsWithTMBT])
-
-
-
-try:
-    path = config.projectMainFolder + 'stop_words.txt'
-    with open(path) as f:
-        stopWordsList = f.read().splitlines()
-except IOError:
-    print("Can't find path:",path)
-
-
-
-
-
-
-
-
-def findByRule(rule, term):
-    find = re.findall(rule, term)
-    if (len(find) > 0):
-        return True
-    return False
-
-
-
-def convertTokenToTerm(token):
-    # return token
-    import Parsing.ConvertMethods as convert
-    term = token
-    global betweenRule, hasMonthRule, monthBeforeRule, monthAfterRule, combainedRule, percentRule, numWithTMBTRule, dollarRule
-
-    termAsArray = term.split(' ')
-    if len(termAsArray) > 1:
-        # BetweenRule
-        if findByRule(betweenRule, term):
-            return termAsArray[1] + '-' + termAsArray[3]
-
-        # todo - add yearRule
-        if findByRule(hasMonthRule, term):
-            if basic.isInt(termAsArray[0]):
-                return convert.convertMonthToInt(termAsArray[1][:3].lower()) + '-' + termAsArray[0]
-            elif basic.isInt(termAsArray[1]):
-                return convert.convertMonthToInt(termAsArray[0][:3].lower()) + '-' + termAsArray[1]
-
-        # PercentRule
-        if findByRule(percentRule, term):
-            num = termAsArray[0]
-            return num + '%'
-
-
-        if findByRule(dollarRule, term):
-            if term[0] == '$':
-                convert.convertNumToMoneyFormat(termAsArray[0][1:])
-
-        elif findByRule(dollarRule,term):
-            return convert.convertNumToMoneyFormat(termAsArray[0]) + " Dollars"
-
-        elif findByRule(numWithTMBTRule,term):
-            if termAsArray[1] == 'Thousand':
-                return termAsArray[0] + 'K'
-            elif termAsArray[1] == 'Million':
-                return termAsArray[0] + 'M'
-            elif termAsArray[1] == 'Billion':
-                return termAsArray[0] + 'B'
-            elif termAsArray[1] == 'Trillion':
-                if basic.isInt(termAsArray[0]):
-                    return str(int(termAsArray[0]) * 1000) + 'B'
-                return str(float(termAsArray[0])*1000)[:6].strip('0') + 'B'
-
-    else:
-        if findByRule(dollarRule,term):
-            if term[0] == '$':
-                convert.convertNumToMoneyFormat(term[1:])
-
-
-
-    return term
-
-
-def getRegexMatches(expression, text):
-    termList = []
-    pattern = re.compile(expression)
-    matches = pattern.finditer(text)
-    for match in matches:
-        matchStart = match.start()
-        tokenLocation = 1 - (matchStart/len(text))
-
-        # Data = [ 'Token' , start position, length, 1 - (startPosition/textLength)
-        token = match.group()
-        term = convertTokenToTerm(token)
-        if term.lower() in stopWordsList:
-            continue
-
-        newTerm = TermData(term,matchStart,match.end()-matchStart,"{0:.2f}".format(tokenLocation))
-        termList.append(newTerm)
-
-    return termList
-
-
-def runExpression(regexFunction):
-    print("\n\n***      Running         ***\n")
-
-    regexFunction()
-
-    print("\n\nDONE")
-
-
-
-
-def tokenizeRegex(text, fromFile = False):
-
-    tokenizeExpression = '|'.join([betweenRule,monthBeforeRule,monthAfterRule,combainedRule,percentRule,dollarRule,numWithTMBTRule])
-    tokenizeExpression = tokenizeExpression + '|' + "\w+"
-    # tokenizeExpression = "\d+"
-
-
-    docNo = 'test'
-    if fromFile:
-        try:
-            docNo = re.findall(r'<DOCNO>(.*?)</DOCNO>', text)[0]
-            onlyText = text.split("<TEXT>")[1]
-            text = onlyText
-        except IndexError:
-            print("No <Text>")
-        # print(text)
-    tokenList = getRegexMatches(tokenizeExpression,text)
-    return [docNo,tokenList]
-    # return [docNo,None]
-
-
-
-
-
-
-textToCheck = '''
-2,522,421 Million Dollars ... U.S. Dollars 542 Thousand and 15 Trillion
-March 24 ... between 20 and 40, 80% cost $25 today-tomorrow\n 8,324 U.S. Dollars will be 60 percent"
-'''
-# tokenizeRegex(textToCheck,False)
-
-
-
-
 
 '''
 .       - Any Character Except New Line
-\d      - Digit (0-9)
-\D      - Not a Digit (0-9)
-\w      - Word Character (a-z, A-Z, 0-9, _)
-\W      - Not a Word Character
-\s      - Whitespace (space, tab, newline)
-\S      - Not Whitespace (space, tab, newline)
+\d	Any decimal digit (equivalent to [0-9])
+\D	Any non-digit character (equivalent to [^0-9])
+\s	Any whitespace character (equivalent to [ \t\n\r\f\v])
+\S	Any non-whitespace character (equivalent to [^ \t\n\r\f\v])
+\w	Any alphanumeric character (equivalent to [a-zA-Z0-9_])
+\W	Any non-alphanumeric character (equivalent to [^a-zA-Z0-9_])
+\t	The tab character
+\n	The newline character
 
 \b      - Word Boundary
 \B      - Not a Word Boundary
@@ -223,6 +30,17 @@ Quantifiers:
 {3,4}   - Range of Numbers (Minimum, Maximum)
 
 
+
+# text = 'That U.S.A. poster-print costs $12.40...'
+# pattern = r(?x)    # set flag to allow verbose regexps
+# ...     ([A-Z]\.)+        # abbreviations, e.g. U.S.A.
+# ...   | \w+(-\w+)*        # words with optional internal hyphens
+# ...   | \$?\d+(\.\d+)?%?  # currency and percentages, e.g. $12.40, 82%
+# ...   | \.\.\.            # ellipsis
+# ...   | [][.,;"'?():-_`]  # these are separate tokens; includes ], [
+# ... 
+# nltk.regexp_tokenize(text, pattern)
+# ['That', 'U.S.A.', 'poster-print', 'costs', '$12.40', '...']
 #### Sample Regexs ####
 
 [a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+
@@ -236,7 +54,100 @@ Quantifiers:
 
 
 
+def getRegexMatches(expression, text):
+    pattern = re.compile(expression)
+    matches = pattern.findall(text)
+    print(matches)
 
+    return matches
+
+
+def runExpression(regexFunction):
+    print("\n\n***      Running         ***\n")
+
+    regexFunction()
+
+    print("\n\nDONE")
+
+
+def tokenizeRegex(text):
+
+    tokenizerExpression = "[A-Z]{2,}(?![a-z])|[A-Z][a-z]+(?=[A-Z])|[\'\w\-]+"
+
+    getRegexMatches(tokenizerExpression,text)
+
+
+
+
+def precentRegex(textAsString):
+
+    s1 = "blabla 23% blabla blabla 17.3 percentage blabla 51 percent blabla"
+
+    # percentExpression = "\d+(.?)(\d+)?( percentage| percent|\S%)"
+    numberWithDocExpression = '\d+.?\d+?'
+    percentExpression = numberWithDocExpression + " percentage|" + \
+                        numberWithDocExpression + " percent"
+    # numberWithDocExpression + "%"
+
+    matches = getRegexMatches(percentExpression,s1)
+
+    for match in matches:
+        number = match.split(' ')[0]
+        s1 = s1.replace(match,number + '%')
+
+    print(s1)
+
+
+
+
+def numberWithCommaRegex(textAsString):
+
+    # numberThousands(textAsString)
+    # numberMillions(textAsString)
+    # numberBillions(textAsString)
+
+    dollarExpression = r'(\d{1,3})(,\d{3}\b)?'
+    # dollarExpression = "\d{1,3}(,\d{3}\s|,\d{3},\d{3}\s)"
+    s2 = "blabla 20,000 blabla 200 bla bla 5,200,455"
+
+
+    pattern = getRegexMatches(dollarExpression,s2)
+
+def numberThousands(textAsString):
+    return None
+
+def numberMillions(textAsString):
+    return None
+
+def numberBillions(textAsString):
+    return None
+
+
+
+def numberWithFractionRegex(textAsString):
+    return None
+
+
+def numberWithDollarsRegex(textAsString):
+    return None
+
+def dateRegex(textAsString):
+    return None
+
+def rangeRegex(textAsString):
+    # \w + (-\w+) *
+    # betweenRegex(textAsString)
+    return None
+
+def betweenRegex(textAsString):
+    return None
+
+def abbreviationWithDotsRegex(textAsString):
+    # ([A-Z]\.)+
+    return None
+
+# runExpression(precentRegex)
+runExpression(numberWithCommaRegex)
 
 '''
 
@@ -301,39 +212,4 @@ Quantifiers:
 
 
 '''
-
-
-def test():
-    import re
-
-    txt = 'this is a paragraph with<[1> in between</[1> and then there are cases ... where the<[99> number ranges from 1-100</[99>.  and there are many other lines in the txt files with<[3> such tags </[3>'
-
-    out = re.sub("(<[^>]+>)", '===<ROY>', txt)
-    print(out)
-
-
-def test2():
-    import re
-
-    def multiple_replace(dict, text):
-        # Create a regular expression  from the dictionary keys
-        regex = re.compile("(%s)" % "|".join(map(re.escape, dict.keys())))
-
-        # For each match, look-up corresponding value in dictionary
-        return regex.sub(lambda mo: dict[mo.string[mo.start():mo.end()]], text)
-
-    if __name__ == "__main__":
-        text = "Larry Wall is the creator of Perl"
-
-        dict = {
-            "Larry Wall": "Guido van Rossum",
-            "creator": "Benevolent Dictator for Life",
-            "Perl": "Python",
-        }
-
-        print(multiple_replace(dict, text))
-
-
-
-# test2()
 

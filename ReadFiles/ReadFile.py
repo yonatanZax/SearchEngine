@@ -1,44 +1,49 @@
 
 import Configuration as config
 from Parsing.Parse import Parse
-from Indexing.Document import Document
-from Indexing.Indexer import Indexer
+import threading
+import hashlib
 
 
-class ReadFile():
+class ReadFile:
 
-    def __init__(self, indexer, mainPath):
+    def __init__(self, mainPath, indexer):
         self.path = mainPath
         self.myIndexer = indexer
+        self.fileList = []
+        self.fileListSemaphore = threading.Semaphore()
+        self.listCounter = 0
+        self.mutex = threading.RLock()
+        print('ReadFile created')
 
 
-    def readTextFile(self,filePath):
+    def readTextFile(self, filePath):
 
         try:
             myFile = open(filePath,'r')
             fileAsText = myFile.read()
             documents = fileAsText.split('</DOC>')
             parser = Parse(self.myIndexer)
-            for doc in documents:
-                termsFromParser = parser.parseDoc(doc)
-                if termsFromParser is None:
-                    continue
-                docNo = termsFromParser[0]
-                listOfTerms = termsFromParser[1]
-                newDoc = Document(docNo,listOfTerms)
-                self.myIndexer.addNewDoc(newDoc)
-
-                # print(docNo)
+            print(documents[0])
+            parser.parseDoc(documents[0])
 
         except IOError:
             print('Error while reading file ', filePath)
 
+    def splitFileToDocumentString(self, filePathString):
+        return None
+
+    def getNextFileStringFromList(self):
+        return None
+
+
+
+    def readFile(self):
+        print('ReadFile')
 
 
 
 
-# path = 'D:/SearchEngine/corpus/FB396101/FB396101'
-# fileReader = ReadFile(path,Indexer())
-# fileReader.readTextFile(path)
-#
-# print("done")
+path = 'D:/SearchEngine/corpus/FB396001/FB396001'
+fileReader = ReadFile(path, None)
+fileReader.readTextFile(path)
