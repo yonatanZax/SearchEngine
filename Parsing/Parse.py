@@ -12,8 +12,8 @@ class Parse:
     def parseDoc(self, documentAsString):
         regexData = regex.tokenizeRegex(documentAsString)
         newDoc = Document(regexData[0], regexData[1])
-        self.myIndexer.addNewDoc(newDoc)
-
+        self.myIndexer.addNewDoc( doc=newDoc)
+        print(newDoc.docNo)
 
 
 

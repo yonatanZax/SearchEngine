@@ -5,9 +5,9 @@ class MyExecutors:
 
     def __init__(self):
         print ("MyExecutors")
-        self.IOExecutor = ThreadPool(4)
+        self.IOExecutor = ThreadPool(3)
         # self.UIExecutor = threading.main_thread()
-        self.CPUExecutor = ThreadPool(4)
+        self.CPUExecutor = ThreadPool(5)
 
 
 class Singleton(MyExecutors):

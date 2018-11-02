@@ -64,11 +64,6 @@ except IOError:
 
 
 
-
-
-
-
-
 def findByRule(rule, term):
     find = re.findall(rule, term)
     if (len(find) > 0):
@@ -132,7 +127,7 @@ def convertTokenToTerm(token):
 
 
 def getRegexMatches(expression, text):
-    termList = []
+    termDictionary = {}
     pattern = re.compile(expression)
     matches = pattern.finditer(text)
     for match in matches:
@@ -141,14 +136,20 @@ def getRegexMatches(expression, text):
 
         # Data = [ 'Token' , start position, length, 1 - (startPosition/textLength)
         token = match.group()
+        count = 1
         term = convertTokenToTerm(token)
+        termFromDic = termDictionary.get(term)
+        if termFromDic is not None:
+            count = termFromDic.count + 1
+            termFromDic.count = count
+            continue
         if term.lower() in stopWordsList:
             continue
 
-        newTerm = TermData(term,matchStart,match.end()-matchStart,"{0:.2f}".format(tokenLocation))
-        termList.append(newTerm)
+        newTerm = TermData(term,count,matchStart,match.end()-matchStart,"{0:.2f}".format(tokenLocation))
+        termDictionary[token] = newTerm
 
-    return termList
+    return termDictionary
 
 
 def runExpression(regexFunction):
@@ -172,13 +173,13 @@ def tokenizeRegex(text, fromFile = True):
     if fromFile:
         try:
             docNo = re.findall(r'<DOCNO>(.*?)</DOCNO>', text)[0]
-            # onlyText = text.split("<TEXT>")[1]
-            # text = onlyText
+            onlyText = text.split("<TEXT>")[1]
+            text = onlyText
         except IndexError:
-            print("No <Text>")
+            print("ERROR - Regex - tokenizeRegex")
         # print(text)
-    tokenList = getRegexMatches(tokenizeExpression,text)
-    return [docNo,tokenList]
+    termDictionary = getRegexMatches(tokenizeExpression,text)
+    return [docNo,termDictionary]
     # return [docNo,None]
 
 
