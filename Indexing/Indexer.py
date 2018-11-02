@@ -31,6 +31,6 @@ class Indexer:
                     dataTerm.term = term
                 self.dictionary[term] = [1,[doc.docNo, dataTerm.toString()]]
 
-        # print(self.dictionary)
+        #print(self.dictionary)
 
 

@@ -1,49 +1,69 @@
 
 import Configuration as config
+import os
 from Parsing.Parse import Parse
-import threading
-import hashlib
+from Indexing.Document import Document
+from Indexing.Indexer import Indexer
+from MyExecutors import MyExecutors
+import MyExecutors
 
 
 class ReadFile:
 
-    def __init__(self, mainPath, indexer):
+    def __init__(self, indexer, mainPath):
         self.path = mainPath
         self.myIndexer = indexer
-        self.fileList = []
-        self.fileListSemaphore = threading.Semaphore()
-        self.listCounter = 0
-        self.mutex = threading.RLock()
-        print('ReadFile created')
+        self.listOfFolders = os.listdir(self.path)
+
+    def readAllFiles(self):
+
+        # MyExecutors._instance.IOExecutor.map(self.readTextFile, self.listOfFolders, 10)
+
+        for folder in self.listOfFolders:
+            print(folder)
+
+            MyExecutors._instance.IOExecutor.apply(func=self.readTextFile, args=(folder,))
 
 
-    def readTextFile(self, filePath):
+            # self.readTextFile(filePath=filePath)
+            # print(myIndexer.dictionary)
 
-        try:
+    def readTextFile(self, fileName):
+
+        # try:
+            folderPath = self.path + '\\' + fileName
+            filePath = folderPath + '\\' + fileName
             myFile = open(filePath,'r')
             fileAsText = myFile.read()
             documents = fileAsText.split('</DOC>')
             parser = Parse(self.myIndexer)
-            print(documents[0])
-            parser.parseDoc(documents[0])
+            for doc in documents:
+                termsFromParser = parser.parseDoc(doc)
+                if termsFromParser is None:
+                    continue
+                docNo = termsFromParser[0]
+                listOfTerms = termsFromParser[1]
+                newDoc = Document(docNo,listOfTerms)
+                self.myIndexer.addNewDoc(newDoc)
 
-        except IOError:
-            print('Error while reading file ', filePath)
+                print(docNo)
+            myFile.close()
 
-    def splitFileToDocumentString(self, filePathString):
-        return None
-
-    def getNextFileStringFromList(self):
-        return None
-
-
-
-    def readFile(self):
-        print('ReadFile')
-
+        # except IOError:
+        #     print(IOError)
+        #     print('Error while reading file ', filePath)
 
 
 
-path = 'D:/SearchEngine/corpus/FB396001/FB396001'
-fileReader = ReadFile(path, None)
-fileReader.readTextFile(path)
+
+
+
+# path = 'D:/SearchEngine/corpus/FB396101/FB396101'
+# fileReader = ReadFile(Indexer(),path)
+# fileReader.readTextFile(path)
+#
+# print("done")
+
+i = 0
+
+

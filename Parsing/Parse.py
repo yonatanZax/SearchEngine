@@ -1,21 +1,19 @@
 
+from Indexing.Document import Document
+from Indexing.Indexer import Indexer
 import Parsing.Regex as regex
 
 
-class Parse():
+class Parse:
 
     def __init__(self, indexer):
-        self.indexer = indexer
-        print("Parse created")
+        self.myIndexer = indexer
 
-    def parseDoc(self,documentAsSring):
-        regex.tokenizeRegex(documentAsSring)
+    def parseDoc(self, documentAsString):
+        regexData = regex.tokenizeRegex(documentAsString)
+        newDoc = Document(regexData[0], regexData[1])
+        self.myIndexer.addNewDoc(newDoc)
 
-    def getTextFromDoc(self, documentAsString):
-        return None
-
-    def parseDocument(self, documentAsSring):
-        return None
 
 
 
