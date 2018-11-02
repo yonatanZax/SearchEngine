@@ -161,7 +161,7 @@ def runExpression(regexFunction):
 
 
 
-def tokenizeRegex(text, fromFile = False):
+def tokenizeRegex(text, fromFile = True):
 
     tokenizeExpression = '|'.join([betweenRule,monthBeforeRule,monthAfterRule,combainedRule,percentRule,dollarRule,numWithTMBTRule])
     tokenizeExpression = tokenizeExpression + '|' + "\w+"

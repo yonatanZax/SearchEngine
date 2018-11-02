@@ -37,8 +37,8 @@ class ReadFile():
 
 
 
-# path = 'D:/SearchEngine/corpus/FB396101/FB396101'
-# fileReader = ReadFile(path,Indexer())
-# fileReader.readTextFile(path)
-#
-# print("done")
+path = 'D:/SearchEngine/corpus/FB396101/FB396101'
+fileReader = ReadFile(Indexer(),path)
+fileReader.readTextFile(path)
+
+print("done")
