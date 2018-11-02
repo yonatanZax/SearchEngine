@@ -8,25 +8,26 @@ class Indexer:
 
 
     def addNewDoc(self,doc):
-        return
-        listOfDataTerms = doc.termList
-        for dataTerm in listOfDataTerms:
-            term = dataTerm.term
+        # return
+        dicOfDataTerms = doc.termDoc
+        for key, value in dicOfDataTerms.items():
+        # for dataTerm in listOfDataTerms:
+            term = key
             valueFromDic = self.dictionary.get(term)
             isLower = self.dictionary.get(term.lower())
             if isLower is not None:
                 term = term.lower()
-            if valueFromDic is not None:
-                self.dictionary[term] = [doc.docNo, dataTerm.toString()] + valueFromDic[1]
-            else:
+            if valueFromDic is None:
                 if term[0].islower():
                     term = term.lower()
-                    dataTerm.term = term
+                    value.term = term
                 else:
                     term = term.upper()
-                    dataTerm.term = term
-                self.dictionary[term] = [doc.docNo, dataTerm.toString()]
+                    value.term = term
+                self.dictionary[term] = [[doc.docNo, value.toString()]]
+            else:
+                valueFromDic.append([doc.docNo, value.toString()])
+                self.dictionary[term] = valueFromDic
 
-        # print(self.dictionary)
 
 

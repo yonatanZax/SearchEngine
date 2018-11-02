@@ -170,7 +170,7 @@ def runExpression(regexFunction):
 def tokenizeRegex(text, fromFile = True):
 
     tokenizeExpression = '|'.join([betweenRule,monthBeforeRule,monthAfterRule,combainedRule,percentRule,dollarRule,numWithTMBTRule])
-    tokenizeExpression = tokenizeExpression + '|' + "\S+"
+    tokenizeExpression = tokenizeExpression + '|' + "\w+"
     # tokenizeExpression = "A"
 
 
@@ -183,8 +183,8 @@ def tokenizeRegex(text, fromFile = True):
         except IndexError:
             print("No <Text>")
         # print(text)
-    termList = getRegexMatches(tokenizeExpression,text)
-    return [docNo,termList]
+    termDictionary = getRegexMatches(tokenizeExpression,text)
+    return [docNo,termDictionary]
     # return [docNo,None]
 
 

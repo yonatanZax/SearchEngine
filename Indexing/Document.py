@@ -3,9 +3,9 @@
 
 class Document:
 
-    def __init__(self, docNo, termList):
+    def __init__(self, docNo, termDoc):
         self.docNo = docNo
-        self.termList = termList
+        self.termDoc = termDoc
 
 class TermData:
 

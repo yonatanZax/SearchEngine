@@ -38,32 +38,13 @@ class ReadFile:
             documents = fileAsText.split('</DOC>')[:-1]
             parser = Parse(self.myIndexer)
             for doc in documents:
-                termsFromParser = parser.parseDoc(doc)
-                if termsFromParser is None:
-                    continue
-                docNo = termsFromParser[0]
-                listOfTerms = termsFromParser[1]
-                newDoc = Document(docNo,listOfTerms)
-                self.myIndexer.addNewDoc(newDoc)
+                parser.parseDoc(doc)
 
-                print(docNo)
             myFile.close()
 
-        # except IOError:
-        #     print(IOError)
-        #     print('Error while reading file ', filePath)
 
 
 
 
-
-
-# path = 'D:/SearchEngine/corpus/FB396101/FB396101'
-# fileReader = ReadFile(Indexer(),path)
-# fileReader.readTextFile(path)
-#
-# print("done")
-
-i = 0
 
 
