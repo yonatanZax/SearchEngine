@@ -126,28 +126,35 @@ def convertTokenToTerm(token):
     return term
 
 
-def getRegexMatches(expression, text):
+
+def getRegexMatches(expression, text, toStem = False):
+    import Stemmer.Stemmer
+
     from Indexing.MyDictionary import updateTermToDictionaryByTheRules
     termDictionary = {}
     pattern = re.compile(expression)
     matches = pattern.finditer(text)
+    # matches = pattern.findall(text)
     # matches = tokinizer(text)
     for match in matches:
-        matchStart = match.start()
+        # matchStart = match.start()
         token = match.group()
+        if token.lower() in stopWordsList:
+            continue
+        if toStem:
+            token = Stemmer.Stemmer.stemTerm(token)
         count = 1
         term = convertTokenToTerm(token)
-        updateTermToDictionaryByTheRules(termDictionary, term)
-        termFromDic = termDictionary.get(term)
-        if termFromDic is not None:
-            count = termFromDic.termFrequency + 1
-            termFromDic.termFrequency = count
-            continue
-        if term.lower() in stopWordsList:
+        termFromDic = updateTermToDictionaryByTheRules(termDictionary,term)
+        termDataFromDic = termDictionary.get(termFromDic)
+        if termDataFromDic is not None:
+            count = termDataFromDic.termFrequency + 1
+            termDataFromDic.termFrequency = count
             continue
 
-        newTerm = TermData(count, matchStart)
-        termDictionary[token] = newTerm
+        # newTerm = TermData(count, matchStart)
+        newTerm = TermData(count, 0)
+        termDictionary[termFromDic] = newTerm
 
     return termDictionary
 
@@ -174,8 +181,8 @@ def tokenizeRegex(text, fromFile = True):
     if fromFile:
         try:
             docNo = re.findall(r'<DOCNO>(.*?)</DOCNO>', text)[0]
-            # onlyText = text.split("<TEXT>")[1]
-            # text = onlyText
+            onlyText = text.split("<TEXT>")[1]
+            text = onlyText
         except IndexError:
             print("ERROR - Regex - tokenizeRegex")
         # print(text)

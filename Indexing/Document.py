@@ -12,8 +12,8 @@ class Document:
 
 class TermData:
 
-    def __init__(self, count, startPos):
-        self.termFrequency = count
+    def __init__(self, termFrequency, startPos):
+        self.termFrequency = termFrequency
         self.startPos = str(startPos)
 
 

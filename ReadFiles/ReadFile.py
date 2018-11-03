@@ -2,8 +2,6 @@
 import Configuration as config
 import os
 from Parsing.Parse import Parse
-from Indexing.Document import Document
-from Indexing.Indexer import Indexer
 from MyExecutors import MyExecutors
 import MyExecutors
 
@@ -57,18 +55,16 @@ class ReadFile:
             print('ERROR: ReadFile - readTextFile - IOError')
         except IndexError:
             print('ERROR: ReadFile - readTextFile - IndexError')
+        except Exception:
+            print('ERROR: ReadFile - readTextFile - Exception')
+
+
         # print(fileName)
 
 
 
 
 
-
-# path = 'D:/SearchEngine/corpus/FB396101/FB396101'
-# fileReader = ReadFile(Indexer(),path)
-# fileReader.readTextFile(path)
-#
-# print("done")
 
 
 

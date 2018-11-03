@@ -25,6 +25,13 @@ class MyDictionary:
             return dicData.postingLine
         return None
 
+    def print(self):
+        for term, termData in sorted(self.dictionary_term_dicData.items()):
+            print(term + " - " + termData.toString())
+        print("MyDictionary Size: " + str(len(self.dictionary_term_dicData)))
+
+
+
 # get the format of the term how its saved in the dictionary or none if its not in the dictionary
 def getTermDictionaryForm(dictionary, termString):
     if termString.lower() in dictionary:
@@ -65,6 +72,8 @@ def updateTermToDictionaryByTheRules(dictionary, termString):
 
 
 
+
+
 class DictionaryData:
 
     def __init__(self, postingLine):
@@ -78,6 +87,39 @@ class DictionaryData:
         self.sumTF += docTF_int
         self.dictionary_docID_tf[docID] = docTF_int
 
+    def toString(self):
+        ans = "termDF: " + str(self.termDF)
+        ans += ", sumTF: " + str(self.sumTF)
+        ans += ", postingLine: " + str(self.postingLine)
+        ans += " dictionary: " + str(self.dictionary_docID_tf)
+        return ans
 
 
+def TEST_updateTermToDictionaryByTheRules():
+    dic = { "brand": "Ford",
+            "MODEL": "Mustang"}
 
+    term = "Brand"
+    result = updateTermToDictionaryByTheRules(dic,term)
+    print ("1. " + str(result == "brand"))
+
+    result = updateTermToDictionaryByTheRules(dic, "Model")
+    print ("2. " + str(result == "MODEL"))
+
+    result = updateTermToDictionaryByTheRules(dic, "model")
+    print ("3. " + str(result == "model"))
+
+
+def TEST_addTerm():
+    myDic = MyDictionary()
+    myDic.addTerm(termString="one", docNo=1, termFrequency=3 )
+    myDic.print()
+    myDic.addTerm(termString="One",docNo=2,termFrequency=2)
+    myDic.print()
+    myDic.addTerm(termString="Two", docNo=2, termFrequency=2)
+    myDic.print()
+    myDic.addTerm(termString="two", docNo=3, termFrequency=3)
+    myDic.print()
+
+# TEST_updateTermToDictionaryByTheRules()
+# TEST_addTerm()

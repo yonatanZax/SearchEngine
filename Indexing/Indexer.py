@@ -6,7 +6,7 @@ class Indexer:
 
     def __init__(self):
 
-        self.dictionary_letter_myDic = MyDictionary()
+        self.myDictionary = MyDictionary()
 
 
     def addNewDoc(self, document):
@@ -15,7 +15,7 @@ class Indexer:
         docNo = document.docNo
         for term, termData in documentDictionary.items():
             # add the term to the dictionary
-            self.dictionary_letter_myDic.addTerm(termString=term, docNo=docNo, termFrequency=termData.termFrequency)
+            self.myDictionary.addTerm(termString=term, docNo=docNo, termFrequency=termData.termFrequency)
 
     def flushMemory(self):
         return
