@@ -1,6 +1,5 @@
 
-from Indexing.Document import Document
-from Indexing.Indexer import Indexer
+
 import Parsing.Regex as regex
 
 
@@ -10,9 +9,12 @@ class Parse:
         self.myIndexer = indexer
 
     def parseDoc(self, documentAsString):
+        # print ("parseDoc")
         docFromRegex = regex.tokenizeRegex(documentAsString)
-        self.myIndexer.addNewDoc( doc=docFromRegex)
         print(docFromRegex.docNo)
+
+        self.myIndexer.addNewDoc( document=docFromRegex)
+        # print(docFromRegex.docNo)
 
 
 

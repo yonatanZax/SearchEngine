@@ -44,7 +44,7 @@ def main():
     MyExecutors._instance.IOExecutor.join()
     print ("IO Finished")
 
-    print(indexer.dictionary)
+    # print(indexer.dictionary)
 
     finishTime = datetime.now()
     timeItTook = finishTime - startTime

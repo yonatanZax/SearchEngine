@@ -136,7 +136,7 @@ def tokinizer(text):
 
 
 
-def getDocumentFromRegex(expression, text):
+def getRegexMaches(expression, text):
     from Indexing.MyDictionary import updateTermToDictionaryByTheRules
     termDictionary = {}
     pattern = re.compile(expression)
@@ -147,17 +147,17 @@ def getDocumentFromRegex(expression, text):
         token = match.group()
         count = 1
         term = convertTokenToTerm(token)
-        updateTermToDictionaryByTheRules(termDictionary,term)
-        termFromDic = termDictionary.get(term)
-        if termFromDic is not None:
-            count = termFromDic.termFrequency + 1
-            termFromDic.termFrequency = count
-            continue
         if term.lower() in stopWordsList:
+            continue
+        termFromDic = updateTermToDictionaryByTheRules(termDictionary,term)
+        termDataFromDic = termDictionary.get(termFromDic)
+        if termDataFromDic is not None:
+            count = termDataFromDic.termFrequency + 1
+            termDataFromDic.termFrequency = count
             continue
 
         newTerm = TermData(count,matchStart)
-        termDictionary[token] = newTerm
+        termDictionary[termFromDic] = newTerm
 
     return termDictionary
 
@@ -188,7 +188,7 @@ def tokenizeRegex(text, fromFile = True):
         except IndexError:
             print("ERROR - Regex - tokenizeRegex")
         # print(text)
-    termDictionary = getDocumentFromRegex(tokenizeExpression, text)
+    termDictionary = getRegexMaches(tokenizeExpression, text)
     return Document(docNo,termDictionary)
     # return [docNo,None]
 
