@@ -64,11 +64,6 @@ except IOError:
 
 
 
-
-
-
-
-
 def findByRule(rule, term):
     find = re.findall(rule, term)
     if (len(find) > 0):
@@ -78,7 +73,7 @@ def findByRule(rule, term):
 
 
 def convertTokenToTerm(token):
-    return token
+    # return token
     import Parsing.ConvertMethods as convert
     term = token
     global betweenRule, hasMonthRule, monthBeforeRule, monthAfterRule, combainedRule, percentRule, numWithTMBTRule, dollarRule
@@ -131,27 +126,37 @@ def convertTokenToTerm(token):
     return term
 
 
-def getRegexMatches(expression, text):
+
+def tokinizer(text):
+    from nltk.tokenize import TreebankWordTokenizer
+    tokenizer = TreebankWordTokenizer()
+    return tokenizer.tokenize(text)
+    # print(tokenizer.tokenize(text))
+
+
+
+
+def getDocumentFromRegex(expression, text):
+    from Indexing.MyDictionary import updateTermToDictionaryByTheRules
     termDictionary = {}
     pattern = re.compile(expression)
     matches = pattern.finditer(text)
+    # matches = tokinizer(text)
     for match in matches:
         matchStart = match.start()
-        tokenLocation = 1 - (matchStart/len(text))
-
-        # Data = [ 'Token' , start position, length, 1 - (startPosition/textLength)
         token = match.group()
         count = 1
         term = convertTokenToTerm(token)
+        updateTermToDictionaryByTheRules(termDictionary,term)
         termFromDic = termDictionary.get(term)
         if termFromDic is not None:
-            count = termFromDic.count + 1
-            termFromDic.count = count
+            count = termFromDic.termFrequency + 1
+            termFromDic.termFrequency = count
             continue
         if term.lower() in stopWordsList:
             continue
 
-        newTerm = TermData(term,count,matchStart,match.end()-matchStart,"{0:.2f}".format(tokenLocation))
+        newTerm = TermData(count,matchStart)
         termDictionary[token] = newTerm
 
     return termDictionary
@@ -168,10 +173,10 @@ def runExpression(regexFunction):
 
 
 def tokenizeRegex(text, fromFile = True):
-
+    from Indexing.Document import Document
     tokenizeExpression = '|'.join([betweenRule,monthBeforeRule,monthAfterRule,combainedRule,percentRule,dollarRule,numWithTMBTRule])
     tokenizeExpression = tokenizeExpression + '|' + "\w+"
-    # tokenizeExpression = "A"
+    # tokenizeExpression = "\d+"
 
 
     docNo = 'test'
@@ -181,10 +186,10 @@ def tokenizeRegex(text, fromFile = True):
             onlyText = text.split("<TEXT>")[1]
             text = onlyText
         except IndexError:
-            print("No <Text>")
+            print("ERROR - Regex - tokenizeRegex")
         # print(text)
-    termDictionary = getRegexMatches(tokenizeExpression,text)
-    return [docNo,termDictionary]
+    termDictionary = getDocumentFromRegex(tokenizeExpression, text)
+    return Document(docNo,termDictionary)
     # return [docNo,None]
 
 
@@ -196,9 +201,7 @@ def tokenizeRegex(text, fromFile = True):
 # 2,522,421 Million Dollars ... U.S. Dollars 542 Thousand and 15 Trillion
 # March 24 ... between 20 and 40, 80% cost cost cost cost $25 today-tomorrow\n 8,324 U.S. Dollars will be 60 percent"
 # '''
-
-# textToCheck = "cost cost cost csot"
-# tokenizeRegex(textToCheck,False)
+# tokinizer(textToCheck)
 
 
 

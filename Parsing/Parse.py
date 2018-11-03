@@ -10,10 +10,9 @@ class Parse:
         self.myIndexer = indexer
 
     def parseDoc(self, documentAsString):
-        regexData = regex.tokenizeRegex(documentAsString)
-        newDoc = Document(regexData[0], regexData[1])
-        self.myIndexer.addNewDoc(doc=newDoc)
-
+        docFromRegex = regex.tokenizeRegex(documentAsString)
+        self.myIndexer.addNewDoc( doc=docFromRegex)
+        print(docFromRegex.docNo)
 
 
 

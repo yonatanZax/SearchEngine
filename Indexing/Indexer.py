@@ -4,12 +4,12 @@ class Indexer:
 
     def __init__(self):
 
-        self.dictionary = {}
+        self.dictionary_letter_myDic = {}
 
 
-    def addNewDoc(self,doc):
+    def addNewDoc(self, doc):
         # return
-        dicOfDataTerms = doc.termDoc
+        dicOfDataTerms = doc.termDocDictionary
         for key, value in dicOfDataTerms.items():
         # for dataTerm in listOfDataTerms:
             term = key
@@ -30,4 +30,12 @@ class Indexer:
                 self.dictionary[term] = valueFromDic
 
 
+    def newDoc(self,doc):
+        return
+        # go over each term in the doc
+
+            # add the term to the dictionary
+
+    def flushMemory(self):
+        return
 
