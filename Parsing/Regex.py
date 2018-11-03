@@ -64,11 +64,6 @@ except IOError:
 
 
 
-
-
-
-
-
 def findByRule(rule, term):
     find = re.findall(rule, term)
     if (len(find) > 0):
@@ -131,24 +126,37 @@ def convertTokenToTerm(token):
     return term
 
 
-def getRegexMatches(expression, text):
-    termList = []
+
+def getRegexMatches(expression, text, toStem = False):
+    import Stemmer.Stemmer
+
+    from Indexing.MyDictionary import updateTermToDictionaryByTheRules
+    termDictionary = {}
     pattern = re.compile(expression)
     matches = pattern.finditer(text)
+    # matches = pattern.findall(text)
+    # matches = tokinizer(text)
     for match in matches:
-        matchStart = match.start()
-        tokenLocation = 1 - (matchStart/len(text))
-
-        # Data = [ 'Token' , start position, length, 1 - (startPosition/textLength)
+        # matchStart = match.start()
         token = match.group()
+        if token.lower() in stopWordsList:
+            continue
+        if toStem:
+            token = Stemmer.Stemmer.stemTerm(token)
+        count = 1
         term = convertTokenToTerm(token)
-        if term.lower() in stopWordsList:
+        termFromDic = updateTermToDictionaryByTheRules(termDictionary,term)
+        termDataFromDic = termDictionary.get(termFromDic)
+        if termDataFromDic is not None:
+            count = termDataFromDic.termFrequency + 1
+            termDataFromDic.termFrequency = count
             continue
 
-        newTerm = TermData(term,matchStart,match.end()-matchStart,"{0:.2f}".format(tokenLocation))
-        termList.append(newTerm)
+        # newTerm = TermData(count, matchStart)
+        newTerm = TermData(count, 0)
+        termDictionary[termFromDic] = newTerm
 
-    return termList
+    return termDictionary
 
 
 def runExpression(regexFunction):
@@ -161,8 +169,9 @@ def runExpression(regexFunction):
 
 
 
-def tokenizeRegex(text, fromFile = False):
-
+def tokenizeRegex(text, fromFile = True):
+    # print("tokenizeRegex")
+    from Indexing.Document import Document
     tokenizeExpression = '|'.join([betweenRule,monthBeforeRule,monthAfterRule,combainedRule,percentRule,dollarRule,numWithTMBTRule])
     tokenizeExpression = tokenizeExpression + '|' + "\w+"
     # tokenizeExpression = "\d+"
@@ -175,10 +184,10 @@ def tokenizeRegex(text, fromFile = False):
             onlyText = text.split("<TEXT>")[1]
             text = onlyText
         except IndexError:
-            print("No <Text>")
+            print("ERROR - Regex - tokenizeRegex")
         # print(text)
-    tokenList = getRegexMatches(tokenizeExpression,text)
-    return [docNo,tokenList]
+    termDictionary = getRegexMatches(tokenizeExpression, text)
+    return Document(docNo,termDictionary)
     # return [docNo,None]
 
 
@@ -198,12 +207,14 @@ March 24 ... between 20 and 40, 80% cost $25 today-tomorrow\n 8,324 U.S. Dollars
 
 '''
 .       - Any Character Except New Line
-\d      - Digit (0-9)
-\D      - Not a Digit (0-9)
-\w      - Word Character (a-z, A-Z, 0-9, _)
-\W      - Not a Word Character
-\s      - Whitespace (space, tab, newline)
-\S      - Not Whitespace (space, tab, newline)
+\d	Any decimal digit (equivalent to [0-9])
+\D	Any non-digit character (equivalent to [^0-9])
+\s	Any whitespace character (equivalent to [ \t\n\r\f\v])
+\S	Any non-whitespace character (equivalent to [^ \t\n\r\f\v])
+\w	Any alphanumeric character (equivalent to [a-zA-Z0-9_])
+\W	Any non-alphanumeric character (equivalent to [^a-zA-Z0-9_])
+\t	The tab character
+\n	The newline character
 
 \b      - Word Boundary
 \B      - Not a Word Boundary

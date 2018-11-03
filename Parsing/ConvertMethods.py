@@ -78,7 +78,7 @@ def removeCommasFromNumber(numAsString):
 
 
 
-print(convertNumToKMBformat(removeCommasFromNumber('5,020,553,464')))
+# print(convertNumToKMBformat(removeCommasFromNumber('5,020,553,464')))
 
 
 
