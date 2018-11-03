@@ -53,8 +53,10 @@ class ReadFile:
                 MyExecutors._instance.CPUExecutor.apply_async(self.parser.parseDoc, args=(doc,))
                 # self.parser.parseDoc(doc)
 
-        except:
-            print('ReadFile: readTextFile')
+        except IOError:
+            print('ERROR: ReadFile - readTextFile - IOError')
+        except IndexError:
+            print('ERROR: ReadFile - readTextFile - IndexError')
         # print(fileName)
 
 

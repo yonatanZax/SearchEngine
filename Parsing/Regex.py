@@ -127,26 +127,26 @@ def convertTokenToTerm(token):
 
 
 def getRegexMatches(expression, text):
+    from Indexing.MyDictionary import updateTermToDictionaryByTheRules
     termDictionary = {}
     pattern = re.compile(expression)
     matches = pattern.finditer(text)
+    # matches = tokinizer(text)
     for match in matches:
         matchStart = match.start()
-        tokenLocation = 1 - (matchStart/len(text))
-
-        # Data = [ 'Token' , start position, length, 1 - (startPosition/textLength)
         token = match.group()
         count = 1
         term = convertTokenToTerm(token)
+        updateTermToDictionaryByTheRules(termDictionary, term)
         termFromDic = termDictionary.get(term)
         if termFromDic is not None:
-            count = termFromDic.count + 1
-            termFromDic.count = count
+            count = termFromDic.termFrequency + 1
+            termFromDic.termFrequency = count
             continue
         if term.lower() in stopWordsList:
             continue
 
-        newTerm = TermData(term,count,matchStart,match.end()-matchStart,"{0:.2f}".format(tokenLocation))
+        newTerm = TermData(count, matchStart)
         termDictionary[token] = newTerm
 
     return termDictionary
@@ -163,7 +163,8 @@ def runExpression(regexFunction):
 
 
 def tokenizeRegex(text, fromFile = True):
-
+    # print("tokenizeRegex")
+    from Indexing.Document import Document
     tokenizeExpression = '|'.join([betweenRule,monthBeforeRule,monthAfterRule,combainedRule,percentRule,dollarRule,numWithTMBTRule])
     tokenizeExpression = tokenizeExpression + '|' + "\w+"
     # tokenizeExpression = "\d+"
@@ -173,13 +174,13 @@ def tokenizeRegex(text, fromFile = True):
     if fromFile:
         try:
             docNo = re.findall(r'<DOCNO>(.*?)</DOCNO>', text)[0]
-            onlyText = text.split("<TEXT>")[1]
-            text = onlyText
+            # onlyText = text.split("<TEXT>")[1]
+            # text = onlyText
         except IndexError:
             print("ERROR - Regex - tokenizeRegex")
         # print(text)
-    termDictionary = getRegexMatches(tokenizeExpression,text)
-    return [docNo,termDictionary]
+    termDictionary = getRegexMatches(tokenizeExpression, text)
+    return Document(docNo,termDictionary)
     # return [docNo,None]
 
 
