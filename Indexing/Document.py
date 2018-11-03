@@ -3,25 +3,22 @@
 
 class Document:
 
-    def __init__(self, docNo, termDoc):
+    def __init__(self, docNo, termDocDictionary):
         self.docNo = docNo
-        self.termDoc = termDoc
+        self.termDocDictionary_term_termData = termDocDictionary
         # self.mostFrequentTermNumber
         # self.documentLength
 
 
 class TermData:
 
-    def __init__(self, term,count, startPos, length, posValue):
-        self.term = str(term)
-        self.count = count
+    def __init__(self, count, startPos):
+        self.termFrequency = count
         self.startPos = str(startPos)
-        self.length = str(length)
-        self.posValue = str(posValue)
 
 
     def toString(self):
-        return ','.join([self.term,self.startPos,self.length,self.posValue])
+        return ','.join([self.termFrequency,self.startPos])
 
 
 
