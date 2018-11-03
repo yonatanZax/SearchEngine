@@ -5,6 +5,7 @@ from Indexing.Indexer import Indexer
 from ReadFiles.ReadFile import ReadFile
 from datetime import datetime
 import MyExecutors
+import Indexing.MyDictionary
 import multiprocessing
 
 
@@ -21,7 +22,7 @@ def main():
     fileReader = ReadFile(indexer, corpusPath)
     try:
         fileReader.readAllFiles()
-    except:
+    except Exception:
         finishTime = datetime.now()
         timeItTook = finishTime - startTime
         print(timeItTook.seconds)
@@ -44,11 +45,12 @@ def main():
     MyExecutors._instance.IOExecutor.join()
     print ("IO Finished")
 
-    # print(indexer.dictionary)
-
     finishTime = datetime.now()
     timeItTook = finishTime - startTime
-    print(timeItTook.seconds)
+
+    indexer.myDictionary.print()
+
+    print(str(timeItTook.seconds) + " seconds" )
 
     print('***   Done   ***')
 

@@ -2,8 +2,6 @@
 import Configuration as config
 import os
 from Parsing.Parse import Parse
-from Indexing.Document import Document
-from Indexing.Indexer import Indexer
 from MyExecutors import MyExecutors
 import MyExecutors
 
@@ -53,8 +51,14 @@ class ReadFile:
                 MyExecutors._instance.CPUExecutor.apply_async(self.parser.parseDoc, args=(doc,))
                 # self.parser.parseDoc(doc)
 
-        except:
-            print('ReadFile: readTextFile')
+        except IOError:
+            print('ERROR: ReadFile - readTextFile - IOError')
+        except IndexError:
+            print('ERROR: ReadFile - readTextFile - IndexError')
+        except Exception:
+            print('ERROR: ReadFile - readTextFile - Exception')
+
+
         # print(fileName)
 
 

@@ -30,7 +30,7 @@ monthAfterRule = '{1}{0}'.format(twoFourDigitNum.join(tempMonthList), twoFourDig
 monthAfterRule = monthAfterRule[:-1]
 
 combainedRule = "\w+-\w+"
-percentRule = "\d+ percentage|\d+ percent"
+percentRule = "\d+[\s/-/]percentage|\d+[\s/-/]percent"
 
 listTMBT = [" [Tt]housand", " [Mm]illion", " [Bb]illion", " [Tt]rillion"]
 listNumWithTMBT = []
@@ -72,6 +72,7 @@ def findByRule(rule, term):
 
 
 
+
 def convertTokenToTerm(token):
     # return token
     import Parsing.ConvertMethods as convert
@@ -94,61 +95,109 @@ def convertTokenToTerm(token):
         # PercentRule
         if findByRule(percentRule, term):
             num = termAsArray[0]
+            if num[0] == '0':
+                num = num[1:]
             return num + '%'
 
 
         if findByRule(dollarRule, term):
             if term[0] == '$':
-                convert.convertNumToMoneyFormat(termAsArray[0][1:])
+                termAsArray[0] = convert.convertNumToMoneyFormat(termAsArray[0][1:])
 
-        elif findByRule(dollarRule,term):
-            return convert.convertNumToMoneyFormat(termAsArray[0]) + " Dollars"
+        if findByRule(dollarRule,term):
+            if len(termAsArray) > 2:
+                tmbtAsNum = convert.convertTMBT_toNum(termAsArray[1].lower())
+                number = int(termAsArray[0])*tmbtAsNum
+            return convert.convertNumToMoneyFormat(str(number)) + " Dollars"
 
-        elif findByRule(numWithTMBTRule,term):
-            if termAsArray[1] == 'Thousand':
-                return termAsArray[0] + 'K'
-            elif termAsArray[1] == 'Million':
-                return termAsArray[0] + 'M'
-            elif termAsArray[1] == 'Billion':
-                return termAsArray[0] + 'B'
-            elif termAsArray[1] == 'Trillion':
+        if findByRule(numWithTMBTRule,term):
+            tmbtLetter = convert.convertTMBT_toLetter(termAsArray[1].lower())
+            if tmbtLetter == 'T':
                 if basic.isInt(termAsArray[0]):
                     return str(int(termAsArray[0]) * 1000) + 'B'
-                return str(float(termAsArray[0])*1000)[:6].strip('0') + 'B'
+                return str(float(termAsArray[0]) * 1000)[:6].strip('0') + 'B'
+            return termAsArray[0] + tmbtLetter
+
 
     else:
-        if findByRule(dollarRule,term):
-            if term[0] == '$':
-                convert.convertNumToMoneyFormat(term[1:])
+        termAsArray = term.split('-')
+        if len(termAsArray) > 1:
+            splitedTerm = term.replace('-',' ')
 
+            # PercentRule
+            if findByRule(percentRule, splitedTerm):
+                num = termAsArray[0]
+                if num[0] == '0':
+                    num = num[1:]
+                return num + '%'
+
+
+            if findByRule(dollarRule, splitedTerm):
+                if splitedTerm[0] == '$':
+                    termAsArray[0] = convert.convertNumToMoneyFormat(termAsArray[0][1:])
+
+                if findByRule(numWithTMBTRule, splitedTerm):
+                    tmbtLetter = convert.convertTMBT_toLetter(termAsArray[1].lower())
+                    if tmbtLetter == 'T':
+                        if basic.isInt(termAsArray[0]):
+                            return str(int(termAsArray[0]) * 1000) + 'B'
+                        return str(float(termAsArray[0]) * 1000)[:6].strip('0') + 'B'
+                    return termAsArray[0] + termAsArray[1] + tmbtLetter
+
+            if findByRule(numWithTMBTRule, splitedTerm):
+                tmbtLetter = convert.convertTMBT_toLetter(termAsArray[1].lower())
+                if tmbtLetter == 'T':
+                    if basic.isInt(termAsArray[0]):
+                        return str(int(termAsArray[0]) * 1000) + 'B'
+                    return str(float(termAsArray[0]) * 1000)[:6].strip('0') + 'B'
+                return termAsArray[0] + tmbtLetter
+
+
+        else:
+
+            if findByRule(dollarRule, term):
+                if term[0] == '$':
+                    term[0] = convert.convertNumToMoneyFormat(term[1:])
+
+                tmbtLetter = convert.convertTMBT_toLetter(term.lower())
+                if tmbtLetter == 'T':
+                    if basic.isInt(term):
+                        return str(int(term) * 1000) + 'B'
+                    return str(float(term) * 1000)[:6].strip('0') + 'B'
+                return term + tmbtLetter
+
+            if findByRule(numWithTMBTRule, term):
+                tmbtLetter = convert.convertTMBT_toLetter(termAsArray[1].lower())
+                if tmbtLetter == 'T':
+                    if basic.isInt(termAsArray[0]):
+                        return str(int(termAsArray[0]) * 1000) + 'B'
+                    return str(float(termAsArray[0]) * 1000)[:6].strip('0') + 'B'
+                return termAsArray[0] + tmbtLetter
 
 
     return term
 
 
 
-def tokinizer(text):
-    from nltk.tokenize import TreebankWordTokenizer
-    tokenizer = TreebankWordTokenizer()
-    return tokenizer.tokenize(text)
-    # print(tokenizer.tokenize(text))
 
+def getRegexMatches(expression, text, toStem = False):
+    import Stemmer.Stemmer
 
-
-
-def getRegexMaches(expression, text):
     from Indexing.MyDictionary import updateTermToDictionaryByTheRules
     termDictionary = {}
     pattern = re.compile(expression)
     matches = pattern.finditer(text)
+    # matches = pattern.findall(text)
     # matches = tokinizer(text)
     for match in matches:
-        matchStart = match.start()
+        # matchStart = match.start()
         token = match.group()
+        if token.lower() in stopWordsList:
+            continue
+        if toStem:
+            token = Stemmer.Stemmer.stemTerm(token)
         count = 1
         term = convertTokenToTerm(token)
-        if term.lower() in stopWordsList:
-            continue
         termFromDic = updateTermToDictionaryByTheRules(termDictionary,term)
         termDataFromDic = termDictionary.get(termFromDic)
         if termDataFromDic is not None:
@@ -156,7 +205,8 @@ def getRegexMaches(expression, text):
             termDataFromDic.termFrequency = count
             continue
 
-        newTerm = TermData(count,matchStart)
+        # newTerm = TermData(count, matchStart)
+        newTerm = TermData(count, 0)
         termDictionary[termFromDic] = newTerm
 
     return termDictionary
@@ -173,9 +223,10 @@ def runExpression(regexFunction):
 
 
 def tokenizeRegex(text, fromFile = True):
+    # print("tokenizeRegex")
     from Indexing.Document import Document
     tokenizeExpression = '|'.join([betweenRule,monthBeforeRule,monthAfterRule,combainedRule,percentRule,dollarRule,numWithTMBTRule])
-    tokenizeExpression = tokenizeExpression + '|' + "\w+"
+    tokenizeExpression = tokenizeExpression + '|' + "[a-zA-Z]+"
     # tokenizeExpression = "\d+"
 
 
@@ -188,7 +239,7 @@ def tokenizeRegex(text, fromFile = True):
         except IndexError:
             print("ERROR - Regex - tokenizeRegex")
         # print(text)
-    termDictionary = getRegexMaches(tokenizeExpression, text)
+    termDictionary = getRegexMatches(tokenizeExpression, text)
     return Document(docNo,termDictionary)
     # return [docNo,None]
 
@@ -197,11 +248,12 @@ def tokenizeRegex(text, fromFile = True):
 
 
 
-# textToCheck = '''
-# 2,522,421 Million Dollars ... U.S. Dollars 542 Thousand and 15 Trillion
-# March 24 ... between 20 and 40, 80% cost cost cost cost $25 today-tomorrow\n 8,324 U.S. Dollars will be 60 percent"
+textToCheck = '''  bla bla 12 jan bla '''
 # '''
-# tokinizer(textToCheck)
+# 2,522,421 Million Dollars ... U.S. Dollars 542 Thousand and 15 Trillion
+# March 24 ... between 20 and 40, 80% cost $25 today-tomorrow\n 8,324 U.S. Dollars will be 60 percent"
+# '''
+tokenizeRegex(textToCheck,False)
 
 
 
