@@ -10,16 +10,21 @@ import multiprocessing
 
 
 def initProject():
-    print('Create folders')
+    import os
+
+    savedFilesPath = config.savedFilePath
+    if not os.path.exists(savedFilesPath):
+        os.mkdir(savedFilesPath)
+    print('Project was created successfully..')
 
 
 def main():
     print("***   Main Start   ***")
+    initProject()
     startTime = datetime.now()
 
-    corpusPath = config.getAbsolutePathToDataFolderAndFileType('corpus')
     indexer = Indexer()
-    fileReader = ReadFile(indexer, corpusPath)
+    fileReader = ReadFile(indexer, config.corpusPath)
     try:
         fileReader.readAllFiles()
     except Exception:
@@ -48,7 +53,16 @@ def main():
     finishTime = datetime.now()
     timeItTook = finishTime - startTime
 
-    indexer.myDictionary.print()
+    # indexer.myDictionary.print()
+
+
+    # Write dictionary to file
+    from Indexing import FileWriter
+
+    headLineAsArray = ['Term','Posting']
+    FileWriter.writeDictionaryToFile('dictionaryAsFile',headLineAsArray,dictionaryToWrite=indexer.myDictionary)
+
+
 
     print(str(timeItTook.seconds) + " seconds" )
 
