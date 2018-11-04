@@ -1,20 +1,22 @@
-
+import multiprocessing
 
 
 class MyDictionary:
 
     def __init__(self):
         self.dictionary_term_dicData = {}
+        self.lock = multiprocessing.RLock()
 
     # assuming termString gets in all CAP or all LOW letters already from parser
     def addTerm(self, termString, docNo, termFrequency):
+        # self.lock.acquire()
         termInDictionary = updateTermToDictionaryByTheRules(self.dictionary_term_dicData, termString)
         termDicData = self.dictionary_term_dicData.get(termInDictionary)
         if termDicData is None:
             # add new term
             termDicData = DictionaryData(len(self.dictionary_term_dicData))
             self.dictionary_term_dicData[termInDictionary] = termDicData
-
+        # self.lock.release()
         # add the doc to the term posting line
         termDicData.addDocument(docID=docNo, docTF_int=termFrequency)
 
@@ -58,8 +60,6 @@ def updateTermToDictionaryByTheRules(dictionary, termString):
                 ans = termString.lower()
                 dictionary.pop(termInDictionary)
                 dictionary[ans] = dicData
-
-
         return ans
 
     else:
@@ -81,11 +81,14 @@ class DictionaryData:
         self.sumTF = 0
         self.postingLine = postingLine
         self.dictionary_docID_tf = {}
+        self.lock = multiprocessing.RLock()
 
     def addDocument(self, docID, docTF_int):
+        # self.lock.acquire()
         self.termDF += 1
         self.sumTF += docTF_int
         self.dictionary_docID_tf[docID] = docTF_int
+        # self.lock.release()
 
     def toString(self):
         ans = "termDF: " + str(self.termDF)

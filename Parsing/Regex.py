@@ -3,8 +3,7 @@ import re
 import BasicMethods as basic
 import Configuration as config
 from Indexing.Document import TermData
-
-
+import nltk
 
 
 
@@ -54,7 +53,7 @@ usDollarsWithTMBT = " U.S. [Dd]ollars|".join(listNumWithTMBT) + " U.S. [Dd]ollar
 dollarRule = "|".join([dSignWithTMBT, dollarsWithTMBT, usDollarsWithTMBT])
 
 
-
+stopWordsList = {}
 try:
     path = config.projectMainFolder + 'stop_words.txt'
     with open(path) as f:
@@ -121,8 +120,6 @@ def convertTokenToTerm(token):
             if term[0] == '$':
                 convert.convertNumToMoneyFormat(term[1:])
 
-
-
     return term
 
 
@@ -132,18 +129,24 @@ def getRegexMatches(expression, text, toStem = False):
 
     from Indexing.MyDictionary import updateTermToDictionaryByTheRules
     termDictionary = {}
-    pattern = re.compile(expression)
-    matches = pattern.finditer(text)
+
+    testPattern = r''''''
+    testPattern = expression
+    # pattern = re.compile(expression)
+    matches = nltk.regexp_tokenize(text, testPattern)
+    # matches = pattern.finditer(text)
     # matches = pattern.findall(text)
     # matches = tokinizer(text)
     for match in matches:
         # matchStart = match.start()
-        token = match.group()
-        if token.lower() in stopWordsList:
+        # token = match.group()
+        if match in stopWordsList:
             continue
         if toStem:
-            token = Stemmer.Stemmer.stemTerm(token)
+            token = Stemmer.Stemmer.stemTerm(match)
         count = 1
+        token = match
+        term = ""
         term = convertTokenToTerm(token)
         termFromDic = updateTermToDictionaryByTheRules(termDictionary,term)
         termDataFromDic = termDictionary.get(termFromDic)
@@ -189,6 +192,7 @@ def tokenizeRegex(text, fromFile = True):
     termDictionary = getRegexMatches(tokenizeExpression, text)
     return Document(docNo,termDictionary)
     # return [docNo,None]
+
 
 
 

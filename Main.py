@@ -50,7 +50,11 @@ def main():
 
     indexer.myDictionary.print()
 
+    finishTime = datetime.now()
+    timeItTook2 = finishTime - startTime
+
     print(str(timeItTook.seconds) + " seconds" )
+    print(str(timeItTook2.seconds) + " seconds after sorting")
 
     print('***   Done   ***')
 
