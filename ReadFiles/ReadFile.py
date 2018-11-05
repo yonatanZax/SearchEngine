@@ -1,5 +1,4 @@
 
-import Configuration as config
 import os
 from Parsing.Parse import Parse
 from MyExecutors import MyExecutors

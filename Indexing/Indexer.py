@@ -9,6 +9,9 @@ class Indexer:
         self.myDictionary = MyDictionary()
 
 
+    def addTermToDictionary(self,term,docNo,termFrequency):
+        self.myDictionary.addTerm(termString=term, docNo=docNo, termFrequency=termFrequency)
+
     def addNewDoc(self, document):
         # go over each term in the doc
         documentDictionary = document.termDocDictionary_term_termData

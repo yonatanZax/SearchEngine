@@ -1,5 +1,8 @@
 
 import re
+
+import nltk
+
 import BasicMethods as basic
 import Configuration as config
 from Indexing.Document import TermData
@@ -104,11 +107,11 @@ def convertTokenToTerm(token):
             if term[0] == '$':
                 termAsArray[0] = convert.convertNumToMoneyFormat(termAsArray[0][1:])
 
-        if findByRule(dollarRule,term):
-            if len(termAsArray) > 2:
-                tmbtAsNum = convert.convertTMBT_toNum(termAsArray[1].lower())
-                number = int(termAsArray[0])*tmbtAsNum
-            return convert.convertNumToMoneyFormat(str(number)) + " Dollars"
+                if len(termAsArray) > 2:
+                    tmbtAsNum = convert.convertTMBT_toNum(termAsArray[1].lower())
+                    number = int(termAsArray[0]) * tmbtAsNum
+                return convert.convertNumToMoneyFormat(str(number)) + " Dollars"
+
 
         if findByRule(numWithTMBTRule,term):
             tmbtLetter = convert.convertTMBT_toLetter(termAsArray[1].lower())
@@ -180,20 +183,35 @@ def convertTokenToTerm(token):
 
 
 
+
+
+
+
 def getRegexMatches(expression, text, toStem = False):
     import Stemmer.Stemmer
 
     from Indexing.MyDictionary import updateTermToDictionaryByTheRules
     termDictionary = {}
-    pattern = re.compile(expression)
-    matches = pattern.finditer(text)
+
+    # splitedWords = text.split(' ')
+    # splitedWords = nltk.tokenize.word_tokenize(text)
+    # splitedWords = nltk.regexp_tokenize(text, '[^\"\'\n\s\)\(][\S\$\%]+[\-]?[^\"\'\n\s\(\)][\S]+')
+    splitedWords = nltk.regexp_tokenize(text, '[A-Z]{2,}(?![a-z])|[A-Z][a-z]+(?=[A-Z])|[\'\w\-]+')
+    withOutStopWords = list(set(splitedWords) - set(stopWordsList))
+
+    text = ' '.join(withOutStopWords)
+
+    # pattern = re.compile(expression)
+    matches = nltk.regexp_tokenize(text, expression)
+
+
+    # matches = pattern.finditer(text)
     # matches = pattern.findall(text)
     # matches = tokinizer(text)
     for match in matches:
         # matchStart = match.start()
-        token = match.group()
-        if token.lower() in stopWordsList:
-            continue
+        # token = match.group()
+        token = match
         if toStem:
             token = Stemmer.Stemmer.stemTerm(token)
         count = 1
@@ -206,6 +224,25 @@ def getRegexMatches(expression, text, toStem = False):
             continue
 
         # newTerm = TermData(count, matchStart)
+        newTerm = TermData(count, 0)
+        termDictionary[termFromDic] = newTerm
+
+    withOutSpecialTerms = list(set(withOutStopWords) - set(matches))
+
+    for boringTerm in withOutSpecialTerms:
+        token = boringTerm.strip('\"')
+        token = boringTerm.strip('\'')
+
+        if toStem:
+            token = Stemmer.Stemmer.stemTerm(token)
+        count = 1
+        termFromDic = updateTermToDictionaryByTheRules(termDictionary,token)
+        termDataFromDic = termDictionary.get(termFromDic)
+        if termDataFromDic is not None:
+            count = termDataFromDic.termFrequency + 1
+            termDataFromDic.termFrequency = count
+            continue
+
         newTerm = TermData(count, 0)
         termDictionary[termFromDic] = newTerm
 
@@ -223,10 +260,10 @@ def runExpression(regexFunction):
 
 
 def tokenizeRegex(text, fromFile = True):
-    # print("tokenizeRegex")
+
     from Indexing.Document import Document
     tokenizeExpression = '|'.join([betweenRule,monthBeforeRule,monthAfterRule,combainedRule,percentRule,dollarRule,numWithTMBTRule])
-    tokenizeExpression = tokenizeExpression + '|' + "[a-zA-Z]+"
+    # tokenizeExpression = tokenizeExpression + '|' + "[a-zA-Z]+"
     # tokenizeExpression = "\d+"
 
 
@@ -240,6 +277,7 @@ def tokenizeRegex(text, fromFile = True):
             print("ERROR - Regex - tokenizeRegex")
         # print(text)
     termDictionary = getRegexMatches(tokenizeExpression, text)
+
     return Document(docNo,termDictionary)
     # return [docNo,None]
 
@@ -253,7 +291,7 @@ textToCheck = '''  bla bla 12 jan bla '''
 # 2,522,421 Million Dollars ... U.S. Dollars 542 Thousand and 15 Trillion
 # March 24 ... between 20 and 40, 80% cost $25 today-tomorrow\n 8,324 U.S. Dollars will be 60 percent"
 # '''
-tokenizeRegex(textToCheck,False)
+# tokenizeRegex(textToCheck,False)
 
 
 
