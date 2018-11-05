@@ -9,14 +9,14 @@ class MyDictionary:
 
     # assuming termString gets in all CAP or all LOW letters already from parser
     def addTerm(self, termString, docNo, termFrequency):
-        # self.lock.acquire()
+        self.lock.acquire()
         termInDictionary = updateTermToDictionaryByTheRules(self.dictionary_term_dicData, termString)
         termDicData = self.dictionary_term_dicData.get(termInDictionary)
         if termDicData is None:
             # add new term
             termDicData = DictionaryData(len(self.dictionary_term_dicData))
             self.dictionary_term_dicData[termInDictionary] = termDicData
-        # self.lock.release()
+        self.lock.release()
         # add the doc to the term posting line
         termDicData.addDocument(docID=docNo, docTF_int=termFrequency)
 
@@ -28,9 +28,35 @@ class MyDictionary:
         return None
 
     def print(self):
+        print("MyDictionary Size: " + str(len(self.dictionary_term_dicData)))
+        return
         for term, termData in sorted(self.dictionary_term_dicData.items()):
             print(term + " - " + termData.toString())
         print("MyDictionary Size: " + str(len(self.dictionary_term_dicData)))
+
+
+class DictionaryData:
+
+    def __init__(self, postingLine):
+        self.termDF = 0
+        self.sumTF = 0
+        self.postingLine = postingLine
+        self.dictionary_docID_tf = {}
+        self.lock = multiprocessing.RLock()
+
+    def addDocument(self, docID, docTF_int):
+        self.lock.acquire()
+        self.termDF += 1
+        self.sumTF += docTF_int
+        self.dictionary_docID_tf[docID] = docTF_int
+        self.lock.release()
+
+    def toString(self):
+        ans = "termDF: " + str(self.termDF)
+        ans += ", sumTF: " + str(self.sumTF)
+        ans += ", postingLine: " + str(self.postingLine)
+        ans += " dictionary: " + str(self.dictionary_docID_tf)
+        return ans
 
 
 
@@ -63,38 +89,11 @@ def updateTermToDictionaryByTheRules(dictionary, termString):
         return ans
 
     else:
-        if termString[0].isupper():
+        if len(termString) > 0 and termString[0].isupper():
             ans = termString.upper()
         else:
             ans = termString.lower()
         dictionary[ans] = None
-        return ans
-
-
-
-
-
-class DictionaryData:
-
-    def __init__(self, postingLine):
-        self.termDF = 0
-        self.sumTF = 0
-        self.postingLine = postingLine
-        self.dictionary_docID_tf = {}
-        self.lock = multiprocessing.RLock()
-
-    def addDocument(self, docID, docTF_int):
-        # self.lock.acquire()
-        self.termDF += 1
-        self.sumTF += docTF_int
-        self.dictionary_docID_tf[docID] = docTF_int
-        # self.lock.release()
-
-    def toString(self):
-        ans = "termDF: " + str(self.termDF)
-        ans += ", sumTF: " + str(self.sumTF)
-        ans += ", postingLine: " + str(self.postingLine)
-        ans += " dictionary: " + str(self.dictionary_docID_tf)
         return ans
 
 

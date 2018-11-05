@@ -41,14 +41,38 @@ def convertMonthToInt(month):
     }[month]
 
 
+def convertTMBT_toLetter(tmbt):
+    # January | February | March | April | May | June
+    # July | August | September | October | November | December
+
+    return {
+        'thousand': 'K',
+        'million': 'M',
+        'billion': 'B',
+        'trillion': 'T',
+    }[tmbt]
+
+
+def convertTMBT_toNum(tmbt):
+    tmbtLetter = convertTMBT_toLetter(tmbt)
+    return {
+        'T': 1000,
+        'M': 1000000,
+        'B': 1000000000,
+        'T': 1000000000000,
+    }[tmbtLetter]
 
 
 def convertNumToMoneyFormat(numAsString):
     numAsFloat = float(removeCommasFromNumber(numAsString))
     moduloMillion = numAsFloat/1000000
     if moduloMillion >= 1:
+        if str(moduloMillion).endswith('.0'):
+            moduloMillion = int(moduloMillion)
         return (str(moduloMillion)[:6] + 'M')
     else:
+        if str(numAsFloat).endswith('.0'):
+            numAsFloat = int(numAsFloat)
         return str(numAsFloat)
 
 
@@ -67,19 +91,4 @@ def convertNumToKMBformat(numAsString):
 
 def removeCommasFromNumber(numAsString):
     return numAsString.replace(',','')
-
-    # from django.conf import settings
-    # settings.configure()
-    # from django.core.wsgi import get_wsgi_application
-    # application = get_wsgi_application()
-    # from django.contrib.humanize.templatetags.humanize import intword as convertNumbers
-    # numAsInt = float(numAsInt)
-    # numFromDjango = convertNumbers(numAsInt)
-
-
-
-# print(convertNumToKMBformat(removeCommasFromNumber('5,020,553,464')))
-
-
-
 

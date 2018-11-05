@@ -1,12 +1,18 @@
 from Indexing.MyDictionary import MyDictionary
-
+import string
 
 class Indexer:
 
 
     def __init__(self):
 
-        self.myDictionary = MyDictionary()
+        # self.myDictionary = MyDictionary()
+
+        self.myDictionaryByLetters = {}
+        for letter in string.ascii_lowercase[:26]:
+            self.myDictionaryByLetters[letter] = MyDictionary()
+        self.myDictionaryByLetters["#"] = MyDictionary()
+
 
 
     def addNewDoc(self, document):
@@ -15,8 +21,13 @@ class Indexer:
         docNo = document.docNo
         for term, termData in documentDictionary.items():
             # add the term to the dictionary
-            self.myDictionary.addTerm(termString=term, docNo=docNo, termFrequency=termData.termFrequency)
+            if term[0].isalpha():
+                self.myDictionaryByLetters[term[0].lower()].addTerm(termString=term, docNo=docNo, termFrequency=termData.termFrequency)
+            else:
+                self.myDictionaryByLetters["#"].addTerm(termString=term, docNo=docNo, termFrequency=termData.termFrequency)
 
     def flushMemory(self):
-        return
+        from Indexing import FileWriter
+        FileWriter.cleanIndex(self)
+        
 

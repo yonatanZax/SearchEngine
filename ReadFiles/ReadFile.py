@@ -11,7 +11,7 @@ class ReadFile:
         self.path = mainPath
         self.myIndexer = indexer
         self.listOfFolders = os.listdir(self.path)
-        self.parser = Parse(indexer)
+        self.parser = Parse(self.myIndexer)
 
     def readAllFiles(self):
 
@@ -40,22 +40,23 @@ class ReadFile:
 
     def readTextFile(self, fileName):
 
-        try:
+        # try:
             folderPath = self.path + '\\' + fileName
             filePath = folderPath + '\\' + fileName
             fileAsText = self._readTextFromFile(filePath)
             documents = fileAsText.split('</DOC>')[:-1]
             # parser = Parse(self.myIndexer)
             for doc in documents:
-                MyExecutors._instance.CPUExecutor.apply_async(self.parser.parseDoc, args=(doc,))
+                # MyExecutors._instance.CPUExecutor.apply_async(self.parser.parseDoc, args=(doc,))
+                self.parser.parseDoc(doc)
                 # self.parser.parseDoc(doc)
 
-        except IOError:
-            print('ERROR: ReadFile - readTextFile - IOError')
-        except IndexError:
-            print('ERROR: ReadFile - readTextFile - IndexError')
-        except Exception:
-            print('ERROR: ReadFile - readTextFile - Exception')
+        # except IOError:
+        #     print('ERROR: ReadFile - readTextFile - IOError')
+        # except IndexError:
+        #     print('ERROR: ReadFile - readTextFile - IndexError')
+        # except Exception:
+        #     print('ERROR: ReadFile - readTextFile - Exception')
 
 
         # print(fileName)
