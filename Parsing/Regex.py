@@ -262,8 +262,10 @@ def  getAllTerms(text):
     from Indexing.MyDictionary import updateTermToDictionaryByTheRules
 
     termDictionary = {}
-    matches = nltk.regexp_tokenize(text, "[\S]+")
+    matches = nltk.regexp_tokenize(text, "[\w]+")
     for match in matches:
+        # if match in stopWordsList:
+        #     continue
         term = match
         count = 1
         termFromDic = updateTermToDictionaryByTheRules(termDictionary, term)
