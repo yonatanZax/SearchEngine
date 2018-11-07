@@ -191,7 +191,7 @@ def getRegexMatches(expression, text, toStem = False):
     # splitedWords = nltk.regexp_tokenize(text, '[A-Z]{2,}(?![a-z])|[A-Z][a-z]+(?=[A-Z])|[\'\w\-]+')
     withOutStopWords = [word for word in text.split() if word not in stopWordsList]
     #
-    # text = ' '.join(withOutStopWords)
+    text = ' '.join(withOutStopWords)
 
     matches = nltk.regexp_tokenize(text, expression)
 

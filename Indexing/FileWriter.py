@@ -24,9 +24,11 @@ def writeDictionaryToFile(fileName, headLineAsArray, dictionaryToWrite):
     # Iter over all the terms in the dictionary and create a string to write
     dictionaryToWrite.lock.acquire()
     for term, termData in sorted(dictionaryToWrite.dictionary_term_dicData.items()):
-        lineToWrite += (term + " - " + termData.toString() + "\n")
-        # cleans the posting dictionary
-        termData.cleanPostingData()
+        if len(termData.dictionary_docID_tf) > 0:
+            lineToWrite += (term + " - " + termData.toString() + "\n")
+            # cleans the posting dictionary
+            termData.cleanPostingData()
+
     dictionaryToWrite.lock.release()
 
     # wait for the file to be created
