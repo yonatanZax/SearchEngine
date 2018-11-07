@@ -5,17 +5,16 @@ from Indexing.Indexer import Indexer
 from ReadFiles.ReadFile import ReadFile
 from datetime import datetime
 import MyExecutors
-import Indexing.MyDictionary
-import multiprocessing
 
 
 def initProject():
     import shutil
     import os
     savedFilesPath = config.savedFilePath
-    shutil.rmtree(savedFilesPath)
     if not os.path.exists(savedFilesPath):
         os.mkdir(savedFilesPath)
+    else:
+        shutil.rmtree(savedFilesPath + "//")
     print('Project was created successfully..')
 
 
@@ -39,9 +38,8 @@ def main():
         else:
             for result in thisRunFolderResult:
                 result.get()
+            thisRunFolderResult = []
             indexer.flushMemory()
-            indexer = Indexer()
-            fileReader = ReadFile(indexer, config.corpusPath)
             counter = 0
     for result in thisRunFolderResult:
         result.get()
@@ -61,14 +59,14 @@ def main():
     #     myIndexer = Indexer()
     #     readFile = ReadFile(myIndexer, corpusPath)
     #     readFile.readTextFile(filePath=filePath)
-    # MyExecutors._instance.CPUExecutor.close()
-    # print("CPU Closed")
-    # MyExecutors._instance.CPUExecutor.join()
-    # print("CPU Finished")
-    # MyExecutors._instance.IOExecutor.close()
-    # print ("IO Closed")
-    # MyExecutors._instance.IOExecutor.join()
-    # print ("IO Finished")
+    MyExecutors._instance.CPUExecutor.close()
+    print("CPU Closed")
+    MyExecutors._instance.CPUExecutor.join()
+    print("CPU Finished")
+    MyExecutors._instance.IOExecutor.close()
+    print ("IO Closed")
+    MyExecutors._instance.IOExecutor.join()
+    print ("IO Finished")
 
     finishTime = datetime.now()
     timeItTook = finishTime - startTime

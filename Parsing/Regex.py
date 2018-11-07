@@ -193,9 +193,10 @@ def getRegexMatches(expression, text, toStem = False):
     #
     # text = ' '.join(withOutStopWords)
 
-    # pattern = re.compile(expression)
     matches = nltk.regexp_tokenize(text, expression)
 
+    # pattern = re.compile(expression)
+    # matchesTest = pattern.sub(convertTokenToTerm, text)
 
     # matches = pattern.finditer(text)
     # matches = pattern.findall(text)
@@ -274,7 +275,14 @@ def tokenizeRegex(text, fromFile = True):
     # return [docNo,None]
 
 
+def hexrepl(match):
+    "Return the hex string for a decimal number"
+    value = int(match.group())
+    return None
 
+p = re.compile(r'\d+')
+text = p.sub(hexrepl, 'Call 65490 for printing, 49152 for user code.')
+print(text)
 
 
 

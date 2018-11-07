@@ -58,6 +58,9 @@ class DictionaryData:
         ans += " dictionary: " + str(self.dictionary_docID_tf)
         return ans
 
+    def cleanPostingData(self):
+        self.dictionary_docID_tf = {}
+
 
 
 # get the format of the term how its saved in the dictionary or none if its not in the dictionary
