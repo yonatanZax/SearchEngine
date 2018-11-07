@@ -1,13 +1,9 @@
 
 import re
-
-import nltk
-
 import BasicMethods as basic
 import Configuration as config
 from Indexing.Document import TermData
-
-
+import nltk
 
 
 
@@ -40,6 +36,7 @@ listNumWithTMBT = []
 for t in listTMBT:
     listNumWithTMBT.append(nwcr + t)
 
+# '[\\d,]+ [Tt]housand|[\\d,]+ [Mm]illion|[\\d,]+ [Bb]illion|[\\d,]+ [Tt]rillion'
 numWithTMBTRule = '|'.join(listNumWithTMBT)
 
 # '\\$[\\d,]+ Thousand|\\$[\\d,]+ Million|\\$[\\d,]+ Billion|\\$[\\d,]+ Trillion'
@@ -68,7 +65,7 @@ except IOError:
 
 
 def findByRule(rule, term):
-    find = re.findall(rule, term)
+    find = re.findall( "^" + rule, term)
     if (len(find) > 0):
         return True
     return False
@@ -196,10 +193,12 @@ def getRegexMatches(expression, text, toStem = False):
     # splitedWords = text.split(' ')
     # splitedWords = nltk.tokenize.word_tokenize(text)
     # splitedWords = nltk.regexp_tokenize(text, '[^\"\'\n\s\)\(][\S\$\%]+[\-]?[^\"\'\n\s\(\)][\S]+')
-    splitedWords = nltk.regexp_tokenize(text, '[A-Z]{2,}(?![a-z])|[A-Z][a-z]+(?=[A-Z])|[\'\w\-]+')
-    withOutStopWords = list(set(splitedWords) - set(stopWordsList))
-
-    text = ' '.join(withOutStopWords)
+    # words = re.sub(r'|'.join(map(re.escape, stopWordsList)), '', text)
+    # splitedWords = nltk.regexp_tokenize(text, '[A-Z]{2,}(?![a-z])|[A-Z][a-z]+(?=[A-Z])|[\'\w\-]+')
+    withOutStopWords = [word for word in text.split() if word not in stopWordsList]
+    # withOutStopWords = list(set(splitedWords) - set(stopWordsList))
+    #
+    # text = ' '.join(withOutStopWords)
 
     # pattern = re.compile(expression)
     matches = nltk.regexp_tokenize(text, expression)
@@ -259,10 +258,32 @@ def runExpression(regexFunction):
 
 
 
+def  getAllTerms(text):
+    from Indexing.MyDictionary import updateTermToDictionaryByTheRules
+
+    termDictionary = {}
+    matches = nltk.regexp_tokenize(text, "[\S]+")
+    for match in matches:
+        term = match
+        count = 1
+        termFromDic = updateTermToDictionaryByTheRules(termDictionary, term)
+        termDataFromDic = termDictionary.get(termFromDic)
+        if termDataFromDic is not None:
+            count = termDataFromDic.termFrequency + 1
+            termDataFromDic.termFrequency = count
+            continue
+
+        newTerm = TermData(count, 0)
+        termDictionary[termFromDic] = newTerm
+
+    return termDictionary
+
+
+
 def tokenizeRegex(text, fromFile = True):
 
     from Indexing.Document import Document
-    tokenizeExpression = '|'.join([betweenRule,monthBeforeRule,monthAfterRule,combainedRule,percentRule,dollarRule,numWithTMBTRule])
+    # tokenizeExpression = '|'.join([betweenRule,monthBeforeRule,monthAfterRule,combainedRule,percentRule,dollarRule,numWithTMBTRule])
     # tokenizeExpression = tokenizeExpression + '|' + "[a-zA-Z]+"
     # tokenizeExpression = "\d+"
 
@@ -276,7 +297,8 @@ def tokenizeRegex(text, fromFile = True):
         except IndexError:
             print("ERROR - Regex - tokenizeRegex")
         # print(text)
-    termDictionary = getRegexMatches(tokenizeExpression, text)
+    # termDictionary = getRegexMatches(tokenizeExpression, text)
+    termDictionary = getAllTerms(text)
 
     return Document(docNo,termDictionary)
     # return [docNo,None]
@@ -286,12 +308,12 @@ def tokenizeRegex(text, fromFile = True):
 
 
 
-textToCheck = '''  bla bla 12 jan bla '''
+textToCheck = '''  bla bla Y15 trillion bla '''
 # '''
 # 2,522,421 Million Dollars ... U.S. Dollars 542 Thousand and 15 Trillion
 # March 24 ... between 20 and 40, 80% cost $25 today-tomorrow\n 8,324 U.S. Dollars will be 60 percent"
 # '''
-# tokenizeRegex(textToCheck,False)
+tokenizeRegex(textToCheck,False)
 
 
 

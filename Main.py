@@ -5,32 +5,50 @@ from Indexing.Indexer import Indexer
 from ReadFiles.ReadFile import ReadFile
 from datetime import datetime
 import MyExecutors
-import Indexing.MyDictionary
-import multiprocessing
 
 
 def initProject():
+    import shutil
     import os
-
     savedFilesPath = config.savedFilePath
-    if not os.path.exists(savedFilesPath):
-        os.mkdir(savedFilesPath)
+    if os.path.exists(savedFilesPath):
+        shutil.rmtree(savedFilesPath + "//")
+    os.mkdir(savedFilesPath)
+
     print('Project was created successfully..')
 
 
 def main():
     print("***   Main Start   ***")
     initProject()
-    startTime = datetime.now()
 
     indexer = Indexer()
     fileReader = ReadFile(indexer, config.corpusPath)
-    try:
-        fileReader.readAllFiles()
-    except Exception:
-        finishTime = datetime.now()
-        timeItTook = finishTime - startTime
-        print(timeItTook.seconds)
+    # try:
+        # fileReader.readAllFiles()
+    listOfFolders = os.listdir(config.corpusPath)
+    counter = 0
+    thisRunFolderResult = []
+    startTime = datetime.now()
+    for folder in listOfFolders:
+        if counter < 10:
+            result = MyExecutors._instance.CPUExecutor.apply_async(fileReader.readTextFile, (folder,))
+            counter += 1
+            thisRunFolderResult.append(result)
+        else:
+            for result in thisRunFolderResult:
+                result.get()
+            thisRunFolderResult = []
+            indexer.flushMemory()
+            counter = 0
+    for result in thisRunFolderResult:
+        result.get()
+    indexer.flushMemory()
+
+    # except Exception:
+    #     finishTime = datetime.now()
+    #     timeItTook = finishTime - startTime
+    #     print(timeItTook.seconds)
 
     # listOfFolders = os.listdir(corpusPath)
     #
@@ -55,16 +73,17 @@ def main():
 
     # indexer.myDictionary.print()
 
+    finishTime = datetime.now()
+    # timeItTook2 = finishTime - startTime
 
-    # Write dictionary to file
-    from Indexing import FileWriter
-
-    headLineAsArray = ['Term','Posting']
-    FileWriter.writeDictionaryToFile('dictionaryAsFile',headLineAsArray,dictionaryToWrite=indexer.myDictionary)
-
-
+    # # Write dictionary to file
+    # from Indexing import FileWriter
+    #
+    # headLineAsArray = ['Term', 'Posting']
+    # FileWriter.writeDictionaryToFile('dictionaryAsFile', headLineAsArray, dictionaryToWrite=indexer.myDictionary)
 
     print(str(timeItTook.seconds) + " seconds" )
+    # print(str(timeItTook2.seconds) + " seconds after sorting")
 
     print('***   Done   ***')
 
