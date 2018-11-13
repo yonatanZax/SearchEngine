@@ -9,7 +9,12 @@ def writeDictionaryToFile(fileName, headLineAsArray, dictionaryToWrite):
     import os
     import Configuration as config
     import MyExecutors
-    path = config.savedFilePath + '\\' + fileName
+    dirPath = config.savedFilePath + '\\' + fileName[0]
+
+    if not os.path.exists(dirPath):
+        os.mkdir(dirPath)
+
+    path = config.savedFilePath + '\\' + fileName[0] + '\\' + fileName
 
     fileSeparator = '|'
 

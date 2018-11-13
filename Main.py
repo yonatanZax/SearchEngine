@@ -11,10 +11,16 @@ def initProject():
     import shutil
     import os
     savedFilesPath = config.savedFilePath
-    if not os.path.exists(savedFilesPath):
-        os.mkdir(savedFilesPath)
-    else:
+    if os.path.exists(savedFilesPath):
         shutil.rmtree(savedFilesPath + "//")
+    while 1:
+        try:
+            os.mkdir(savedFilesPath)
+            break
+        except PermissionError:
+            continue
+
+
     print('Project was created successfully..')
 
 

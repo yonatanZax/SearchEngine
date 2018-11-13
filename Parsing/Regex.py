@@ -36,6 +36,7 @@ listNumWithTMBT = []
 for t in listTMBT:
     listNumWithTMBT.append(nwcr + t)
 
+# '[\\d,]+ [Tt]housand|[\\d,]+ [Mm]illion|[\\d,]+ [Bb]illion|[\\d,]+ [Tt]rillion'
 numWithTMBTRule = '|'.join(listNumWithTMBT)
 
 # '\\$[\\d,]+ Thousand|\\$[\\d,]+ Million|\\$[\\d,]+ Billion|\\$[\\d,]+ Trillion'
@@ -65,7 +66,7 @@ except IOError:
 
 
 def findByRule(rule, term):
-    find = re.findall("^" + rule, term)
+    find = re.findall( "^" + rule, term)
     if (len(find) > 0):
         return True
     return False
@@ -73,7 +74,7 @@ def findByRule(rule, term):
 
 
 def convertTokenToTerm(token):
-    return token
+    # return token
     import Parsing.ConvertMethods as convert
     term = token
     global betweenRule, hasMonthRule, monthBeforeRule, monthAfterRule, combainedRule, percentRule, numWithTMBTRule, dollarRule
@@ -106,8 +107,7 @@ def convertTokenToTerm(token):
                 if len(termAsArray) > 2:
                     tmbtAsNum = convert.convertTMBT_toNum(termAsArray[1].lower())
                     number = int(termAsArray[0]) * tmbtAsNum
-                    return convert.convertNumToMoneyFormat(str(number)) + " Dollars"
-                # return convert.convertNumToMoneyFormat(str(termAsArray)) + " Dollars"
+                return convert.convertNumToMoneyFormat(str(number)) + " Dollars"
 
 
         if findByRule(numWithTMBTRule,term):
@@ -189,6 +189,7 @@ def getRegexMatches(expression, text, toStem = False):
     # splitedWords = nltk.tokenize.word_tokenize(text)
     # splitedWords = nltk.regexp_tokenize(text, '[^\"\'\n\s\)\(][\S\$\%]+[\-]?[^\"\'\n\s\(\)][\S]+')
     # splitedWords = nltk.regexp_tokenize(text, '[A-Z]{2,}(?![a-z])|[A-Z][a-z]+(?=[A-Z])|[\'\w\-]+')
+    # TODO - the word between exist in the stop words, can cause problems
     withOutStopWords = [word for word in text.split() if word not in stopWordsList]
     #
     text = ' '.join(withOutStopWords)
@@ -197,16 +198,15 @@ def getRegexMatches(expression, text, toStem = False):
 
     # pattern = re.compile(expression)
     # matchesTest = pattern.sub(convertTokenToTerm, text)
-
+    docLength = 0
     # matches = pattern.finditer(text)
     # matches = pattern.findall(text)
     # matches = tokinizer(text)
     for match in matches:
         # matchStart = match.start()
         # token = match.group()
+        docLength += 1
         token = match
-        if toStem:
-            token = Stemmer.Stemmer.stemTerm(token)
         count = 1
         term = convertTokenToTerm(token)
         termFromDic = updateTermToDictionaryByTheRules(termDictionary,term)
@@ -229,6 +229,9 @@ def getRegexMatches(expression, text, toStem = False):
             continue
         if toStem:
             token = Stemmer.Stemmer.stemTerm(token)
+
+        docLength += 1
+
         count = 1
         termFromDic = updateTermToDictionaryByTheRules(termDictionary,token)
         termDataFromDic = termDictionary.get(termFromDic)
@@ -240,7 +243,7 @@ def getRegexMatches(expression, text, toStem = False):
         newTerm = TermData(count, 0)
         termDictionary[termFromDic] = newTerm
 
-    return termDictionary
+    return termDictionary ,docLength
 
 
 def runExpression(regexFunction):
@@ -270,19 +273,10 @@ def tokenizeRegex(text, fromFile = True):
         except IndexError:
             print("ERROR - Regex - tokenizeRegex")
         # print(text)
-    termDictionary = getRegexMatches(tokenizeExpression, text)
-    return Document(docNo,termDictionary)
+    termDictionary, docLength = getRegexMatches(tokenizeExpression, text)
+    return Document(docNo,termDictionary, docLength)
     # return [docNo,None]
 
-
-def hexrepl(match):
-    "Return the hex string for a decimal number"
-    value = int(match.group())
-    return None
-
-p = re.compile(r'\d+')
-text = p.sub(hexrepl, 'Call 65490 for printing, 49152 for user code.')
-print(text)
 
 
 
