@@ -1,6 +1,8 @@
 import re
 import BasicMethods as basic
 import Configuration as config
+from datetime import datetime
+
 from Indexing.Document import TermData
 import nltk
 
@@ -10,7 +12,7 @@ try:
     path = config.projectMainFolder + 'stop_words.txt'
     with open(path) as f:
         for word in  f.read().splitlines():
-            stopWordsList[word] = None
+            stopWordsList[word] = 'a'
 except IOError:
     print("Can't find path:",path)
 
@@ -49,47 +51,172 @@ TMBTDic = {
         'trillion': 'T',
     }
 
-# numberWithCommasRule
-nwcr = "[\d,]+"
-betweenRule = "[Bb]etween " + nwcr + " and " + nwcr
-# January | February | March | April | May | June | July | August | September | October | November | December
-#monthList = ["[Jj]anuary", "[Ff]ebruary", "[Mm]arch", "[Aa]pril"]
-hasMonthRule = '|'.join(monthList)
+cleanerDic = {
+    '{' : 'a',
+    '}' : 'a',
+    '[' : 'a',
+    ']' : 'a',
+    '.' : 'a',
+    ',' : 'a',
+    '\"' : 'a',
+    '\'' : 'a',
+    '(' :'a',
+    ')' : 'a',
+    '?' : 'a',
+    '!' : 'a',
+    '#' : 'a',
+    '@' : 'a',
+    '/' : 'a',
+    '\\' : 'a',
+    '\t' : 'a',
+    '\n' : 'a',
+    ' ' : 'a',
+    '-' : 'a',
+    '_' : 'a',
+    '>' : 'a',
+    '<' : 'a',
+    '`' : 'a',
+    '~' : 'a',
+    ';' : 'a',
+    ':' : 'a'
+}
 
 
-# '[jJ]anuary \\d{2}|[Ff]ebruary \\d{2}|[Mm]arch \\d{2}|[Aa]pril \\d{2}'
-monthBeforeRule = " \d{2,4}|".join(monthList) + " \d{2,4}"
-twoFourDigitNum = "\d{2,4} "
-tempMonthList = []
-for month in monthList:
-    tempMonthList.append(month + '|')
-monthAfterRule = '{1}{0}'.format(twoFourDigitNum.join(tempMonthList), twoFourDigitNum)
+def cleanToken(token):
+    # token = token.group()
+    size = len(token)
+    if size > 0:
+        start = 0
+        end = size - 1
+        startBool = True
+        endBool = True
+        while (startBool or endBool) and end >= start:
+            if end == start:
+                if cleanerDic.get(token[start]) is not None:
+                    return None
+                else:
+                    return token[start]
+            if startBool and cleanerDic.get(token[start]) is not None:
+                start += 1
+            elif startBool:
+                startBool = False
+            if endBool and cleanerDic.get(token[end]) is not None:
+                end -= 1
+            elif endBool:
+                endBool = False
+        if end < start:
+            return None
 
-# '\\d{2} [jJ]anuary|\\d{2} [Ff]ebruary|\\d{2} [Mm]arch|\\d{2} [Aa]pril'
-monthAfterRule = monthAfterRule[:-1]
+        return token[start:end + 1]
 
-combainedRule = "\w+-\w+"
-percentRule = "\d+[\s/-/]percentage|\d+[\s/-/]percent"
+    return None
 
-listTMBT = [" [Tt]housand", " [Mm]illion", " [Bb]illion", " [Tt]rillion"]
-listNumWithTMBT = []
-for t in listTMBT:
-    listNumWithTMBT.append(nwcr + t)
 
-# '[\\d,]+ [Tt]housand|[\\d,]+ [Mm]illion|[\\d,]+ [Bb]illion|[\\d,]+ [Tt]rillion'
-numWithTMBTRule = '|'.join(listNumWithTMBT)
+def parseText(text):
+    # TODO - between shit
+    splittedText = text.split(' ')
+    for textIndex in range(0,len(splittedText)):
+        currWord = splittedText[textIndex]
+        if len(currWord) == 0:
+            continue
 
-# '\\$[\\d,]+ Thousand|\\$[\\d,]+ Million|\\$[\\d,]+ Billion|\\$[\\d,]+ Trillion'
-dSignWithTMBT = '{1}{0}'.format("|\$".join(listNumWithTMBT), "\$")
+        cleanedWord = cleanToken(currWord)
+        if cleanedWord is None or stopWordsList.get(cleanedWord.lower()) is not None:
+            continue
 
-# '[\\d,]+ Thousand Dollars|[\\d,]+ Million Dollars|[\\d,]+ Billion Dollars|[\\d,]+ Trillion [Dd]ollars|'
-dollarsWithTMBT = " [Dd]ollars|".join(listNumWithTMBT) + " [Dd]ollars"
+        if cleanedWord[0].isdigit():
+            wordIndex = 1
 
-# '[\\d,]+ Thousand U.S. Dollars|[\\d,]+ Million U.S. Dollars|[\\d,]+ Billion U.S. Dollars|[\\d,]+ Trillion [Dd]ollars|'
-usDollarsWithTMBT = " U.S. [Dd]ollars|".join(listNumWithTMBT) + " U.S. [Dd]ollars"
+        else:
+            # TODO - stem suppose to be here somewhere
+            # TODO - stopwords suppose to be here somewhere
+            wordIndex = 1
 
-# \$[\d,]+ Thousand|\$[\d,]+ Million|\$[\d,]+ Billion|\$[\d,]+ Trillion|
-# [\d,]+ Thousand Dollars|[\d,]+ Million Dollars|[\d,]+ Billion Dollars|[\d,]+ Trillion|
-# [\d,]+ Thousand U.S. Dollars|[\d,]+ Million U.S. Dollars|[\d,]+ Billion U.S. Dollars|[\d,]+ Trillion
-dollarRule = "|".join([dSignWithTMBT, dollarsWithTMBT, usDollarsWithTMBT])
+
+def percentToken(index, textList):
+    currWord = textList[index]
+    if currWord[len(currWord) - 1] is '%':
+        index += 1
+        return currWord ,index
+    elif index + 1 < len(textList) and textList[index + 1].lower() in ["percent", "percentage"]:
+        term = textList[index] + "%"
+        index += 2
+        return term, index
+    return None , index
+
+
+def monthToken_H1(index, textList):
+    currWord = textList[index]
+    if basic.isInt(currWord):
+        if index + 1 < len(textList) and monthDic.get(textList[index + 1].lower()) is not None:
+            if len(currWord) < 2:
+                currWord = "0" + currWord
+            returnValue = monthDic.get(textList[index + 1].lower()) + "-" + currWord
+            index += 2
+            return returnValue, index
+    return None, index
+
+def dateParse_H2_O(index, textList):
+    currWord = textList[index]
+    if monthDic.get(currWord.lower()) is not None:
+        monthNumber = monthDic.get(currWord.lower())
+        if index + 1 < len(textList) and basic.isInt(textList[index + 1]):
+            numberString = textList[index + 1]
+            if len(numberString) == 4:
+                returnValue = numberString + "-" + monthNumber
+            else:
+                if len(numberString) < 2:
+                    numberString = "0" + numberString
+                returnValue = monthNumber + "-" + numberString
+            index += 2
+            return returnValue, index
+
+    return None, index
+
+
+
+def parseTest(textList):
+    termsDic = {}
+    size = len(textList)
+    i = -1
+    while i < size:
+        if textList[i][0].isdigit():
+            temp, returnedIndex = percentToken(i,textList)
+            if temp is not None:
+                i = returnedIndex
+                termsDic[temp] = 1
+                continue
+            temp, returnedIndex = monthToken_H1(i,textList)
+            if temp is not None:
+                i = returnedIndex
+                termsDic[temp] = 1
+                continue
+        else:
+            temp, returnedIndex = dateParse_H2_O(i,textList)
+            if temp is not None:
+                i = returnedIndex
+                termsDic[temp] = 1
+                continue
+        i += 1
+
+    print (termsDic.keys())
+
+text = "one day i was 6% 6.4% and also 8 percent but also 9 percentage 7 May 3 october 31 NOV JUNE 16 May 1992"
+
+startTime = datetime.now()
+splittedText = text.split(' ')
+finishTime = datetime.now()
+timeItTook = finishTime - startTime
+print(str(timeItTook.seconds) + " seconds")
+
+startTime = datetime.now()
+pattern = re.compile(r'[\S]+')
+text = pattern.sub(cleanToken, text)
+finishTime = datetime.now()
+timeItTook = finishTime - startTime
+print(str(timeItTook.seconds) + " seconds")
+
+print (text)
+# parseTest(splittedText)
+
 
