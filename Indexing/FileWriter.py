@@ -1,9 +1,10 @@
-i = 0
+from AtomicInteger import AtomicCounter
+i = AtomicCounter()
 def cleanIndex(indexer):
     global i
-    i += 1
+    currentFileNumber = i.getAndIncrement()
     for dictionaryKey, dictionaryVal in indexer.myDictionaryByLetters.items():
-        writeDictionaryToFile(dictionaryKey + str(i), ['term', 'termData'],dictionaryVal)
+        writeDictionaryToFile(dictionaryKey + str(currentFileNumber), ['term', 'termData'],dictionaryVal)
 
 def writeDictionaryToFile(fileName, headLineAsArray, dictionaryToWrite):
     import os
