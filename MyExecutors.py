@@ -1,6 +1,8 @@
-from multiprocessing import Pool
-from multiprocessing.pool import ThreadPool
-import threading
+from multiprocessing.pool import Pool
+from multiprocessing.dummy import Pool as ThreadPool
+import multiprocessing as mp
+import concurrent.futures
+
 
 '''
 The rule of thumb is:
@@ -17,7 +19,11 @@ class MyExecutors:
     def __init__(self):
         self.IOExecutor = ThreadPool(5)
         # self.UIExecutor = threading.main_thread()
-        self.CPUExecutor = Pool(8)
+        self.CPUExecutor = ThreadPool(8)
+
+        # self.IOExecutor = mp.Pool()
+        # # self.UIExecutor = threading.main_thread()
+        # self.CPUExecutor = mp.Pool()
 
 
 class Singleton(MyExecutors):

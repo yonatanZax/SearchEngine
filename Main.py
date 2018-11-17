@@ -27,11 +27,84 @@ def initProject():
 def main():
     print("***   Main Start   ***")
     initProject()
+    # testRun()
+    regularRun()
 
+def testRun():
     indexer = Indexer()
     fileReader = ReadFile(indexer, config.corpusPath)
     # try:
-        # fileReader.readAllFiles()
+    # fileReader.readAllFiles()
+    listOfFolders = os.listdir(config.corpusPath)
+    counter = 0
+    startTime = datetime.now()
+    folder = listOfFolders[0]
+    result0 = MyExecutors._instance.CPUExecutor.apply_async(fileReader.readTextFile, (listOfFolders[0],))
+    result1 = MyExecutors._instance.CPUExecutor.apply_async(fileReader.readTextFile, (listOfFolders[1],))
+    # result2 = MyExecutors._instance.CPUExecutor.apply_async(fileReader.readTextFile, (listOfFolders[2],))
+    # result3 = MyExecutors._instance.CPUExecutor.apply_async(fileReader.readTextFile, (listOfFolders[3],))
+    # result4 = MyExecutors._instance.CPUExecutor.apply_async(fileReader.readTextFile, (listOfFolders[4],))
+    # result5 = MyExecutors._instance.CPUExecutor.apply_async(fileReader.readTextFile, (listOfFolders[5],))
+    # result6 = MyExecutors._instance.CPUExecutor.apply_async(fileReader.readTextFile, (listOfFolders[6],))
+    # result7 = MyExecutors._instance.CPUExecutor.apply_async(fileReader.readTextFile, (listOfFolders[7],))
+    # result8 = MyExecutors._instance.CPUExecutor.apply_async(fileReader.readTextFile, (listOfFolders[8],))
+    # result9 = MyExecutors._instance.CPUExecutor.apply_async(fileReader.readTextFile, (listOfFolders[9],))
+
+    result0.get(10)
+    print ("0 has finished")
+    result1.get(10)
+    print ("1 has finished")
+
+    # result2.wait()
+    # print ("2 has finished")
+    #
+    # result3.wait()
+    # print ("3 has finished")
+    #
+    # result4.wait()
+    # print ("4 has finished")
+    #
+    # result5.wait()
+    # print ("5 has finished")
+    #
+    # result6.wait()
+    # print ("6 has finished")
+    #
+    # result7.wait()
+    # print ("7 has finished")
+    #
+    # result8.wait()
+    # print ("8 has finished")
+    #
+    # result9.wait()
+    # print ("9 has finished")
+
+
+    indexer.flushMemory()
+
+    MyExecutors._instance.CPUExecutor.close()
+    print("CPU Closed")
+    MyExecutors._instance.CPUExecutor.join()
+    print("CPU Finished")
+    MyExecutors._instance.IOExecutor.close()
+    print("IO Closed")
+    MyExecutors._instance.IOExecutor.join()
+    print("IO Finished")
+
+    finishTime = datetime.now()
+    timeItTook = finishTime - startTime
+
+    print(str(timeItTook.seconds) + " seconds")
+    # print(str(timeItTook2.seconds) + " seconds after sorting")
+
+    print('***   Done   ***')
+
+
+def regularRun():
+    indexer = Indexer()
+    fileReader = ReadFile(indexer, config.corpusPath)
+    # try:
+    # fileReader.readAllFiles()
     listOfFolders = os.listdir(config.corpusPath)
     counter = 0
     thisRunFolderResult = []
@@ -70,9 +143,9 @@ def main():
     MyExecutors._instance.CPUExecutor.join()
     print("CPU Finished")
     MyExecutors._instance.IOExecutor.close()
-    print ("IO Closed")
+    print("IO Closed")
     MyExecutors._instance.IOExecutor.join()
-    print ("IO Finished")
+    print("IO Finished")
 
     finishTime = datetime.now()
     timeItTook = finishTime - startTime
@@ -88,16 +161,10 @@ def main():
     # headLineAsArray = ['Term', 'Posting']
     # FileWriter.writeDictionaryToFile('dictionaryAsFile', headLineAsArray, dictionaryToWrite=indexer.myDictionary)
 
-    print(str(timeItTook.seconds) + " seconds" )
+    print(str(timeItTook.seconds) + " seconds")
     # print(str(timeItTook2.seconds) + " seconds after sorting")
 
     print('***   Done   ***')
-
-
-
-
-
-
 
 
 if __name__ == "__main__":

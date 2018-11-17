@@ -73,9 +73,12 @@ class DocumentIndexData:
 
 # get the format of the term how its saved in the dictionary or none if its not in the dictionary
 def getTermDictionaryForm(dictionary, termString):
-    if termString.lower() in dictionary:
+    if not termString[0].isalpha():
+        if dictionary.get(termString) is not None:
+            return termString
+    elif dictionary.get(termString.lower()) is not None:
         return termString.lower()
-    if termString.upper() in dictionary:
+    elif dictionary.get(termString.upper()) is not None:
         return termString.upper()
     return None
 
@@ -88,9 +91,10 @@ def updateTermToDictionaryByTheRules(dictionary, termString):
         dicData = dictionary[termInDictionary]
 
         # figure out if the term is suppose to be lower or upper
-
+        if not termString[0].isalpha():
+            ans = termString
         # if the term is in CAP in dictionary
-        if termString.upper() == termInDictionary :
+        elif termString.upper() == termInDictionary :
 
             # but not the term string isn't - change the term in dictionary to small
             if termString[0].islower():
@@ -100,7 +104,9 @@ def updateTermToDictionaryByTheRules(dictionary, termString):
         return ans
 
     else:
-        if len(termString) > 0 and termString[0].isupper():
+        if not termString[0].isalpha():
+            ans = termString
+        elif len(termString) > 0 and termString[0].isupper():
             ans = termString.upper()
         else:
             ans = termString.lower()

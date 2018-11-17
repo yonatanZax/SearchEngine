@@ -259,6 +259,7 @@ def runExpression(regexFunction):
 def tokenizeRegex(text, fromFile = True):
     # print("tokenizeRegex")
     from Indexing.Document import Document
+    from Parsing.IterativeParsing import parseText
     tokenizeExpression = '|'.join([betweenRule,monthBeforeRule,monthAfterRule,combainedRule,percentRule,dollarRule,numWithTMBTRule])
     # tokenizeExpression = tokenizeExpression + '|' + "[a-zA-Z]+"
     # tokenizeExpression = "\d+"
@@ -273,9 +274,11 @@ def tokenizeRegex(text, fromFile = True):
         except IndexError:
             print("ERROR - Regex - tokenizeRegex")
         # print(text)
+
+
     termDictionary, docLength = getRegexMatches(tokenizeExpression, text)
     return Document(docNo,termDictionary, docLength)
-    # return [docNo,None]
+
 
 
 

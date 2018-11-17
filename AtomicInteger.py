@@ -30,7 +30,4 @@ class AtomicCounter:
             return self._value
 
 
-index = AtomicCounter()
 
-for i in range(0,1000):
-    MyExecutors._instance.IOExecutor.apply_async(index.incrementAndGet)
