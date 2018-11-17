@@ -12,6 +12,7 @@ import nltk
 # numberWithCommasRule
 nwcr = "[\d,]+"
 betweenRule = "[Bb]etween " + nwcr + " and " + nwcr
+
 # January | February | March | April | May | June | July | August | September | October | November | December
 monthList = ["[Jj]anuary", "[Ff]ebruary", "[Mm]arch", "[Aa]pril"]
 hasMonthRule = '|'.join(monthList)
@@ -54,11 +55,12 @@ usDollarsWithTMBT = " U.S. [Dd]ollars|".join(listNumWithTMBT) + " U.S. [Dd]ollar
 dollarRule = "|".join([dSignWithTMBT, dollarsWithTMBT, usDollarsWithTMBT])
 
 
-
+stopWordsList = {}
 try:
     path = config.projectMainFolder + 'stop_words.txt'
     with open(path) as f:
-        stopWordsList = f.read().splitlines()
+        for word in  f.read().splitlines():
+            stopWordsList[word] = None
 except IOError:
     print("Can't find path:",path)
 
@@ -69,7 +71,6 @@ def findByRule(rule, term):
     if (len(find) > 0):
         return True
     return False
-
 
 
 
@@ -257,14 +258,30 @@ def runExpression(regexFunction):
 
 
 
+def replacePercent(token):
+
+    splitedToken = token.group().split(' ')
+    return splitedToken[0]+'%'
+
+
+def replaceBetween(token):
+    splitedToken = token.group().split(' ')
+    return splitedToken[0] + '-' + splitedToken[2]
+
 
 def  getAllTerms(text):
     from Indexing.MyDictionary import updateTermToDictionaryByTheRules
 
     termDictionary = {}
-    matches = nltk.regexp_tokenize(text, "[\w]+")
+    # pattern = re.compile(r'\d+[\s/-/]percentage|\d+[\s/-/]percent')
+    # pattern.sub(replacePercent,text)
+    pattern = re.compile(r"[Bb]etween " + "[\d,]+" + " and " + "[\d,]+")
+    pattern.sub(replaceBetween,text)
+    # matches = nltk.regexp_tokenize(text, "[\w]+")
+    global betweenRule, percentRule
+    matches = nltk.regexp_tokenize(text, "\d+\-\d+")
     for match in matches:
-        # if match in stopWordsList:
+        # if match.lower() in stopWordsList:
         #     continue
         term = match
         count = 1
@@ -294,8 +311,8 @@ def tokenizeRegex(text, fromFile = True):
     if fromFile:
         try:
             docNo = re.findall(r'<DOCNO>(.*?)</DOCNO>', text)[0]
-            onlyText = text.split("<TEXT>")[1]
-            text = onlyText
+            # onlyText = text.split("<TEXT>")[1]
+            # text = onlyText
         except IndexError:
             print("ERROR - Regex - tokenizeRegex")
         # print(text)

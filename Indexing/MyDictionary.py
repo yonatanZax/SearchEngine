@@ -55,12 +55,20 @@ class DictionaryData:
         ans = "termDF: " + str(self.termDF)
         ans += ", sumTF: " + str(self.sumTF)
         ans += ", postingLine: " + str(self.postingLine)
-        ans += " dictionary: " + str(self.dictionary_docID_tf)
+        ans += "" + str(self.dictionary_docID_tf)
         return ans
 
     def cleanPostingData(self):
         self.dictionary_docID_tf = {}
 
+
+class DocumentIndexData:
+
+    def __init__(self, max_tf, uniqueTermsCount, docLength, city = None):
+        self.max_tf = max_tf
+        self.uniqueTermCount = uniqueTermsCount
+        self.docLength = docLength
+        self.city = city
 
 
 # get the format of the term how its saved in the dictionary or none if its not in the dictionary
