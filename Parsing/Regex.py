@@ -12,7 +12,6 @@ import nltk
 # numberWithCommasRule
 nwcr = "[\d,]+"
 betweenRule = "[Bb]etween " + nwcr + " and " + nwcr
-
 # January | February | March | April | May | June | July | August | September | October | November | December
 monthList = ["[Jj]anuary", "[Ff]ebruary", "[Mm]arch", "[Aa]pril"]
 hasMonthRule = '|'.join(monthList)
@@ -101,7 +100,7 @@ def convertTokenToTerm(token):
             return num + '%'
 
 
-        if findByRule(dollarRule, term):
+        elif findByRule(dollarRule, term):
             if term[0] == '$':
                 termAsArray[0] = convert.convertNumToMoneyFormat(termAsArray[0][1:])
 

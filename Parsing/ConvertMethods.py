@@ -65,29 +65,39 @@ def convertTMBT_toNum(tmbtString, letter=None):
 
 
 def convertNumToMoneyFormat(numAsString):
-    numAsFloat = float(removeCommasFromNumber(numAsString))
-    moduloMillion = numAsFloat/1000000
-    if moduloMillion >= 1:
-        if str(moduloMillion).endswith('.0'):
-            moduloMillion = int(moduloMillion)
-        return (str(moduloMillion)[:7] + 'M')
+    numToFloat = removeCommasFromNumber(numAsString)
+    from BasicMethods import isfloat
+    if isfloat(numToFloat):
+        numAsFloat = float(removeCommasFromNumber(numAsString))
+        moduloMillion = numAsFloat / 1000000
+        if moduloMillion >= 1:
+            if str(moduloMillion).endswith('.0'):
+                moduloMillion = int(moduloMillion)
+            return (str(moduloMillion)[:7] + ' M')
+        else:
+            if str(numAsFloat).endswith('.0'):
+                numAsFloat = int(numAsFloat)
+            return str(numAsFloat)
     else:
-        if str(numAsFloat).endswith('.0'):
-            numAsFloat = int(numAsFloat)
-        return str(numAsFloat)
+        return numToFloat.strip('0').strip('.')
 
 
 def convertNumToKMBformat(numAsString):
-    numAsFloat = float(removeCommasFromNumber(numAsString))
-    moduloMillion = numAsFloat / 1000000000
-    if moduloMillion >= 1:
-        return (str(moduloMillion)[:6].strip('0').strip('.') + 'B')
-    elif moduloMillion*100 >= 1:
-        return (str(moduloMillion*100)[:6].strip('0').strip('.') + 'M')
-    elif moduloMillion*1000000 >= 1:
-        return (str(moduloMillion*1000000)[:6].strip('0').strip('.') + 'K')
+    numToFloat = removeCommasFromNumber(numAsString)
+    from BasicMethods import isfloat
+    if isfloat(numToFloat):
+        numAsFloat = float(numToFloat)
+        moduloMillion = numAsFloat / 1000000000
+        if moduloMillion >= 1:
+            return (str(moduloMillion)[:6].strip('0').strip('.') + ' B')
+        elif moduloMillion * 100 >= 1:
+            return (str(moduloMillion * 100)[:6].strip('0').strip('.') + ' M')
+        elif moduloMillion * 1000000 >= 1:
+            return (str(moduloMillion * 1000000)[:6].strip('0').strip('.') + ' K')
+        else:
+            return str(numAsFloat)[:6].strip('0').strip('.')
     else:
-        return str(numAsFloat)[:6].strip('0')
+        return numToFloat.strip('0').strip('.')
 
 
 def removeCommasFromNumber(numAsString):

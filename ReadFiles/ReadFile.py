@@ -49,7 +49,6 @@ class ReadFile:
             for doc in documents:
                 # MyExecutors._instance.CPUExecutor.apply_async(self.parser.parseDoc, args=(doc,))
                 self.parser.parseDoc(doc)
-                # self.parser.parseDoc(doc)
 
         # except IOError:
         #     print('ERROR: ReadFile - readTextFile - IOError')
