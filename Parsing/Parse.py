@@ -1,40 +1,41 @@
 
 
 import re
-from Parsing.IterativeParsing import parseText
-import MyExecutors
+from Parsing.IterativeParsing import IterativeTokenizer
 
 class Parse:
 
-    def __init__(self, indexer):
-        self.myIndexer = indexer
+    def __init__(self):
+        self.tokenizer = IterativeTokenizer()
 
     def parseDoc(self, documentAsString):
-        # print ("parseDoc")
-        # docFromRegex = regex.tokenizeRegex(documentAsString)
-        docFromRegex = self.parseText(documentAsString)
-
-        self.myIndexer.addNewDoc(document=docFromRegex)
-        # MyExecutors._instance.CPUExecutor.apply_async(self.myIndexer.addNewDoc(document=docFromRegex))
-
-        # print(docFromRegex.docNo)
-
-
-    def parseText(self,text, fromFile = True):
         from Indexing.Document import Document
 
         docNo = 'test'
-        if fromFile:
-            try:
-                docNo = re.findall(r'<DOCNO>(.*?)</DOCNO>', text)[0]
-                onlyText = text.split("<TEXT>")[1]
-                text = onlyText
-            except IndexError:
-                print("ERROR - Regex - tokenizeRegex")
-            # print(text)
+        city = ""
+        try:
+            topOfText1 = documentAsString[0:50]
+            topOfText2 = documentAsString[400:500]
+            docNo = re.findall(r'<DOCNO>(.*?)</DOCNO>', topOfText1)
+            if len(docNo) > 0:
+                docNo = docNo[0][1:-1]
+                # print("#"+docNo+"#")
+            cityLine = re.findall(r"<F P=104>(.+?)</F>", topOfText2)
+            if len(cityLine) > 0:
+                city = re.findall(r"[a-zA-Z]+", cityLine[0])[0]
+                # print(cityLine)
+            onlyText = documentAsString.split("<TEXT>")
+            if len(onlyText) > 0:
+                documentAsString = onlyText[1]
+        except IndexError:
+            print("Error - Parse - parseText")
 
-        termDictionary, docLength = parseText(text)
-        return Document(docNo, termDictionary, docLength)
+        termDictionary, docLength = self.tokenizer.getTermDicFromText(documentAsString)
+        document =  Document(docNo, termDictionary, docLength, city = city)
+        return document
+        self.manager.indexer.addNewDoc(document=document)
+
+
 
 
 

@@ -1,17 +1,13 @@
 
 import os
-from Parsing.Parse import Parse
-from MyExecutors import MyExecutors
-import MyExecutors
+import Configuration as config
 
 
 class ReadFile:
 
-    def __init__(self, indexer, mainPath):
-        self.path = mainPath
-        self.myIndexer = indexer
+    def __init__(self):
+        self.path = config.corpusPath
         self.listOfFolders = os.listdir(self.path)
-        self.parser = Parse(self.myIndexer)
 
     def readAllFiles(self):
 
@@ -28,8 +24,9 @@ class ReadFile:
             # print(myIndexer.dictionary)
 
     def _readTextFromFile(self, filePath):
-        result = MyExecutors._instance.IOExecutor.apply_async(func=self._getText, args=(filePath,))
-        fileText = result.get()
+        # result = MyExecutors._instance.IOExecutor.apply_async(func=self._getText, args=(filePath,))
+        # fileText = result.get()
+        fileText = self._getText(filePath)
         return fileText
 
     def _getText(self,filePath):
@@ -45,10 +42,13 @@ class ReadFile:
             filePath = folderPath + '\\' + fileName
             fileAsText = self._readTextFromFile(filePath)
             documents = fileAsText.split('</DOC>')[:-1]
+            return documents
+
+
             # parser = Parse(self.myIndexer)
             for doc in documents:
-                # MyExecutors._instance.CPUExecutor.apply_async(self.parser.parseDoc, args=(doc,))
-                self.parser.parseDoc(doc)
+                # MyExecutors._instance.CPUExecutor.apply_async(self.manager.parser.parseDoc(doc))
+                self.manager.parser.parseDoc(doc)
 
         # except IOError:
         #     print('ERROR: ReadFile - readTextFile - IOError')
@@ -58,7 +58,7 @@ class ReadFile:
         #     print('ERROR: ReadFile - readTextFile - Exception')
 
 
-        # print(fileName)
+
 
 
 

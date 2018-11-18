@@ -19,10 +19,9 @@ class MyExecutors:
     def __init__(self):
         self.IOExecutor = ThreadPool(5)
         # self.UIExecutor = threading.main_thread()
-        self.CPUExecutor = ThreadPool(8)
+        self.CPUExecutor = Pool()
 
         # self.IOExecutor = mp.Pool()
-        # # self.UIExecutor = threading.main_thread()
         # self.CPUExecutor = mp.Pool()
 
 

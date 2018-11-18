@@ -6,6 +6,12 @@ from datetime import datetime
 from Indexing.Document import TermData
 import nltk
 
+class IterativeTokenizer:
+
+    def getTermDicFromText(self, text):
+        return parseText(text)
+#     TODO - encapsulate all the functions
+
 
 stopWordsDic = {}
 try:
@@ -81,6 +87,7 @@ cleanerDic = {
     ':' : 'a',
     '*' : 'a',
     '+': 'a',
+    '|': 'a'
 
 }
 
@@ -103,12 +110,6 @@ def cleanWithGroup(token):
 def cleanToken(token):
     size = len(token)
     if size > 0:
-
-
-
-        if stopWordsDic.get(token.lower()) is not None:
-            return None
-
         start = 0
         end = size - 1
         startBool = True
@@ -147,27 +148,39 @@ def addTermToDic(termDictionary, term):
         newTerm = TermData(count, 0)
         termDictionary[termFromDic] = newTerm
 
+# function that filters vowels
+def filterAll(currWord):
+    cleanedWord = cleanToken(currWord)
+    if cleanedWord is None or stopWordsDic.get(cleanedWord.lower()) is not None:
+        return False
+    return True
+
+
+
 def parseText(text, toStem=False):
     import Stemmer.Stemmer
 
     betweenPattern.sub(replaceBetween,text)
-    newText = cleanPattern.sub(cleanWithGroup, text)
-    splittedText = nltk.regexp_tokenize(newText, r'\S+')
-    # splittedText = text.split(' ')
+    # newText = cleanPattern.sub(cleanWithGroup, text)
+    # splittedText = nltk.regexp_tokenize(newText, r'\S+')
+    text = text.replace("\n",'').replace('\t','').replace('{','').replace( '}','').replace('[','').replace(']','').replace('\"','').replace('\'','').replace('(','').replace(')','').replace('?','').replace('!','').replace('#','').replace('@','').replace('/','').replace('\\','').replace('_','').replace('>','').replace('<','').replace('`','').replace('~','').replace(';','').replace(':','').replace('*','').replace('+','').replace('|', '')
+    splittedText = text.split(' ')
+    splittedText = list(filter(filterAll,splittedText))
     size = len(splittedText)
     textIndex = 0
     termsDic = {}
     docLength = 0
     while textIndex < size:
-        currWord = splittedText[textIndex]
-        if len(currWord) == 0:
-            textIndex += 1
-            continue
-        # cleanedWord = currWord
-        cleanedWord = cleanToken(currWord)
-        if cleanedWord is None or stopWordsDic.get(cleanedWord.lower()) is not None:
-            textIndex += 1
-            continue
+        cleanedWord = splittedText[textIndex]
+        # currWord = splittedText[textIndex]
+        # if len(currWord) == 0:
+        #     textIndex += 1
+        #     continue
+        # # cleanedWord = currWord
+        # cleanedWord = cleanToken(currWord)
+        # if cleanedWord is None or stopWordsDic.get(cleanedWord.lower()) is not None:
+        #     textIndex += 1
+        #     continue
 
         docLength += 1
 
@@ -201,9 +214,8 @@ def parseText(text, toStem=False):
         else:
 
             # TODO - stem suppose to be here somewhere
-            # TODO - stopwords suppose to be here somewhere
-            if currWord[0] == '$':
-                if len(currWord) == 1:
+            if cleanedWord[0] == '$':
+                if len(cleanedWord) == 1:
                     docLength -= 1
                     textIndex += 1
                     continue
@@ -212,9 +224,9 @@ def parseText(text, toStem=False):
                     textIndex = returnedIndex
                     addTermToDic(termsDic, temp)
                     continue
-            numOfDashes = currWord.count('-')
-            if currWord.count('-') > 0:
-                if numOfDashes == 1 and currWord[0] == '-':
+            numOfDashes = cleanedWord.count('-')
+            if cleanedWord.count('-') > 0:
+                if numOfDashes == 1 and cleanedWord[0] == '-':
                     if len(splittedText[textIndex]) > 1 and splittedText[textIndex][1].isdigit:
                         addTermToDic(termsDic, cleanedWord)
                     else:
@@ -342,6 +354,7 @@ def startWithDollar(curIndex,listOfTokens):
                 else:
                     # if nextToken has more than 1 slash , meaning is not a fraction
                     # TODO - convert term
+                    term = convert.convertNumToKMBformat(term)
                     return term, curIndex
             else:
                 break

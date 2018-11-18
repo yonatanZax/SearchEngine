@@ -31,7 +31,9 @@ class Indexer:
     def flushMemory(self):
         from Indexing import FileWriter
         import MyExecutors
-        MyExecutors._instance.CPUExecutor.apply_async(FileWriter.cleanIndex,(self,))
+        # result = MyExecutors._instance.CPUExecutor.apply_async(FileWriter.cleanIndex,(self,))
+        # return result
+        FileWriter.cleanIndex(self)
         
 
 

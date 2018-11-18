@@ -4,8 +4,8 @@ import Configuration as config
 from Indexing.Indexer import Indexer
 from ReadFiles.ReadFile import ReadFile
 from datetime import datetime
-import MyExecutors
-
+from Manager import MyManager
+import multiprocessing as mp
 
 def initProject():
     import shutil
@@ -27,77 +27,9 @@ def initProject():
 def main():
     print("***   Main Start   ***")
     initProject()
-    # testRun()
-    regularRun()
+    managerRun()
+    # regularRun()
 
-def testRun():
-    indexer = Indexer()
-    fileReader = ReadFile(indexer, config.corpusPath)
-    # try:
-    # fileReader.readAllFiles()
-    listOfFolders = os.listdir(config.corpusPath)
-    counter = 0
-    startTime = datetime.now()
-    folder = listOfFolders[0]
-    result0 = MyExecutors._instance.CPUExecutor.apply_async(fileReader.readTextFile, (listOfFolders[0],))
-    result1 = MyExecutors._instance.CPUExecutor.apply_async(fileReader.readTextFile, (listOfFolders[1],))
-    # result2 = MyExecutors._instance.CPUExecutor.apply_async(fileReader.readTextFile, (listOfFolders[2],))
-    # result3 = MyExecutors._instance.CPUExecutor.apply_async(fileReader.readTextFile, (listOfFolders[3],))
-    # result4 = MyExecutors._instance.CPUExecutor.apply_async(fileReader.readTextFile, (listOfFolders[4],))
-    # result5 = MyExecutors._instance.CPUExecutor.apply_async(fileReader.readTextFile, (listOfFolders[5],))
-    # result6 = MyExecutors._instance.CPUExecutor.apply_async(fileReader.readTextFile, (listOfFolders[6],))
-    # result7 = MyExecutors._instance.CPUExecutor.apply_async(fileReader.readTextFile, (listOfFolders[7],))
-    # result8 = MyExecutors._instance.CPUExecutor.apply_async(fileReader.readTextFile, (listOfFolders[8],))
-    # result9 = MyExecutors._instance.CPUExecutor.apply_async(fileReader.readTextFile, (listOfFolders[9],))
-
-    result0.get(10)
-    print ("0 has finished")
-    result1.get(10)
-    print ("1 has finished")
-
-    # result2.wait()
-    # print ("2 has finished")
-    #
-    # result3.wait()
-    # print ("3 has finished")
-    #
-    # result4.wait()
-    # print ("4 has finished")
-    #
-    # result5.wait()
-    # print ("5 has finished")
-    #
-    # result6.wait()
-    # print ("6 has finished")
-    #
-    # result7.wait()
-    # print ("7 has finished")
-    #
-    # result8.wait()
-    # print ("8 has finished")
-    #
-    # result9.wait()
-    # print ("9 has finished")
-
-
-    indexer.flushMemory()
-
-    MyExecutors._instance.CPUExecutor.close()
-    print("CPU Closed")
-    MyExecutors._instance.CPUExecutor.join()
-    print("CPU Finished")
-    MyExecutors._instance.IOExecutor.close()
-    print("IO Closed")
-    MyExecutors._instance.IOExecutor.join()
-    print("IO Finished")
-
-    finishTime = datetime.now()
-    timeItTook = finishTime - startTime
-
-    print(str(timeItTook.seconds) + " seconds")
-    # print(str(timeItTook2.seconds) + " seconds after sorting")
-
-    print('***   Done   ***')
 
 
 def regularRun():
@@ -109,11 +41,14 @@ def regularRun():
     counter = 0
     thisRunFolderResult = []
     startTime = datetime.now()
+    # pool = mp.Pool()
     for folder in listOfFolders:
         if counter < 10:
-            result = MyExecutors._instance.CPUExecutor.apply_async(fileReader.readTextFile, (folder,))
+            # result = MyExecutors._instance.CPUExecutor.apply_async(fileReader.readTextFile, (folder,))
+            # result = pool.apply_async(fileReader.readTextFile(folder))
+            fileReader.readTextFile(folder)
             counter += 1
-            thisRunFolderResult.append(result)
+            # thisRunFolderResult.append(result)
         else:
             for result in thisRunFolderResult:
                 result.get()
@@ -124,28 +59,16 @@ def regularRun():
         result.get()
     indexer.flushMemory()
 
-    # except Exception:
-    #     finishTime = datetime.now()
-    #     timeItTook = finishTime - startTime
-    #     print(timeItTook.seconds)
 
-    # listOfFolders = os.listdir(corpusPath)
-    #
-    # for folder in listOfFolders:
-    #     print(folder)
-    #     folderPath = corpusPath + '\\' + folder
-    #     filePath = folderPath + '\\' + folder
-    #     myIndexer = Indexer()
-    #     readFile = ReadFile(myIndexer, corpusPath)
-    #     readFile.readTextFile(filePath=filePath)
-    MyExecutors._instance.CPUExecutor.close()
-    print("CPU Closed")
-    MyExecutors._instance.CPUExecutor.join()
-    print("CPU Finished")
-    MyExecutors._instance.IOExecutor.close()
-    print("IO Closed")
-    MyExecutors._instance.IOExecutor.join()
-    print("IO Finished")
+
+    # MyExecutors._instance.CPUExecutor.close()
+    # print("CPU Closed")
+    # MyExecutors._instance.CPUExecutor.join()
+    # print("CPU Finished")
+    # MyExecutors._instance.IOExecutor.close()
+    # print("IO Closed")
+    # MyExecutors._instance.IOExecutor.join()
+    # print("IO Finished")
 
     finishTime = datetime.now()
     timeItTook = finishTime - startTime
@@ -161,10 +84,45 @@ def regularRun():
     # headLineAsArray = ['Term', 'Posting']
     # FileWriter.writeDictionaryToFile('dictionaryAsFile', headLineAsArray, dictionaryToWrite=indexer.myDictionary)
 
+    print ("Number of files Processed: " + str(len(listOfFolders)))
     print(str(timeItTook.seconds) + " seconds")
     # print(str(timeItTook2.seconds) + " seconds after sorting")
 
     print('***   Done   ***')
+
+
+def managerRun():
+    startTime = datetime.now()
+
+    listOfFolders = os.listdir(config.corpusPath)
+    managersNumber = 5
+    filesPerIteration = 5
+    folderPerManager = int(len(listOfFolders)/managersNumber)
+    toStem = False
+    managersList = []
+    pool = mp.Pool(8)
+    for i in range(0,managersNumber):
+        start = i * folderPerManager
+        end = (i + 1) * folderPerManager
+        if end > len(listOfFolders):
+            end = len(listOfFolders)
+
+        manager = MyManager(managerID = i, filesPerIteration = filesPerIteration,
+                            folderList = listOfFolders[int(start):int(end)],
+                            toStem = toStem, indexer = None)
+        manager.start(pool)
+        managersList.append(manager)
+
+    for i in range(0,managersNumber):
+        managersList[i].get()
+        print ("Got manager " + str(i))
+
+    finishTime = datetime.now()
+    timeItTook = finishTime - startTime
+
+    print ("Number of files Processed: " + str(len(listOfFolders)))
+    print(str(timeItTook.seconds) + " seconds")
+
 
 
 if __name__ == "__main__":

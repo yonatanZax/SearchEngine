@@ -65,7 +65,7 @@ def convertTMBT_toNum(tmbtString, letter=None):
 
 
 def convertNumToMoneyFormat(numAsString):
-    numAsFloat = float(removeCommasFromNumber(numAsString))
+    numAsFloat = float(removeCommasFromNumber(numAsString.strip('.')))
     moduloMillion = numAsFloat/1000000
     if moduloMillion >= 1:
         if str(moduloMillion).endswith('.0'):
@@ -92,7 +92,7 @@ def convertNumToKMBformat(numAsString):
         else:
             return str(numAsFloat)[:6].strip('0').strip('.')
     else:
-        return numToFloat
+        return numToFloat.strip('0').strip('.')
 
 
 def removeCommasFromNumber(numAsString):

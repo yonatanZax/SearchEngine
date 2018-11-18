@@ -1,10 +1,12 @@
 from AtomicInteger import AtomicCounter
+
 i = AtomicCounter()
+
 def cleanIndex(indexer):
     global i
     currentFileNumber = i.getAndIncrement()
     for dictionaryKey, dictionaryVal in indexer.myDictionaryByLetters.items():
-        writeDictionaryToFile(dictionaryKey + str(currentFileNumber), ['term', 'termData'],dictionaryVal)
+        writeDictionaryToFile(dictionaryKey + str(currentFileNumber), ['term','DF','sumTF','DOC#TF,*'],dictionaryVal)
 
 def writeDictionaryToFile(fileName, headLineAsArray, dictionaryToWrite):
     import os
@@ -24,24 +26,25 @@ def writeDictionaryToFile(fileName, headLineAsArray, dictionaryToWrite):
     if not os.path.exists(path):
         headLineToWrite = fileSeparator.join(headLineAsArray)
         result = MyExecutors._instance.IOExecutor.apply_async(_createFile, (path, headLineToWrite,))
-
+        # _createFile(path, headLineToWrite)
 
     lineToWrite = ""
     # Iter over all the terms in the dictionary and create a string to write
-    dictionaryToWrite.lock.acquire()
+    # dictionaryToWrite.lock.acquire()
     for term, termData in sorted(dictionaryToWrite.dictionary_term_dicData.items()):
-        if len(termData.dictionary_docID_tf) > 0:
-            lineToWrite += (term + " - " + termData.toString() + "\n")
+        if len(termData.string_docID_tf) > 0:
+            lineToWrite += (term + "|" + termData.toString() + "\n")
             # cleans the posting dictionary
             termData.cleanPostingData()
 
-    dictionaryToWrite.lock.release()
+    # dictionaryToWrite.lock.release()
 
     # wait for the file to be created
     result.get()
+
     # write to the end of the file at one time on another thread
     MyExecutors._instance.IOExecutor.apply_async(_writeToFile, (path,lineToWrite,))
-
+    # _writeToFile(path,lineToWrite)
 
 
     return True
