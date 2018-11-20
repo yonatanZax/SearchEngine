@@ -104,6 +104,13 @@ class DocumentIndexData:
         self.docLength = docLength
         self.city = city
 
+    def toString(self):
+        '''
+        max_tf|uniqueTermCount|docLength|city
+        :return:
+        '''
+        ans = str(self.max_tf) + '|' + str(self.uniqueTermCount) + '|' + str(self.docLength) + '|' + str(self.city)
+        return ans
 
 # get the format of the term how its saved in the dictionary or none if its not in the dictionary
 def getTermDictionaryForm(dictionary, termString):
@@ -146,6 +153,8 @@ def updateTermToDictionaryByTheRules(dictionary, termString):
             ans = termString.lower()
         dictionary[ans] = None
         return ans
+
+
 
 
 def TEST_updateTermToDictionaryByTheRules():

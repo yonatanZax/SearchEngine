@@ -4,7 +4,8 @@ import string
 class Indexer:
 
 
-    def __init__(self):
+    def __init__(self, indexerID):
+        self.ID = indexerID
 
         self.myDictionaryByLetters = {}
         for letter in string.ascii_lowercase[:26]:
@@ -34,6 +35,8 @@ class Indexer:
         # result = MyExecutors._instance.CPUExecutor.apply_async(FileWriter.cleanIndex,(self,))
         # return result
         FileWriter.cleanIndex(self)
+        FileWriter.cleanDocuments(self.documents_dictionary)
+        self.documents_dictionary = {}
         
 
 

@@ -5,7 +5,7 @@ from Indexing.Indexer import Indexer
 from ReadFiles.ReadFile import ReadFile
 from datetime import datetime
 from Manager import MyManager
-import multiprocessing as mp
+from concurrent.futures import ProcessPoolExecutor
 
 def initProject():
     import shutil
@@ -95,27 +95,35 @@ def managerRun():
     startTime = datetime.now()
 
     listOfFolders = os.listdir(config.corpusPath)
-    managersNumber = 5
+    managersNumber = 4
     filesPerIteration = 5
-    folderPerManager = int(len(listOfFolders)/managersNumber)
+    folderPerManager = int(len(listOfFolders)/managersNumber) + 1
     toStem = False
     managersList = []
-    pool = mp.Pool(8)
-    for i in range(0,managersNumber):
+    pool = ProcessPoolExecutor()
+    for i in range(0, managersNumber):
         start = i * folderPerManager
         end = (i + 1) * folderPerManager
         if end > len(listOfFolders):
             end = len(listOfFolders)
-
         manager = MyManager(managerID = i, filesPerIteration = filesPerIteration,
                             folderList = listOfFolders[int(start):int(end)],
                             toStem = toStem, indexer = None)
-        manager.start(pool)
         managersList.append(manager)
 
-    for i in range(0,managersNumber):
-        managersList[i].get()
-        print ("Got manager " + str(i))
+
+
+    for manager in zip(managersList, pool.map(run, managersList)):
+        manager[0].get()
+    # manager = MyManager(managerID = i, filesPerIteration = filesPerIteration,
+    #                     folderList = listOfFolders[int(start):int(end)],
+    #                     toStem = toStem, indexer = None)
+    # manager.start(pool)
+    # managersList.append(manager)
+
+    # for i in range(0,managersNumber):
+    #     managersList[i].get()
+    #     print ("Got manager " + str(i))
 
     finishTime = datetime.now()
     timeItTook = finishTime - startTime
@@ -123,6 +131,8 @@ def managerRun():
     print ("Number of files Processed: " + str(len(listOfFolders)))
     print(str(timeItTook.seconds) + " seconds")
 
+def run(manager):
+    manager.run()
 
 
 if __name__ == "__main__":

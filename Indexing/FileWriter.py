@@ -1,17 +1,20 @@
 from AtomicInteger import AtomicCounter
+import os
+import Configuration as config
+import MyExecutors
 
 i = AtomicCounter()
-
+x = 0
 def cleanIndex(indexer):
-    global i
-    currentFileNumber = i.getAndIncrement()
+    global i , x
+    # currentFileNumber = i.getAndIncrement()
+    currentFileNumber = x
+    x += 1
     for dictionaryKey, dictionaryVal in indexer.myDictionaryByLetters.items():
-        writeDictionaryToFile(dictionaryKey + str(currentFileNumber), ['term','DF','sumTF','DOC#TF,*'],dictionaryVal)
+        writeDictionaryToFile(dictionaryKey + str(indexer.ID) + "_" + str(currentFileNumber), ['term','DF','sumTF','DOC#TF,*'],dictionaryVal)
 
 def writeDictionaryToFile(fileName, headLineAsArray, dictionaryToWrite):
-    import os
-    import Configuration as config
-    import MyExecutors
+
     dirPath = config.savedFilePath + '\\' + fileName[0]
 
     if not os.path.exists(dirPath):
@@ -26,7 +29,10 @@ def writeDictionaryToFile(fileName, headLineAsArray, dictionaryToWrite):
     if not os.path.exists(path):
         headLineToWrite = fileSeparator.join(headLineAsArray)
         result = MyExecutors._instance.IOExecutor.apply_async(_createFile, (path, headLineToWrite,))
-        # _createFile(path, headLineToWrite)
+        _createFile(path, headLineToWrite)
+
+    headLineToWrite = fileSeparator.join(headLineAsArray)
+    result = MyExecutors._instance.IOExecutor.apply_async(_createFile, (path, headLineToWrite,))
 
     lineToWrite = ""
     # Iter over all the terms in the dictionary and create a string to write
@@ -46,9 +52,26 @@ def writeDictionaryToFile(fileName, headLineAsArray, dictionaryToWrite):
     MyExecutors._instance.IOExecutor.apply_async(_writeToFile, (path,lineToWrite,))
     # _writeToFile(path,lineToWrite)
 
-
     return True
 
+def cleanDocuments(dictionaryToWrite):
+    path = config.documentsIndex
+    result = None
+    if not os.path.exists(path):
+        headLineToWrite = 'term|max_tf|uniqueTermCount|docLength|city'
+        result = MyExecutors._instance.IOExecutor.apply_async(_createFile, (path, headLineToWrite,))
+        _createFile(path, headLineToWrite)
+
+    lineToWrite = ""
+    for docNo, documentData in sorted(dictionaryToWrite.items()):
+        lineToWrite += (docNo + "|" + documentData.toString() + "\n")
+
+    # wait for the file to be created
+    if result != None:
+        result.get()
+
+    # write to the end of the file at one time on another thread
+    MyExecutors._instance.IOExecutor.apply_async(_writeToFile, (path,lineToWrite,))
 
 def _createFile(path, headLineString):
     myFile = open(path, 'w')

@@ -12,10 +12,10 @@ class MyManager:
         self.folderList = folderList
         self.indexer = indexer
         if self.indexer is None:
-            self.indexer = Indexer()
+            self.indexer = Indexer(managerID)
         self.fileReader = ReadFile()
         self.parser = Parse()
-        # self.lock = Lock()
+        # self.lock = RLock()
         self.result = None
         self.toStem = toStem
 
@@ -24,31 +24,32 @@ class MyManager:
             x= 0
             # self.result = MyExecutors._instance.CPUExecutor.apply_async(self.run())
         else:
-            self.result = pool.apply_async(self.run())
+            self.result = pool.map(self.run())
 
     def run(self):
+        # self.lock.acquire()
         counter = 0
-        flushResultList = []
         for folder in self.folderList:
-            if counter < self.filesPerIteration:
-                counter += 1
-                documentsList = self.fileReader.readTextFile(folder)
-                for document in documentsList:
 
-                    parsedDocument = self.parser.parseDoc(document)
-                    self.indexer.addNewDoc(parsedDocument)
+            counter += 1
+            documentsList = self.fileReader.readTextFile(folder)
+            for document in documentsList:
+                parsedDocument = self.parser.parseDoc(document)
+                self.indexer.addNewDoc(parsedDocument)
 
-            else:
-                flushResult = self.indexer.flushMemory()
-                # flushResultList.append(flushResult)
+            if counter == self.filesPerIteration:
+                self.indexer.flushMemory()
                 counter = 0
+
+
         if counter != 0:
-            flushResult = self.indexer.flushMemory()
-            # flushResultList.append(flushResult)
-        for flushResult in flushResultList:
-            flushResult.wait()
+            self.indexer.flushMemory()
 
         print ("Manager " + str(self.ID) + " finished")
 
     def get(self):
-        self.result.wait()
+        print ("Got manager " + str(self.ID))
+
+        # self.result.get()
+        # self.lock.acquire()
+        # self.lock.release()
