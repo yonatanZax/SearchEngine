@@ -10,10 +10,11 @@ def cleanIndex(indexer):
     # currentFileNumber = i.getAndIncrement()
     currentFileNumber = x
     x += 1
+    headLineToWrite = 'term|DF|sumTF|DOC#TF,*'
     for dictionaryKey, dictionaryVal in indexer.myDictionaryByLetters.items():
-        writeDictionaryToFile(dictionaryKey + str(indexer.ID) + "_" + str(currentFileNumber), ['term','DF','sumTF','DOC#TF,*'],dictionaryVal)
+        writeDictionaryToFile(dictionaryKey + str(indexer.ID) + "_" + str(currentFileNumber), headLineToWrite,dictionaryVal)
 
-def writeDictionaryToFile(fileName, headLineAsArray, dictionaryToWrite):
+def writeDictionaryToFile(fileName, headLineToWrite, dictionaryToWrite):
 
     dirPath = config.savedFilePath + '\\' + fileName[0]
 
@@ -22,17 +23,10 @@ def writeDictionaryToFile(fileName, headLineAsArray, dictionaryToWrite):
 
     path = config.savedFilePath + '\\' + fileName[0] + '\\' + fileName
 
-    fileSeparator = '|'
-
     # If file doesn't exists, create a new file with headline
     result = None
     if not os.path.exists(path):
-        headLineToWrite = fileSeparator.join(headLineAsArray)
         result = MyExecutors._instance.IOExecutor.apply_async(_createFile, (path, headLineToWrite,))
-        _createFile(path, headLineToWrite)
-
-    headLineToWrite = fileSeparator.join(headLineAsArray)
-    result = MyExecutors._instance.IOExecutor.apply_async(_createFile, (path, headLineToWrite,))
 
     lineToWrite = ""
     # Iter over all the terms in the dictionary and create a string to write
@@ -46,7 +40,8 @@ def writeDictionaryToFile(fileName, headLineAsArray, dictionaryToWrite):
     # dictionaryToWrite.lock.release()
 
     # wait for the file to be created
-    result.get()
+    if result is not None:
+        result.get()
 
     # write to the end of the file at one time on another thread
     MyExecutors._instance.IOExecutor.apply_async(_writeToFile, (path,lineToWrite,))
@@ -67,7 +62,7 @@ def cleanDocuments(dictionaryToWrite):
         lineToWrite += (docNo + "|" + documentData.toString() + "\n")
 
     # wait for the file to be created
-    if result != None:
+    if result is not None:
         result.get()
 
     # write to the end of the file at one time on another thread

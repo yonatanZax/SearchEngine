@@ -20,21 +20,21 @@ class Indexer:
         # go over each term in the doc
         documentDictionary = document.termDocDictionary_term_termData
         docNo = document.docNo
+        maxFrequentWord = 0
         for term, termData in documentDictionary.items():
             # add the term to the dictionary
             if term[0].isalpha():
                 self.myDictionaryByLetters[term[0].lower()].addTerm(termString=term, docNo=docNo, termFrequency=termData.termFrequency)
             else:
                 self.myDictionaryByLetters["#"].addTerm(termString=term, docNo=docNo, termFrequency=termData.termFrequency)
-        newDocumentIndexData = DocumentIndexData(max_tf=document.mostFrequentTermNumber, uniqueTermsCount=len(document.termDocDictionary_term_termData), docLength=document.docLength, city = document.city)
+            maxFrequentWord = max(termData.termFrequency, maxFrequentWord)
+        newDocumentIndexData = DocumentIndexData(max_tf=maxFrequentWord, uniqueTermsCount=len(document.termDocDictionary_term_termData), docLength=document.docLength, city = document.city)
         self.documents_dictionary[docNo] = newDocumentIndexData
 
     def flushMemory(self):
         from Indexing import FileWriter
-        import MyExecutors
-        # result = MyExecutors._instance.CPUExecutor.apply_async(FileWriter.cleanIndex,(self,))
-        # return result
         FileWriter.cleanIndex(self)
+
         FileWriter.cleanDocuments(self.documents_dictionary)
         self.documents_dictionary = {}
         

@@ -156,6 +156,7 @@ def filterAll(currWord):
         return False
     return True
 
+# TODO - upgrade the dash func
 
 
 def parseText(text, toStem=False):
