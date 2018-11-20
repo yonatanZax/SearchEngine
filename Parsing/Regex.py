@@ -179,11 +179,6 @@ def convertTokenToTerm(token):
 
 
 
-
-
-
-
-
 def getRegexMatches(expression, text, toStem = False):
     import Stemmer.Stemmer
 
@@ -193,26 +188,25 @@ def getRegexMatches(expression, text, toStem = False):
     # splitedWords = text.split(' ')
     # splitedWords = nltk.tokenize.word_tokenize(text)
     # splitedWords = nltk.regexp_tokenize(text, '[^\"\'\n\s\)\(][\S\$\%]+[\-]?[^\"\'\n\s\(\)][\S]+')
-    # words = re.sub(r'|'.join(map(re.escape, stopWordsList)), '', text)
     # splitedWords = nltk.regexp_tokenize(text, '[A-Z]{2,}(?![a-z])|[A-Z][a-z]+(?=[A-Z])|[\'\w\-]+')
+    # TODO - the word between exist in the stop words, can cause problems
     withOutStopWords = [word for word in text.split() if word not in stopWordsList]
-    # withOutStopWords = list(set(splitedWords) - set(stopWordsList))
     #
-    # text = ' '.join(withOutStopWords)
+    text = ' '.join(withOutStopWords)
 
-    # pattern = re.compile(expression)
     matches = nltk.regexp_tokenize(text, expression)
 
-
+    # pattern = re.compile(expression)
+    # matchesTest = pattern.sub(convertTokenToTerm, text)
+    docLength = 0
     # matches = pattern.finditer(text)
     # matches = pattern.findall(text)
     # matches = tokinizer(text)
     for match in matches:
         # matchStart = match.start()
         # token = match.group()
+        docLength += 1
         token = match
-        if toStem:
-            token = Stemmer.Stemmer.stemTerm(token)
         count = 1
         term = convertTokenToTerm(token)
         termFromDic = updateTermToDictionaryByTheRules(termDictionary,term)
@@ -231,9 +225,13 @@ def getRegexMatches(expression, text, toStem = False):
     for boringTerm in withOutSpecialTerms:
         token = boringTerm.strip('\"')
         token = boringTerm.strip('\'')
-
+        if len(token) == 0:
+            continue
         if toStem:
             token = Stemmer.Stemmer.stemTerm(token)
+
+        docLength += 1
+
         count = 1
         termFromDic = updateTermToDictionaryByTheRules(termDictionary,token)
         termDataFromDic = termDictionary.get(termFromDic)
@@ -245,7 +243,7 @@ def getRegexMatches(expression, text, toStem = False):
         newTerm = TermData(count, 0)
         termDictionary[termFromDic] = newTerm
 
-    return termDictionary
+    return termDictionary ,docLength
 
 
 def runExpression(regexFunction):
@@ -257,51 +255,12 @@ def runExpression(regexFunction):
 
 
 
-def replacePercent(token):
-
-    splitedToken = token.group().split(' ')
-    return splitedToken[0]+'%'
-
-
-def replaceBetween(token):
-    splitedToken = token.group().split(' ')
-    return splitedToken[0] + '-' + splitedToken[2]
-
-
-def  getAllTerms(text):
-    from Indexing.MyDictionary import updateTermToDictionaryByTheRules
-
-    termDictionary = {}
-    # pattern = re.compile(r'\d+[\s/-/]percentage|\d+[\s/-/]percent')
-    # pattern.sub(replacePercent,text)
-    pattern = re.compile(r"[Bb]etween " + "[\d,]+" + " and " + "[\d,]+")
-    pattern.sub(replaceBetween,text)
-    # matches = nltk.regexp_tokenize(text, "[\w]+")
-    global betweenRule, percentRule
-    matches = nltk.regexp_tokenize(text, "\d+\-\d+")
-    for match in matches:
-        # if match.lower() in stopWordsList:
-        #     continue
-        term = match
-        count = 1
-        termFromDic = updateTermToDictionaryByTheRules(termDictionary, term)
-        termDataFromDic = termDictionary.get(termFromDic)
-        if termDataFromDic is not None:
-            count = termDataFromDic.termFrequency + 1
-            termDataFromDic.termFrequency = count
-            continue
-
-        newTerm = TermData(count, 0)
-        termDictionary[termFromDic] = newTerm
-
-    return termDictionary
-
-
 
 def tokenizeRegex(text, fromFile = True):
-
+    # print("tokenizeRegex")
     from Indexing.Document import Document
-    # tokenizeExpression = '|'.join([betweenRule,monthBeforeRule,monthAfterRule,combainedRule,percentRule,dollarRule,numWithTMBTRule])
+    from Parsing.IterativeParsing import parseText
+    tokenizeExpression = '|'.join([betweenRule,monthBeforeRule,monthAfterRule,combainedRule,percentRule,dollarRule,numWithTMBTRule])
     # tokenizeExpression = tokenizeExpression + '|' + "[a-zA-Z]+"
     # tokenizeExpression = "\d+"
 
@@ -310,28 +269,26 @@ def tokenizeRegex(text, fromFile = True):
     if fromFile:
         try:
             docNo = re.findall(r'<DOCNO>(.*?)</DOCNO>', text)[0]
-            # onlyText = text.split("<TEXT>")[1]
-            # text = onlyText
+            onlyText = text.split("<TEXT>")[1]
+            text = onlyText
         except IndexError:
             print("ERROR - Regex - tokenizeRegex")
         # print(text)
-    # termDictionary = getRegexMatches(tokenizeExpression, text)
-    termDictionary = getAllTerms(text)
 
-    return Document(docNo,termDictionary)
-    # return [docNo,None]
 
+    termDictionary, docLength = getRegexMatches(tokenizeExpression, text)
+    return Document(docNo,termDictionary, docLength)
 
 
 
 
 
-textToCheck = '''  bla bla Y15 trillion bla '''
-# '''
-# 2,522,421 Million Dollars ... U.S. Dollars 542 Thousand and 15 Trillion
-# March 24 ... between 20 and 40, 80% cost $25 today-tomorrow\n 8,324 U.S. Dollars will be 60 percent"
-# '''
-tokenizeRegex(textToCheck,False)
+
+textToCheck = '''
+2,522,421 Million Dollars ... U.S. Dollars 542 Thousand and 15 Trillion
+March 24 ... between 20 and 40, 80% cost $25 today-tomorrow\n 8,324 U.S. Dollars will be 60 percent"
+'''
+# tokenizeRegex(textToCheck,False)
 
 
 

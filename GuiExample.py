@@ -6,9 +6,15 @@ import Configuration as config
 
 class EngineBuilder(Frame):
 
-    def __init__(self, master=None):
+    def __init__(self,master,numOfManagers, numOfTotalFiles):
         Frame.__init__(self, master)
         self.grid()
+        self.filesDone = 0
+        self.numOfTotalFiles = numOfTotalFiles
+        self.numOfFilesPerIteration = config.filesPerIteration
+        self.managersList = []
+        for i in range(0,numOfManagers):
+            self.managersList.append(0)
 
         label_0 = Label(self.master, text="Search Engine", width=20, font=("bold", 20))
         label_0.place(x=90, y=60)
@@ -44,6 +50,7 @@ class EngineBuilder(Frame):
             self.entry_postingPath_text.set(posting_path)
 
 
+
         self.corpusPathButton = Button(self.master, text='Find', width=5, fg='black',command= corpusPath).place(x=380, y=125)
         self.postingPathButton = Button(self.master, text='Find', width=5, fg='black',command= postingPath).place(x=380, y=155)
 
@@ -58,13 +65,12 @@ class EngineBuilder(Frame):
         label_4 = Label(self.master, text="Language", width=10, font=("bold", 10))
         label_4.place(x=50, y=190)
 
-        list1 = ['English', 'Spanish', 'Hebrew'];
-        c = StringVar()
-        droplist = OptionMenu(root, c, *list1)
-        droplist.config(width=15)
-        c.set('Select')
-        droplist.place(x=180, y=190)
-
+        # list1 = ['English', 'Spanish', 'Hebrew'];
+        # c = StringVar()
+        # droplist = OptionMenu(root, c, *list1)
+        # droplist.config(width=15)
+        # c.set('Select')
+        # droplist.place(x=180, y=190)
 
 
 
@@ -75,8 +81,12 @@ class EngineBuilder(Frame):
 
         def buildEngine():
             print("Corpus path:     ",self.entry_corpusPath.get())
+            config.corpusPath = self.entry_corpusPath.get()
             print("Posting path:     ",self.entry_postingPath.get())
-            print("Starting...")
+            config.savedFilePath = self.entry_postingPath.get()
+            print("\n***    ManagerRun    ***")
+            from Main import managerRun
+            managerRun()
 
 
         self.deleteButton = Button(self.master, text='Delete', width=10, bg='red', fg='white',command= deleteEngine).place(x=100, y=250)
@@ -89,8 +99,8 @@ class EngineBuilder(Frame):
         self.stemmingCheckBox = Checkbutton(self.master, variable=var1,onvalue = 1, offvalue = 0).place(x=300, y=250)
 
 
-        label_progress = Label(self.master, text="Progress:     [||||||||||||||||||||||||||||||||||||||||          ]  80% ", width=50, font=("bold", 10))
-        label_progress.place(x=50, y=320)
+        self.label_progress = Label(self.master, text="Progress:     [||||||||||||||||||||||||||||||||||||||||          ] 80% ", width=50, font=("bold", 10))
+        self.label_progress.place(x=50, y=320)
 
 
 
@@ -129,7 +139,21 @@ class EngineBuilder(Frame):
         #                 width=20, font=("bold", 10))
         # label_docText.place(x=70, y=300)
 
+    def updateFileCounter(self, managerID):
+        label = "Progress:     ["
 
+        self.managersList[managerID] += self.numOfFilesPerIteration
+        filesDone = 0
+        for i in range(0,len(self.managersList)):
+            filesDone += self.managersList[i]
+        numOfLines = int(self.filesDone/self.numOfTotalFiles) * 50
+        linesAsString = ''
+        for i in range(0,numOfLines):
+            linesAsString += '|'
+        for i in range(numOfLines,50):
+            linesAsString += ' '
+
+        self.label_progress['label'] = label + linesAsString + '] ' + str(numOfLines*2) + '% '
 
 
 

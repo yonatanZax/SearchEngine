@@ -4,7 +4,8 @@ import string
 class Indexer:
 
 
-    def __init__(self):
+    def __init__(self, indexerID):
+        self.ID = indexerID
 
         self.myDictionaryByLetters = {}
         for letter in string.ascii_lowercase[:26]:
@@ -19,20 +20,103 @@ class Indexer:
         # go over each term in the doc
         documentDictionary = document.termDocDictionary_term_termData
         docNo = document.docNo
+        maxFrequentWord = 0
         for term, termData in documentDictionary.items():
             # add the term to the dictionary
-            if term[0].isalpha():
+            term = cleanDashesCommas(term)
+            if len(term) == 0:
+                continue
+            if englishLetters.get(term[0]):
                 self.myDictionaryByLetters[term[0].lower()].addTerm(termString=term, docNo=docNo, termFrequency=termData.termFrequency)
             else:
-                self.myDictionaryByLetters["#"].addTerm(termString=term, docNo=docNo, termFrequency=termData.termFrequency)
-        newDocumentIndexData = DocumentIndexData(max_tf=document.mostFrequentTermNumber, uniqueTermsCount=len(document.termDocDictionary_term_termData), docLength=document.docLength, city = document.city)
+                if len(term) > 0:
+                    self.myDictionaryByLetters["#"].addTerm(termString=term, docNo=docNo, termFrequency=termData.termFrequency)
+            maxFrequentWord = max(termData.termFrequency, maxFrequentWord)
+        newDocumentIndexData = DocumentIndexData(max_tf=maxFrequentWord, uniqueTermsCount=len(document.termDocDictionary_term_termData), docLength=document.docLength, city = document.city)
         self.documents_dictionary[docNo] = newDocumentIndexData
 
     def flushMemory(self):
         from Indexing import FileWriter
-        import MyExecutors
-        MyExecutors._instance.CPUExecutor.apply_async(FileWriter.cleanIndex,(self,))
+        FileWriter.cleanIndex(self)
 
+        FileWriter.cleanDocuments(self.documents_dictionary)
+        self.documents_dictionary = {}
+
+
+
+
+
+def cleanDashesCommas(token):
+    size = len(token)
+    if size > 0:
+        start = 0
+        while start < size:
+            if token[start] == '-' or token[start] == ',' or token[start] == '.' or token[start] == '=':
+                start += 1
+            break
+
+        token = token[start:].strip('-').strip(',').strip('.')
+
+    return token
+
+
+
+englishLetters = {
+
+    'a' : True,
+    'A' : True,
+    'b' : True,
+    'B' : True,
+    'c' : True,
+    'C' : True,
+    'd' : True,
+    'D' : True,
+    'e' : True,
+    'E' : True,
+    'f' : True,
+    'F' : True,
+    'g' : True,
+    'G' : True,
+    'h' : True,
+    'H' : True,
+    'i' : True,
+    'I' : True,
+    'j' : True,
+    'J' : True,
+    'k' : True,
+    'K' : True,
+    'l' : True,
+    'L' : True,
+    'm' : True,
+    'M' : True,
+    'n' : True,
+    'N' : True,
+    'o' : True,
+    'O' : True,
+    'p' : True,
+    'P' : True,
+    'q' : True,
+    'Q' : True,
+    'r' : True,
+    'R' : True,
+    's' : True,
+    'S' : True,
+    't' : True,
+    'T' : True,
+    'u' : True,
+    'U' : True,
+    'v' : True,
+    'V' : True,
+    'w' : True,
+    'W' : True,
+    'x' : True,
+    'X' : True,
+    'y' : True,
+    'Y' : True,
+    'z' : True,
+    'Z' : True,
+
+}
 
 
 

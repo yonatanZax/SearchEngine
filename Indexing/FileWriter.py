@@ -1,15 +1,21 @@
 from AtomicInteger import AtomicCounter
-i = AtomicCounter()
-def cleanIndex(indexer):
-    global i
-    currentFileNumber = i.getAndIncrement()
-    for dictionaryKey, dictionaryVal in indexer.myDictionaryByLetters.items():
-        writeDictionaryToFile(dictionaryKey + str(currentFileNumber), ['term', 'termData'],dictionaryVal)
+import os
+import Configuration as config
+import MyExecutors
 
-def writeDictionaryToFile(fileName, headLineAsArray, dictionaryToWrite):
-    import os
-    import Configuration as config
-    import MyExecutors
+i = AtomicCounter()
+x = 0
+def cleanIndex(indexer):
+    global i , x
+    # currentFileNumber = i.getAndIncrement()
+    currentFileNumber = x
+    x += 1
+    headLineToWrite = 'term|DF|sumTF|DOC#TF,*'
+    for dictionaryKey, dictionaryVal in indexer.myDictionaryByLetters.items():
+        writeDictionaryToFile(dictionaryKey + str(indexer.ID) + "_" + str(currentFileNumber), headLineToWrite,dictionaryVal)
+
+def writeDictionaryToFile(fileName, headLineToWrite, dictionaryToWrite):
+
     dirPath = config.savedFilePath + '\\' + fileName[0]
 
     if not os.path.exists(dirPath):
@@ -17,35 +23,52 @@ def writeDictionaryToFile(fileName, headLineAsArray, dictionaryToWrite):
 
     path = config.savedFilePath + '\\' + fileName[0] + '\\' + fileName
 
-    fileSeparator = '|'
-
     # If file doesn't exists, create a new file with headline
     result = None
     if not os.path.exists(path):
-        headLineToWrite = fileSeparator.join(headLineAsArray)
         result = MyExecutors._instance.IOExecutor.apply_async(_createFile, (path, headLineToWrite,))
-
 
     lineToWrite = ""
     # Iter over all the terms in the dictionary and create a string to write
-    dictionaryToWrite.lock.acquire()
+    # dictionaryToWrite.lock.acquire()
     for term, termData in sorted(dictionaryToWrite.dictionary_term_dicData.items()):
-        if len(termData.dictionary_docID_tf) > 0:
-            lineToWrite += (term + " - " + termData.toString() + "\n")
+        if len(termData.string_docID_tf) > 0:
+            lineToWrite += (term + "|" + termData.toString() + "\n")
             # cleans the posting dictionary
             termData.cleanPostingData()
 
-    dictionaryToWrite.lock.release()
+    # dictionaryToWrite.lock.release()
 
     # wait for the file to be created
-    result.get()
+    if result is not None:
+        result.get()
+
+
+
     # write to the end of the file at one time on another thread
     MyExecutors._instance.IOExecutor.apply_async(_writeToFile, (path,lineToWrite,))
-
-
+    # _writeToFile(path,lineToWrite)
 
     return True
 
+def cleanDocuments(dictionaryToWrite):
+    path = config.documentsIndex
+    result = None
+    if not os.path.exists(path):
+        headLineToWrite = 'term|max_tf|uniqueTermCount|docLength|city'
+        result = MyExecutors._instance.IOExecutor.apply_async(_createFile, (path, headLineToWrite,))
+        _createFile(path, headLineToWrite)
+
+    lineToWrite = ""
+    for docNo, documentData in sorted(dictionaryToWrite.items()):
+        lineToWrite += (docNo + "|" + documentData.toString() + "\n")
+
+    # wait for the file to be created
+    if result is not None:
+        result.get()
+
+    # write to the end of the file at one time on another thread
+    MyExecutors._instance.IOExecutor.apply_async(_writeToFile, (path,lineToWrite,))
 
 def _createFile(path, headLineString):
     myFile = open(path, 'w')

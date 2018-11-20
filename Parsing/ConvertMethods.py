@@ -65,21 +65,16 @@ def convertTMBT_toNum(tmbtString, letter=None):
 
 
 def convertNumToMoneyFormat(numAsString):
-    numToFloat = removeCommasFromNumber(numAsString)
-    from BasicMethods import isfloat
-    if isfloat(numToFloat):
-        numAsFloat = float(removeCommasFromNumber(numAsString))
-        moduloMillion = numAsFloat / 1000000
-        if moduloMillion >= 1:
-            if str(moduloMillion).endswith('.0'):
-                moduloMillion = int(moduloMillion)
-            return (str(moduloMillion)[:7] + ' M')
-        else:
-            if str(numAsFloat).endswith('.0'):
-                numAsFloat = int(numAsFloat)
-            return str(numAsFloat)
+    numAsFloat = float(removeCommasFromNumber(numAsString.strip('.')))
+    moduloMillion = numAsFloat/1000000
+    if moduloMillion >= 1:
+        if str(moduloMillion).endswith('.0'):
+            moduloMillion = int(moduloMillion)
+        return (str(moduloMillion)[:7] + ' M')
     else:
-        return numToFloat.strip('0').strip('.')
+        if str(numAsFloat).endswith('.0'):
+            numAsFloat = int(numAsFloat)
+        return str(numAsFloat)
 
 
 def convertNumToKMBformat(numAsString):

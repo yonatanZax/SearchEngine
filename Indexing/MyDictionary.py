@@ -1,22 +1,43 @@
 import multiprocessing
-
+import concurrent.futures.process
+import threading
 
 class MyDictionary:
 
     def __init__(self):
         self.dictionary_term_dicData = {}
-        self.lock = multiprocessing.RLock()
+        # self.lock = multiprocessing.RLock()
+        # self.lock = threading.RLock()
 
     # assuming termString gets in all CAP or all LOW letters already from parser
     def addTerm(self, termString, docNo, termFrequency):
-        self.lock.acquire()
+        # self.lock.acquire()
+        # termInDictionary = updateTermToDictionaryByTheRules(self.dictionary_term_dicData, termString)
+        # termDicData = self.dictionary_term_dicData.get(termInDictionary)
+        # if termDicData is None:
+        #     # add new term
+        #     termDicData = DictionaryData(len(self.dictionary_term_dicData))
+        #     self.dictionary_term_dicData[termInDictionary] = termDicData
+        # self.lock.release()
+        # # add the doc to the term posting line
+        # termDicData.addDocument(docID=docNo, docTF_int=termFrequency)
+
+        # with self.lock:
+        #     termInDictionary = updateTermToDictionaryByTheRules(self.dictionary_term_dicData, termString)
+        #     termDicData = self.dictionary_term_dicData.get(termInDictionary)
+        #     if termDicData is None:
+        #         # add new term
+        #         termDicData = DictionaryData(len(self.dictionary_term_dicData))
+        #         self.dictionary_term_dicData[termInDictionary] = termDicData
+        # # add the doc to the term posting line
+        # termDicData.addDocument(docID=docNo, docTF_int=termFrequency)
+
         termInDictionary = updateTermToDictionaryByTheRules(self.dictionary_term_dicData, termString)
         termDicData = self.dictionary_term_dicData.get(termInDictionary)
         if termDicData is None:
             # add new term
             termDicData = DictionaryData(len(self.dictionary_term_dicData))
             self.dictionary_term_dicData[termInDictionary] = termDicData
-        self.lock.release()
         # add the doc to the term posting line
         termDicData.addDocument(docID=docNo, docTF_int=termFrequency)
 
@@ -41,25 +62,38 @@ class DictionaryData:
         self.termDF = 0
         self.sumTF = 0
         self.postingLine = postingLine
-        self.dictionary_docID_tf = {}
-        self.lock = multiprocessing.RLock()
+        self.string_docID_tf = ""
+        # self.dictionary_docID_tf = {}
+        # self.lock = multiprocessing.RLock()
+        # self.lock = threading.RLock()
+
 
     def addDocument(self, docID, docTF_int):
-        self.lock.acquire()
+        # self.lock.acquire()
         self.termDF += 1
         self.sumTF += docTF_int
-        self.dictionary_docID_tf[docID] = docTF_int
-        self.lock.release()
+        self.string_docID_tf += str(docID) + "#" + str(docTF_int) + ","
+        # self.dictionary_docID_tf[docID] = docTF_int
+        # self.lock.release()
+
+        # with self.lock:
+        #     self.termDF += 1
+        #     self.sumTF += docTF_int
+        #     self.dictionary_docID_tf[docID] = docTF_int
 
     def toString(self):
-        ans = "termDF: " + str(self.termDF)
-        ans += ", sumTF: " + str(self.sumTF)
-        ans += ", postingLine: " + str(self.postingLine)
-        ans += "" + str(self.dictionary_docID_tf)
+        '''
+        posting Format:
+        term|DF|sumTF|DOC#TF,*
+        '''
+        arr = [str(self.termDF),str(self.sumTF), self.string_docID_tf.strip(',')]
+        ans = "|".join(arr)
+
         return ans
 
     def cleanPostingData(self):
-        self.dictionary_docID_tf = {}
+        # with self.lock:
+        self.string_docID_tf = ""
 
 
 class DocumentIndexData:
@@ -70,6 +104,13 @@ class DocumentIndexData:
         self.docLength = docLength
         self.city = city
 
+    def toString(self):
+        '''
+        max_tf|uniqueTermCount|docLength|city
+        :return:
+        '''
+        ans = str(self.max_tf) + '|' + str(self.uniqueTermCount) + '|' + str(self.docLength) + '|' + str(self.city)
+        return ans
 
 # get the format of the term how its saved in the dictionary or none if its not in the dictionary
 def getTermDictionaryForm(dictionary, termString):
@@ -112,6 +153,8 @@ def updateTermToDictionaryByTheRules(dictionary, termString):
             ans = termString.lower()
         dictionary[ans] = None
         return ans
+
+
 
 
 def TEST_updateTermToDictionaryByTheRules():
