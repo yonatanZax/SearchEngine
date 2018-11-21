@@ -35,6 +35,8 @@ class MyManager:
             documentsList = self.fileReader.readTextFile(folder)
             for document in documentsList:
                 parsedDocument = self.parser.parseDoc(document)
+                if parsedDocument is None:
+                    continue
                 self.indexer.addNewDoc(parsedDocument)
 
             if counter == self.filesPerIteration:
