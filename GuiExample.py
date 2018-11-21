@@ -84,14 +84,22 @@ class EngineBuilder(Frame):
             config.corpusPath = self.entry_corpusPath.get()
             print("Posting path:     ",self.entry_postingPath.get())
             config.savedFilePath = self.entry_postingPath.get()
+
+
+            # Todo - disable button
+
+
             print("\n***    ManagerRun    ***")
             from Main import managerRun
-            managerRun()
+            from threading import Thread
+            th = Thread(target=managerRun)
+            th.start()
+            print('Start')
+            # managerRun()
 
 
         self.deleteButton = Button(self.master, text='Delete', width=10, bg='red', fg='white',command= deleteEngine).place(x=100, y=250)
         self.buildButton = Button(self.master, text='Build', width=10, bg='green', fg='white',command= buildEngine).place(x=200, y=250)
-
 
         label_stemming = Label(self.master, text="Stemming", width=10, font=("bold", 10))
         label_stemming.place(x=320, y=250)
