@@ -34,7 +34,7 @@ class Merger:
         try:
             # open all files
             open_files = []
-            [open_files.append(open(config.savedFilePath + '\\b\\' + file__, 'r')) for file__ in input_files]
+            [open_files.append(open(config.savedFilePath + "\\" + file__[0] + "\\" + file__, 'r')) for file__ in input_files]
             filesByLines = []
             i = 0
             # read all the files to a list and close the files
@@ -111,9 +111,10 @@ class Merger:
 
             # clean up
             FinalList.append(currentValTerm + '|' + str(currentValDF) + '|' + str(currentValSUMTF) + '|' + currentValPOSTING)
-            for line in FinalList:
-                print (line)
-            print ("Number of terms:" + str(len(FinalList)))
+            # for line in FinalList:
+            #     print (line)
+            # print ("Number of terms:" + str(len(FinalList)))
+            return FinalList
         except Exception as err_msg:
             print ("Error while merging: %s" % str(err_msg))
 
@@ -142,19 +143,3 @@ class Merger:
         return currentValTerm.lower() == smallestTerm
 
 
-def test():
-    startTime = datetime.now()
-
-    files = ['b0_0', 'b0_1', 'b1_0','b1_1','b2_0','b2_1','b3_0','b3_1',]
-    merger = Merger()
-    merger.merge(files)
-
-    finishTime = datetime.now()
-    timeItTook = finishTime - startTime
-
-    print(str(timeItTook.seconds) + " seconds")
-
-
-
-
-test()

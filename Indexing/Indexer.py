@@ -1,5 +1,7 @@
+import os
 from Indexing.MyDictionary import MyDictionary, DocumentIndexData
 import string
+import Configuration as config
 
 class Indexer:
 
@@ -47,6 +49,30 @@ class Indexer:
     def uploadDictionary(self):
 #         TODO - implement me
         x=1
+
+    @staticmethod
+    def merge():
+        from datetime import datetime
+        from Indexing.KWayMerge import Merger
+        from Indexing import FileWriter
+
+        startTime = datetime.now()
+
+        merger = Merger()
+        savedFilesPathList = os.listdir(config.savedFilePath)
+
+        savedFilesPathList.remove('docIndex') # TODO - find a way to fix this
+
+        for folder in savedFilesPathList:
+            letterFilesList = os.listdir(config.savedFilePath + "\\" + folder)
+            mergedList = merger.merge(letterFilesList)
+            FileWriter.writeMergedFile(mergedList , config.savedFilePath + "\\" + folder + "\\mergedFile")
+
+
+        finishTime = datetime.now()
+        timeItTook = finishTime - startTime
+
+        print("Entire Merge took: "+ str(timeItTook.seconds) + " seconds")
 
 
 def cleanDashesCommas(token):

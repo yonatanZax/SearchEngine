@@ -66,6 +66,8 @@ class DictionaryData:
         # self.dictionary_docID_tf = {}
 
 
+    # TODO - something is wrong with the numbers fix it
+
     def addDocument(self, docID, docTF_int):
         self.sumTF += docTF_int
         if self.string_docID_tf.count(str(docID)) > 0:

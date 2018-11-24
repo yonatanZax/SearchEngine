@@ -163,7 +163,7 @@ def parseText(text, toStem=False):
     import Stemmer.Stemmer
 
     betweenPattern.sub(replaceBetween,text)
-    text = text.replace("\n",'').replace('\t','').replace('{','').replace( '}','').replace('[','').replace(']','').replace('\"','').replace('\'','').replace('(','').replace(')','').replace('?','').replace('!','').replace('#','').replace('@','').replace('/','').replace('\\','').replace('_','').replace('>','').replace('<','').replace('`','').replace('~','').replace(';','').replace(':','').replace('*','').replace('+','').replace('|', '').replace('&','').replace('=','')
+    text = text.replace("\n",'').replace('\t','').replace('{','').replace( '}','').replace('[','').replace(']','').replace('\"','').replace('\'','').replace('(','').replace(')','').replace('?','').replace('!','').replace('#','').replace('@','').replace('/','').replace('\\','').replace('_','').replace('>','').replace('<','').replace('`','').replace('~','').replace(';','').replace(':','').replace('*','').replace('+','').replace('|', '').replace('&','').replace('=','').replace('--',' ')
     splittedText = text.split(' ')
     splittedText = list(filter(filterAll,splittedText))
     size = len(splittedText)
@@ -186,7 +186,7 @@ def parseText(text, toStem=False):
                 addTermToDic(termsDic, temp)
                 continue
             numOfDashes = splittedText[textIndex].count('-')
-            if numOfDashes > 1:
+            if numOfDashes > 0:
                 tokenList, returnedIndex = splitDashToken(textIndex, splittedText)
                 for token in tokenList:
                     if len(token) > 0:
@@ -292,13 +292,15 @@ def dateParse_H2_O(index, textList):
 
 def splitDashToken(index, textList):
     tokenList = []
-    tokenList = textList[index].split("-")
+    token = textList[index]
+    tokenList = token.split('-')
+    ansList = []
     for term in tokenList:
         cleanedTerm = cleanToken(term)
-        if cleanedTerm is None:
-            tokenList.remove(term)
+        if cleanedTerm is not None and len(term) > 0:
+            ansList.append(term)
     tokenList.append(textList[index])
-    return tokenList, index + 1
+    return ansList, index + 1
 
 # TODO - add 2 rules
 

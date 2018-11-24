@@ -4,6 +4,7 @@ import Configuration as config
 from datetime import datetime
 from Manager import MyManager
 from concurrent.futures import ProcessPoolExecutor
+from Indexing.Indexer import Indexer
 
 def initProject():
     import shutil
@@ -63,6 +64,8 @@ def managerRun():
 
     for manager in zip(managersList, pool.map(run, managersList)):
         manager[0].get()
+
+    Indexer.merge()
     # manager = MyManager(managerID = i, filesPerIteration = filesPerIteration,
     #                     folderList = listOfFolders[int(start):int(end)],
     #                     toStem = toStem, indexer = None)
@@ -77,7 +80,7 @@ def managerRun():
     timeItTook = finishTime - startTime
 
     print ("Number of files Processed: " + str(len(listOfFolders)))
-    print(str(timeItTook.seconds) + " seconds")
+    print("Everything took: " + str(timeItTook.seconds) + " seconds")
 
 def run(manager):
     manager.run()

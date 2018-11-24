@@ -66,6 +66,13 @@ def cleanDocuments(dictionaryToWrite):
 # TODO - make sure that if we use stem we won't run over not stemmed files
 # TODO - change path to relative and add the stem and file name to the method signature
 
+def writeMergedFile(finalList, outputFile):
+    lineToWrite = ""
+    for line in finalList:
+        lineToWrite += line + "\n"
+    _writeToFile(outputFile,lineToWrite)
+
+
 def _createFile(path, headLineString):
     myFile = open(path, 'w')
     # myFile.write(headLineString + "\n")
