@@ -163,9 +163,7 @@ def parseText(text, toStem=False):
     import Stemmer.Stemmer
 
     betweenPattern.sub(replaceBetween,text)
-    # newText = cleanPattern.sub(cleanWithGroup, text)
-    # splittedText = nltk.regexp_tokenize(newText, r'\S+')
-    text = text.replace("\n",'').replace('\t','').replace('{','').replace( '}','').replace('[','').replace(']','').replace('\"','').replace('\'','').replace('(','').replace(')','').replace('?','').replace('!','').replace('#','').replace('@','').replace('/','').replace('\\','').replace('_','').replace('>','').replace('<','').replace('`','').replace('~','').replace(';','').replace(':','').replace('*','').replace('+','').replace('|', '')
+    text = text.replace("\n",'').replace('\t','').replace('{','').replace( '}','').replace('[','').replace(']','').replace('\"','').replace('\'','').replace('(','').replace(')','').replace('?','').replace('!','').replace('#','').replace('@','').replace('/','').replace('\\','').replace('_','').replace('>','').replace('<','').replace('`','').replace('~','').replace(';','').replace(':','').replace('*','').replace('+','').replace('|', '').replace('&','').replace('=','')
     splittedText = text.split(' ')
     splittedText = list(filter(filterAll,splittedText))
     size = len(splittedText)
@@ -174,16 +172,6 @@ def parseText(text, toStem=False):
     docLength = 0
     while textIndex < size:
         cleanedWord = splittedText[textIndex]
-        # currWord = splittedText[textIndex]
-        # if len(currWord) == 0:
-        #     textIndex += 1
-        #     continue
-        # # cleanedWord = currWord
-        # cleanedWord = cleanToken(currWord)
-        # if cleanedWord is None or stopWordsDic.get(cleanedWord.lower()) is not None:
-        #     textIndex += 1
-        #     continue
-
         docLength += 1
 
         if cleanedWord[0].isdigit():
@@ -215,7 +203,7 @@ def parseText(text, toStem=False):
 
         else:
 
-            # TODO - stem suppose to be here somewhere
+            # TODO - stem suppose to be here somewhere, make sure the toStem gets all the way down to here
             if cleanedWord[0] == '$':
                 if len(cleanedWord) == 1:
                     docLength -= 1
@@ -259,7 +247,6 @@ def parseText(text, toStem=False):
         textIndex += 1
 
     return termsDic, docLength
-    # print (termsDic.keys())
 
 
 
@@ -306,32 +293,47 @@ def dateParse_H2_O(index, textList):
 def splitDashToken(index, textList):
     tokenList = []
     tokenList = textList[index].split("-")
-    # for term in tokenList:
-    #     # cleanedTerm = cleanToken(term)
-    #     if cleanedTerm is None:
-    #         tokenList.remove(term)
+    for term in tokenList:
+        cleanedTerm = cleanToken(term)
+        if cleanedTerm is None:
+            tokenList.remove(term)
     tokenList.append(textList[index])
     return tokenList, index + 1
 
+# TODO - add 2 rules
 
 
 def startWithDollar(curIndex,listOfTokens):
     import Parsing.ConvertMethods  as convert
     token = listOfTokens[curIndex]
     term = token[1]
+    if not term.isdigit():
+        return token, curIndex + 1
     p = 2
+    hasDot = False
 
     while p < len(token):
         # token = 1,550.23 -> 1550.23
-        if token[p].isdigit() or token[p] == '.':
+        if token[p] == '.':
+            if hasDot:
+                return token, curIndex + 1
+            else:
+                hasDot = True
+                term += token[p]
+                p += 1
+                continue
+
+        elif token[p].isdigit():
             term += token[p]
         elif token[p] == ',':
             p += 1
             continue
         elif token[p].lower() in ['m', 'k', 'b', 't']:
+            if not basic.isfloat(term):
+                return token, curIndex + 1
             term = str(float(term) * convert.convertTMBT_toNum('', token[p].lower()))
         else:
-            return None, curIndex
+            return token, curIndex + 1
 
         p = p + 1
 
@@ -382,18 +384,30 @@ def numTMBT_tokenToTerm(curIndex,listOfTokens):
     token = listOfTokens[curIndex]
     term = token[0]
     p = 1
+    hasDot = False
 
     while p < len(token):
         # token = 1,550.23 -> 1550.23
-        if token[p].isdigit() or token[p] == '.':
+        if token[p] == '.':
+            if hasDot:
+                return token, curIndex + 1
+            else:
+                hasDot = True
+                term += token[p]
+                p += 1
+                continue
+
+        elif token[p].isdigit():
             term += token[p]
         elif token[p] == ',':
             p += 1
             continue
-        elif token[p].lower() in ['m','k','b','t']:
-            term = str(float(term)*convert.convertTMBT_toNum('',token[p].lower()))
+        elif token[p].lower() in ['m', 'k', 'b', 't']:
+            if not basic.isfloat(term):
+                return token, curIndex + 1
+            term = str(float(term) * convert.convertTMBT_toNum('', token[p].lower()))
         else:
-            return None,curIndex
+            return token, curIndex + 1
 
         p = p + 1
 
@@ -444,23 +458,26 @@ def numTMBT_tokenToTerm(curIndex,listOfTokens):
 
     checkTMBT = listOfTokens[curIndex]
     if checkTMBT in ['Thousand', 'thousand','Million','million','Billion','billion','Trillion','trillion']:
-        term = str(float(term) * convert.convertTMBT_toNum(tmbtString=checkTMBT.lower()))
-        curIndex += 1
-        checkForUSDOLLARS = listOfTokens[curIndex]
-        if checkForUSDOLLARS == 'U.S':
+        if basic.isfloat(term):
+            term = str(float(term) * convert.convertTMBT_toNum(tmbtString=checkTMBT.lower()))
             curIndex += 1
             checkForUSDOLLARS = listOfTokens[curIndex]
-            if checkForUSDOLLARS in ['Dollars', 'dollars']:
+            if checkForUSDOLLARS == 'U.S':
+                curIndex += 1
+                checkForUSDOLLARS = listOfTokens[curIndex]
+                if checkForUSDOLLARS in ['Dollars', 'dollars']:
+                    term = convert.convertNumToMoneyFormat(term)
+                    return term + ' Dollars', curIndex + 1
+                return term, curIndex - 1
+
+            elif checkForUSDOLLARS in ['Dollars', 'dollars']:
                 term = convert.convertNumToMoneyFormat(term)
                 return term + ' Dollars', curIndex + 1
-            return term, curIndex - 1
-
-        elif checkForUSDOLLARS in ['Dollars', 'dollars']:
-            term = convert.convertNumToMoneyFormat(term)
-            return term + ' Dollars', curIndex + 1
+            else:
+                term = convert.convertNumToKMBformat(term)
+                return term, curIndex
         else:
-            term = convert.convertNumToKMBformat(term)
-            return term , curIndex
+            return term, curIndex
 
 
 
