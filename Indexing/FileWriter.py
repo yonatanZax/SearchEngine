@@ -32,7 +32,7 @@ def writeDictionaryToFile(fileName, headLineToWrite, dictionaryToWrite):
     # Iter over all the terms in the dictionary and create a string to write
     for term, termData in sorted(dictionaryToWrite.dictionary_term_dicData.items()):
         if len(termData.string_docID_tf) > 0:
-            lineToWrite += (term + "|" + termData.toString() + "\n")
+            lineToWrite += term + "|" + termData.toString() + "\n"
             # cleans the posting dictionary
             termData.cleanPostingData()
 
@@ -67,10 +67,15 @@ def cleanDocuments(dictionaryToWrite):
 # TODO - change path to relative and add the stem and file name to the method signature
 
 def writeMergedFile(finalList, outputFile):
-    lineToWrite = ""
+    lineToWritePost = ""
+    lineToWriteDic = ""
+    index = 0
     for line in finalList:
-        lineToWrite += line + "\n"
-    _writeToFile(outputFile,lineToWrite)
+        lineToWriteDic += line[0] + '|' + str(index) +'\n'
+        lineToWritePost += line[1] + "\n"
+        index += 1
+    _writeToFile(outputFile + "_post",lineToWritePost)
+    _writeToFile(outputFile + "_dic", lineToWriteDic)
 
 
 def _createFile(path, headLineString):

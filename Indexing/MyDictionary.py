@@ -93,7 +93,7 @@ class DictionaryData:
         posting Format:
         term|DF|sumTF|DOC#TF,*
         '''
-        arr = [str(self.termDF),str(self.sumTF), self.string_docID_tf.strip(',')]
+        arr = [str(self.termDF),str(self.sumTF), self.string_docID_tf]
         ans = "|".join(arr)
 
         return ans
@@ -101,6 +101,8 @@ class DictionaryData:
     def cleanPostingData(self):
         # with self.lock:
         self.string_docID_tf = ""
+        self.sumTF = 0
+        self.termDF = 0
 
 
 class DocumentIndexData:

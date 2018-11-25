@@ -204,11 +204,12 @@ def parseText(text, toStem=False):
         else:
 
             # TODO - stem suppose to be here somewhere, make sure the toStem gets all the way down to here
+            if len(cleanedWord) < 2:
+                docLength -= 1
+                textIndex += 1
+                continue
+
             if cleanedWord[0] == '$':
-                if len(cleanedWord) == 1:
-                    docLength -= 1
-                    textIndex += 1
-                    continue
                 temp, returnedIndex = startWithDollar(textIndex, splittedText)
                 if temp is not None:
                     textIndex = returnedIndex
@@ -297,9 +298,9 @@ def splitDashToken(index, textList):
     ansList = []
     for term in tokenList:
         cleanedTerm = cleanToken(term)
-        if cleanedTerm is not None and len(term) > 0:
+        if cleanedTerm is not None and len(term) > 1:
             ansList.append(term)
-    tokenList.append(textList[index])
+        ansList.append(textList[index])
     return ansList, index + 1
 
 # TODO - add 2 rules
