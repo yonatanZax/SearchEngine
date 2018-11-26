@@ -157,8 +157,7 @@ def filterAll(currWord):
         return False
     return True
 
-# TODO - upgrade the dash func
-
+# TODO - check where we want to change 'strip()' methods to 'rstrip()' or 'lstrip()'
 
 def parseText(text, toStem=config.toStem):
     import Stemmer.Stemmer
@@ -236,6 +235,7 @@ def parseText(text, toStem=config.toStem):
                     tokenList, returnedIndex = splitDashToken(textIndex, splittedText)
                     for token in tokenList:
                         if len(token) > 0:
+                            # TODO - check if the term is number
                             addTermToDic(termsDic, token)
                     textIndex = returnedIndex
                     continue
@@ -307,7 +307,7 @@ def splitDashToken(index, textList):
         cleanedTerm = cleanToken(term)
         if cleanedTerm is not None and len(term) > 1:
             ansList.append(term)
-        ansList.append(textList[index])
+    ansList.append(textList[index])
     return ansList, index + 1
 
 # TODO - add 2 rules

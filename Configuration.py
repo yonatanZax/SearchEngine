@@ -12,7 +12,7 @@ documentsIndexPath = savedFilePath + '/docIndex'
 stopWordFile = 'stop_words.txt'
 stopWordPath = corpusPath + '/' + stopWordFile
 
-managersNumber = 4
+managersNumber = os.cpu_count()
 filesPerIteration = 15
 listOfFoldersLength = len(os.listdir(corpusPath))
 

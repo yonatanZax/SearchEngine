@@ -69,9 +69,9 @@ class Merger:
 
     # TODO - make sure the files already come as full path or check how you want them to come
 
-    # TODO - delete the headline of the temporary posting files
+    # TODO - (DONE) - delete the headline of the temporary posting files
 
-    # TODO - add the dictionary adding logic here
+    # TODO - (DONE) - add the dictionary adding logic here
 
 
     def merge(self, input_files):
@@ -81,6 +81,7 @@ class Merger:
         :param input_files: the files path representing temporary posting files
         :return: a list, where each object in the list is a line for a term
         """
+
         try:
             # open all files
             open_files = []
@@ -227,12 +228,14 @@ class Merger:
 
 
 def test():
-    merger = Merger()
-    list = merger.merge(['b0_0','b0_1'])
-    for l in list:
-        print (l)
+    import os
+    # merger = Merger()
+    # list = merger.merge(['b0_0','b0_1'])
+    # for l in list:
+    #     print (l)
+    print (os.cpu_count())
 
-# test()
+test()
 
 
 

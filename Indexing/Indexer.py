@@ -32,8 +32,7 @@ class Indexer:
             if englishLetters.get(term[0]):
                 self.myDictionaryByLetters[term[0].lower()].addTerm(termString=term, docNo=docNo, termFrequency=termData.termFrequency)
             else:
-                if len(term) > 0:
-                    self.myDictionaryByLetters["#"].addTerm(termString=term, docNo=docNo, termFrequency=termData.termFrequency)
+                self.myDictionaryByLetters["#"].addTerm(termString=term, docNo=docNo, termFrequency=termData.termFrequency)
             maxFrequentWord = max(termData.termFrequency, maxFrequentWord)
         newDocumentIndexData = DocumentIndexData(max_tf=maxFrequentWord, uniqueTermsCount=len(document.termDocDictionary_term_termData), docLength=document.docLength, city = document.city)
         self.documents_dictionary[docNo] = newDocumentIndexData
@@ -50,8 +49,8 @@ class Indexer:
 #         TODO - implement me
         x=1
 
-    @staticmethod
-    def merge():
+
+    def merge(self):
         from datetime import datetime
         from Indexing.KWayMerge import Merger
         from Indexing import FileWriter
@@ -62,32 +61,44 @@ class Indexer:
         savedFilesPathList = os.listdir(config.savedFilePath)
 
         savedFilesPathList.remove('docIndex') # TODO - find a way to fix this
-
         for folder in savedFilesPathList:
             letterFilesList = os.listdir(config.savedFilePath + "\\" + folder)
-            mergedList = merger.merge(letterFilesList)
-            FileWriter.writeMergedFile(mergedList , config.savedFilePath + "\\" + folder + "\\mergedFile")
+            fileToMergeList = []
+            for letterFile in letterFilesList:
+                if letterFile[1] == str(self.ID):
+                    fileToMergeList.append(letterFile)
+
+            mergedList = merger.merge(fileToMergeList)
+            FileWriter.writeMergedFileTemp(mergedList , config.savedFilePath + "\\" + folder + "\\" + str(folder[0]) + str(self.ID))
 
 
         finishTime = datetime.now()
         timeItTook = finishTime - startTime
 
-        print("Entire Merge took: "+ str(timeItTook.seconds) + " seconds")
+        # print("Entire Merge took: "+ str(timeItTook.seconds) + " seconds")
 
+    @staticmethod
+    def staticMerge():
+        from datetime import datetime
+        from Indexing.KWayMerge import Merger
+        from Indexing import FileWriter
 
-def cleanDashesCommas(token):
-    # TODO - remove this function and the use of this in addNewDoc
-    size = len(token)
-    if size > 0:
-        start = 0
-        while start < size:
-            if token[start] == '-' or token[start] == ',' or token[start] == '.' or token[start] == '=':
-                start += 1
-            break
+        startTime = datetime.now()
 
-        token = token[start:].strip('-').strip(',').strip('.')
+        merger = Merger()
+        savedFilesPathList = os.listdir(config.savedFilePath)
 
-    return token
+        savedFilesPathList.remove('docIndex')  # TODO - find a way to fix this
+
+        for folder in savedFilesPathList:
+            letterFilesList = os.listdir(config.savedFilePath + "\\" + folder)
+            mergedList = merger.merge(letterFilesList)
+            FileWriter.writeMergedFile(mergedList, config.savedFilePath + "\\" + folder + "\\mergedFile")
+
+        finishTime = datetime.now()
+        timeItTook = finishTime - startTime
+
+        print("Entire Merge took: " + str(timeItTook.seconds) + " seconds")
 
 
 
@@ -147,8 +158,3 @@ englishLetters = {
     'Z' : True,
 
 }
-
-
-
-
-

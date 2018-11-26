@@ -76,6 +76,12 @@ def writeMergedFile(finalList, outputFile):
     _writeToFile(outputFile + "_post",lineToWritePost)
     _writeToFile(outputFile + "_dic", lineToWriteDic)
 
+def writeMergedFileTemp(finalList, outputFile):
+    lineToWrite = ""
+    for line in finalList:
+        lineToWrite += line[0] + '|' + line[1] + '\n'
+    _writeToFile(outputFile, lineToWrite)
+
 
 def _createFile(path, headLineString):
     myFile = open(path, 'w')
