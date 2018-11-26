@@ -46,6 +46,7 @@ def managerRun():
     managersNumber = config.managersNumber
     filesPerIteration = config.filesPerIteration
     listOfFolders = os.listdir(config.corpusPath)
+    listOfFolders.remove(config.stopWordFile)
     folderPerManager = int(len(listOfFolders)/managersNumber) + 1
     toStem = False
     managersList = []
@@ -66,15 +67,7 @@ def managerRun():
         manager[0].get()
 
     Indexer.merge()
-    # manager = MyManager(managerID = i, filesPerIteration = filesPerIteration,
-    #                     folderList = listOfFolders[int(start):int(end)],
-    #                     toStem = toStem, indexer = None)
-    # manager.start(pool)
-    # managersList.append(manager)
 
-    # for i in range(0,managersNumber):
-    #     managersList[i].get()
-    #     print ("Got manager " + str(i))
 
     finishTime = datetime.now()
     timeItTook = finishTime - startTime

@@ -103,7 +103,7 @@ class Merger:
                 self._heap.push(MergeDataClass(splittedLine[0].lower(), splittedLine[0], splittedLine[1], splittedLine[2], splittedLine[3], 0, file))
 
 
-            FinalList = {}
+            FinalDictionary = {}
 
 
             # do the first iteration
@@ -156,7 +156,7 @@ class Merger:
                 else:
                     # write to output file
                     # FinalList.append((str(currentValTerm) + '|' + str(currentValDF) + '|' + str(currentValSUMTF) , currentValPosting))
-                    self.addToDic(FinalList,MergeDataClass(currentValTermLower,currentValTerm,currentValDF,currentValSUMTF,currentValPosting))
+                    self.addToDic(FinalDictionary,MergeDataClass(currentValTermLower,currentValTerm,currentValDF,currentValSUMTF,currentValPosting))
                     currentValTermLower = smallestTermLower
                     currentValTerm = smallestTerm
                     currentValDF = int(smallestDF)
@@ -176,12 +176,13 @@ class Merger:
 
             # clean up
             # FinalList.append((str(currentValTerm) + '|' + str(currentValDF) + '|' + str(currentValSUMTF),currentValPosting))
-            self.addToDic(FinalList, MergeDataClass(currentValTermLower, currentValTerm, currentValDF, currentValSUMTF, currentValPosting))
+            self.addToDic(FinalDictionary, MergeDataClass(currentValTermLower, currentValTerm, currentValDF, currentValSUMTF, currentValPosting))
 
             # for line in FinalList:
             #     print (line)
             # print ("Number of terms:" + str(len(FinalList)))
-            return FinalList.values()
+            FinalList = list(FinalDictionary.values())
+            return sorted(FinalList, key=self.sortDicKey)
         except Exception as err_msg:
             print ("Error while merging: %s" % str(err_msg))
             raise err_msg
@@ -196,6 +197,12 @@ class Merger:
                 false if they're not
         """
         return currentValTerm == smallest
+
+    @staticmethod
+    def sortDicKey(item):
+        endTerm = item[0].find('|')
+        returnedTerm = item[0][0:endTerm]
+        return returnedTerm
 
     @staticmethod
     def addToDic(dictionary,item):
@@ -221,8 +228,11 @@ class Merger:
 
 def test():
     merger = Merger()
-    list = merger.merge(['b0_0','b0_1','b1_0','b1_1',])
+    list = merger.merge(['b0_0','b0_1'])
     for l in list:
         print (l)
 
 # test()
+
+
+

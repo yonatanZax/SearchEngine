@@ -3,13 +3,12 @@ import os
 import Configuration as config
 import MyExecutors
 
-i = AtomicCounter()
-x = 0
+i = 0
 def cleanIndex(indexer):
-    global i , x
+    global i
     # currentFileNumber = i.getAndIncrement()
-    currentFileNumber = x
-    x += 1
+    currentFileNumber = i
+    i += 1
     headLineToWrite = 'term|DF|sumTF|DOC#TF,*'
     for dictionaryKey, dictionaryVal in indexer.myDictionaryByLetters.items():
         writeDictionaryToFile(dictionaryKey + str(indexer.ID) + "_" + str(currentFileNumber), headLineToWrite,dictionaryVal)
@@ -45,7 +44,7 @@ def writeDictionaryToFile(fileName, headLineToWrite, dictionaryToWrite):
     MyExecutors._instance.IOExecutor.apply_async(_writeToFile, (path,lineToWrite,))
 
 def cleanDocuments(dictionaryToWrite):
-    path = config.documentsIndex
+    path = config.documentsIndexPath
     result = None
     if not os.path.exists(path):
         headLineToWrite = 'term|max_tf|uniqueTermCount|docLength|city'

@@ -81,17 +81,30 @@ class EngineBuilder(Frame):
 
         def deleteEngine():
             # TODO - implement me
-            print("Deleting...")
+            import shutil
+            shutil.rmtree(config.savedFilePath)
+            print("Folder was deleted successfully..")
 
 
         def buildEngine():
             print("Corpus path:     ",self.entry_corpusPath.get())
-            config.corpusPath = self.entry_corpusPath.get()
+            config.setCorpusPath(self.entry_corpusPath.get())
             print("Posting path:     ",self.entry_postingPath.get())
-            config.savedFilePath = self.entry_postingPath.get()
+            config.setSavedFilePath(self.entry_postingPath.get())
+
+
+            # Todo - disable button
+
+
             print("\n***    ManagerRun    ***")
             from Main import managerRun
-            managerRun()
+            from threading import Thread
+            th = Thread(target=managerRun)
+            # threadProgress = Thread(target=updateFileCounter)
+            th.start()
+            # threadProgress.start()
+            print('Start')
+            # managerRun()
 
 
         self.deleteButton = Button(self.master, text='Delete', width=10, bg='red', fg='white',command= deleteEngine).place(x=100, y=250)
@@ -144,21 +157,34 @@ class EngineBuilder(Frame):
         #                 width=20, font=("bold", 10))
         # label_docText.place(x=70, y=300)
 
-    def updateFileCounter(self, managerID):
-        label = "Progress:     ["
+        def updateFileCounter(self):
+            flag = True
+            label = "Progress:     ["
+            import os
+            import time
 
-        self.managersList[managerID] += self.numOfFilesPerIteration
-        filesDone = 0
-        for i in range(0,len(self.managersList)):
-            filesDone += self.managersList[i]
-        numOfLines = int(self.filesDone/self.numOfTotalFiles) * 50
-        linesAsString = ''
-        for i in range(0,numOfLines):
-            linesAsString += '|'
-        for i in range(numOfLines,50):
-            linesAsString += ' '
+            while flag:
+                time.sleep(60)
+                path = config.savedFilePath + '\\a'
+                if not os.path.exists(path):
+                    continue
+                listOfFiles = os.listdir(path)
+                filesPerIteration = config.filesPerIteration
+                allFilesCount = config.listOfFoldersLength
+                totalFileCount = len(listOfFiles) * filesPerIteration
 
-        self.label_progress['label'] = label + linesAsString + '] ' + str(numOfLines*2) + '% '
+                percent = (totalFileCount/allFilesCount)*50
+                linesAsString = ''
+                for i in range(0,percent):
+                    linesAsString += '|'
+                for i in range(percent,50):
+                    linesAsString += ' '
+
+                self.label_progress['label'] = label + linesAsString + '] ' + str(percent*2) + '% '
+
+
+
+
 
 
 

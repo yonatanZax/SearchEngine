@@ -7,14 +7,14 @@ class ReadFile:
 
     def __init__(self):
         self.path = config.corpusPath
-        self.listOfFolders = os.listdir(self.path)
 
 
     def _readTextFromFile(self, filePath):
-        # result = MyExecutors._instance.IOExecutor.apply_async(func=self._getText, args=(filePath,))
-        # fileText = result.get()
+
         fileText = self._getText(filePath)
         return fileText
+
+
     def _getText(self,filePath):
         file = open(filePath,'r')
         fileText = file.read()
@@ -22,7 +22,6 @@ class ReadFile:
         return fileText
 
     def readTextFile(self, fileName):
-
         folderPath = self.path + '\\' + fileName
         filePath = folderPath + '\\' + fileName
         fileAsText = self._readTextFromFile(filePath)

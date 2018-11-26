@@ -26,7 +26,7 @@ class Indexer:
         maxFrequentWord = 0
         for term, termData in documentDictionary.items():
             # add the term to the dictionary
-            term = cleanDashesCommas(term)
+            # term = cleanDashesCommas(term)
             if len(term) == 0:
                 continue
             if englishLetters.get(term[0]):

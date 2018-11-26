@@ -1,7 +1,7 @@
 import re
 import BasicMethods as basic
 import Configuration as config
-from datetime import datetime
+
 
 from Indexing.Document import TermData
 import nltk
@@ -15,7 +15,7 @@ class IterativeTokenizer:
 
 stopWordsDic = {}
 try:
-    path = config.projectMainFolder + 'stop_words.txt'
+    path = config.stopWordPath
     with open(path) as f:
         for word in  f.read().splitlines():
             stopWordsDic[word] = 'a'
@@ -139,6 +139,7 @@ def cleanToken(token):
 
 def addTermToDic(termDictionary, term):
     from Indexing.MyDictionary import updateTermToDictionaryByTheRules
+    term = term.strip(',').strip('.')
     count = 1
     termFromDic = updateTermToDictionaryByTheRules(termDictionary, term)
     termDataFromDic = termDictionary.get(termFromDic)
@@ -159,7 +160,7 @@ def filterAll(currWord):
 # TODO - upgrade the dash func
 
 
-def parseText(text, toStem=False):
+def parseText(text, toStem=config.toStem):
     import Stemmer.Stemmer
 
     betweenPattern.sub(replaceBetween,text)
@@ -209,6 +210,11 @@ def parseText(text, toStem=False):
                 textIndex += 1
                 continue
 
+
+            if cleanedWord[0] == '-' and not cleanedWord[1].isdigit():
+                cleanedWord = cleanedWord[1:]
+
+
             if cleanedWord[0] == '$':
                 temp, returnedIndex = startWithDollar(textIndex, splittedText)
                 if temp is not None:
@@ -218,10 +224,10 @@ def parseText(text, toStem=False):
             numOfDashes = cleanedWord.count('-')
             if cleanedWord.count('-') > 0:
                 if numOfDashes == 1 and cleanedWord[0] == '-':
-                    if len(splittedText[textIndex]) > 1 and splittedText[textIndex][1].isdigit:
+                    if len(cleanedWord) > 1 and cleanedWord[1].isdigit:
                         addTermToDic(termsDic, cleanedWord)
                     else:
-                        cleanedToken = cleanToken(splittedText[textIndex][1:len(splittedText[textIndex])])
+                        cleanedToken = cleanToken(cleanedWord[1:len(cleanedWord)])
                         if cleanedToken is not None:
                             addTermToDic(termsDic, cleanedToken)
                     textIndex += 1
@@ -240,7 +246,8 @@ def parseText(text, toStem=False):
                 continue
             if cleanedWord.lower() not in ['may']:
                 if toStem:
-                    cleanedWord = Stemmer.Stemmer.stemTerm(cleanedWord)
+                    afterStem = Stemmer.Stemmer.stemTerm(cleanedWord)
+                    cleanedWord = afterStem
                 addTermToDic(termsDic, cleanedWord)
             else:
                 docLength -= 1
@@ -360,7 +367,7 @@ def startWithDollar(curIndex,listOfTokens):
                     p += 1
                 else:
                     # if nextToken has more than 1 slash , meaning is not a fraction
-                    # TODO - convert term
+                    # TODO (DONE) - convert term
                     term = convert.convertNumToKMBformat(term)
                     return term, curIndex
             else:
@@ -500,19 +507,3 @@ def numTMBT_tokenToTerm(curIndex,listOfTokens):
 
     term = convert.convertNumToKMBformat(term)
     return term, curIndex
-
-
-
-
-
-# text = "one day i was 6% 6.4% and also 8 percent but also 9 percentage 7 May 3 october 31 NOV JUNE 16 May 1992 "
-# cleanText = '20b , 15k , 22 3/4 , 10,123 , 123 Thousand , 1010.56 , 10,123,000,000 , 55 Billion , 7 Trillion ,' \
-# #             ' 1.7320 Dollars , 1,732 , 22 Dollars , 1,000,000 Dollars , 100 billion U.S. Dollars ,' \
-# #             ' 320 million U.S. Dollars , 1 trillion U.S. Dollars '
-# #
-# dollarText = '$22 3/4 , $50 Thousand , $450,000 , $450,000,000 , $100 million , $100 billion'
-# text += cleanText + dollarText
-#
-# parseText(text)
-
-
