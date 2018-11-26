@@ -1,7 +1,6 @@
 from Indexing.Indexer import Indexer
 from ReadFiles.ReadFile import ReadFile
 from Parsing.Parse import Parse
-# import MyExecutors
 
 
 class MyManager:
@@ -15,19 +14,16 @@ class MyManager:
             self.indexer = Indexer(managerID)
         self.fileReader = ReadFile()
         self.parser = Parse()
-        # self.lock = RLock()
         self.result = None
         self.toStem = toStem
 
     def start(self, pool=None):
         if pool is None:
             x= 0
-            # self.result = MyExecutors._instance.CPUExecutor.apply_async(self.run())
         else:
             self.result = pool.map(self.run())
 
     def run(self):
-        # self.lock.acquire()
         counter = 0
         for folder in self.folderList:
 
@@ -51,7 +47,3 @@ class MyManager:
 
     def get(self):
         print ("Got manager " + str(self.ID))
-
-        # self.result.get()
-        # self.lock.acquire()
-        # self.lock.release()

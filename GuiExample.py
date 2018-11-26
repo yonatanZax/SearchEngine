@@ -6,6 +6,8 @@ import Configuration as config
 
 class EngineBuilder(Frame):
 
+    # TODO - make checkbox work
+
     def __init__(self,master,numOfManagers, numOfTotalFiles):
         Frame.__init__(self, master)
         self.grid()
@@ -65,6 +67,8 @@ class EngineBuilder(Frame):
         label_4 = Label(self.master, text="Language", width=10, font=("bold", 10))
         label_4.place(x=50, y=190)
 
+        # TODO - make drop list work
+
         # list1 = ['English', 'Spanish', 'Hebrew'];
         # c = StringVar()
         # droplist = OptionMenu(root, c, *list1)
@@ -76,14 +80,17 @@ class EngineBuilder(Frame):
 
 
         def deleteEngine():
-            print("Deleting...")
+            # TODO - implement me
+            import shutil
+            shutil.rmtree(config.savedFilePath)
+            print("Folder was deleted successfully..")
 
 
         def buildEngine():
             print("Corpus path:     ",self.entry_corpusPath.get())
-            config.corpusPath = self.entry_corpusPath.get()
+            config.setCorpusPath(self.entry_corpusPath.get())
             print("Posting path:     ",self.entry_postingPath.get())
-            config.savedFilePath = self.entry_postingPath.get()
+            config.setSavedFilePath(self.entry_postingPath.get())
 
 
             # Todo - disable button
@@ -93,13 +100,16 @@ class EngineBuilder(Frame):
             from Main import managerRun
             from threading import Thread
             th = Thread(target=managerRun)
+            # threadProgress = Thread(target=updateFileCounter)
             th.start()
+            # threadProgress.start()
             print('Start')
             # managerRun()
 
 
         self.deleteButton = Button(self.master, text='Delete', width=10, bg='red', fg='white',command= deleteEngine).place(x=100, y=250)
         self.buildButton = Button(self.master, text='Build', width=10, bg='green', fg='white',command= buildEngine).place(x=200, y=250)
+
 
         label_stemming = Label(self.master, text="Stemming", width=10, font=("bold", 10))
         label_stemming.place(x=320, y=250)
@@ -147,21 +157,34 @@ class EngineBuilder(Frame):
         #                 width=20, font=("bold", 10))
         # label_docText.place(x=70, y=300)
 
-    def updateFileCounter(self, managerID):
-        label = "Progress:     ["
+        def updateFileCounter(self):
+            flag = True
+            label = "Progress:     ["
+            import os
+            import time
 
-        self.managersList[managerID] += self.numOfFilesPerIteration
-        filesDone = 0
-        for i in range(0,len(self.managersList)):
-            filesDone += self.managersList[i]
-        numOfLines = int(self.filesDone/self.numOfTotalFiles) * 50
-        linesAsString = ''
-        for i in range(0,numOfLines):
-            linesAsString += '|'
-        for i in range(numOfLines,50):
-            linesAsString += ' '
+            while flag:
+                time.sleep(60)
+                path = config.savedFilePath + '\\a'
+                if not os.path.exists(path):
+                    continue
+                listOfFiles = os.listdir(path)
+                filesPerIteration = config.filesPerIteration
+                allFilesCount = config.listOfFoldersLength
+                totalFileCount = len(listOfFiles) * filesPerIteration
 
-        self.label_progress['label'] = label + linesAsString + '] ' + str(numOfLines*2) + '% '
+                percent = (totalFileCount/allFilesCount)*50
+                linesAsString = ''
+                for i in range(0,percent):
+                    linesAsString += '|'
+                for i in range(percent,50):
+                    linesAsString += ' '
+
+                self.label_progress['label'] = label + linesAsString + '] ' + str(percent*2) + '% '
+
+
+
+
 
 
 

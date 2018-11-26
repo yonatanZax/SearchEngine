@@ -3,13 +3,12 @@ import os
 import Configuration as config
 import MyExecutors
 
-i = AtomicCounter()
-x = 0
+i = 0
 def cleanIndex(indexer):
-    global i , x
+    global i
     # currentFileNumber = i.getAndIncrement()
-    currentFileNumber = x
-    x += 1
+    currentFileNumber = i
+    i += 1
     headLineToWrite = 'term|DF|sumTF|DOC#TF,*'
     for dictionaryKey, dictionaryVal in indexer.myDictionaryByLetters.items():
         writeDictionaryToFile(dictionaryKey + str(indexer.ID) + "_" + str(currentFileNumber), headLineToWrite,dictionaryVal)
@@ -30,29 +29,22 @@ def writeDictionaryToFile(fileName, headLineToWrite, dictionaryToWrite):
 
     lineToWrite = ""
     # Iter over all the terms in the dictionary and create a string to write
-    # dictionaryToWrite.lock.acquire()
     for term, termData in sorted(dictionaryToWrite.dictionary_term_dicData.items()):
         if len(termData.string_docID_tf) > 0:
-            lineToWrite += (term + "|" + termData.toString() + "\n")
+            lineToWrite += term + "|" + termData.toString() + "\n"
             # cleans the posting dictionary
             termData.cleanPostingData()
 
-    # dictionaryToWrite.lock.release()
 
     # wait for the file to be created
     if result is not None:
         result.get()
 
-
-
     # write to the end of the file at one time on another thread
     MyExecutors._instance.IOExecutor.apply_async(_writeToFile, (path,lineToWrite,))
-    # _writeToFile(path,lineToWrite)
-
-    return True
 
 def cleanDocuments(dictionaryToWrite):
-    path = config.documentsIndex
+    path = config.documentsIndexPath
     result = None
     if not os.path.exists(path):
         headLineToWrite = 'term|max_tf|uniqueTermCount|docLength|city'
@@ -70,9 +62,24 @@ def cleanDocuments(dictionaryToWrite):
     # write to the end of the file at one time on another thread
     MyExecutors._instance.IOExecutor.apply_async(_writeToFile, (path,lineToWrite,))
 
+# TODO - make sure that if we use stem we won't run over not stemmed files
+# TODO - change path to relative and add the stem and file name to the method signature
+
+def writeMergedFile(finalList, outputFile):
+    lineToWritePost = ""
+    lineToWriteDic = ""
+    index = 0
+    for line in finalList:
+        lineToWriteDic += line[0] + '|' + str(index) +'\n'
+        lineToWritePost += line[1] + "\n"
+        index += 1
+    _writeToFile(outputFile + "_post",lineToWritePost)
+    _writeToFile(outputFile + "_dic", lineToWriteDic)
+
+
 def _createFile(path, headLineString):
     myFile = open(path, 'w')
-    myFile.write(headLineString + "\n")
+    # myFile.write(headLineString + "\n")
     myFile.close()
 
 def _writeToFile(path, lineToWrite):

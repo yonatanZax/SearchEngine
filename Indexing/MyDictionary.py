@@ -64,22 +64,29 @@ class DictionaryData:
         self.postingLine = postingLine
         self.string_docID_tf = ""
         # self.dictionary_docID_tf = {}
-        # self.lock = multiprocessing.RLock()
-        # self.lock = threading.RLock()
 
+
+    # TODO - something is wrong with the numbers fix it
 
     def addDocument(self, docID, docTF_int):
-        # self.lock.acquire()
-        self.termDF += 1
         self.sumTF += docTF_int
-        self.string_docID_tf += str(docID) + "#" + str(docTF_int) + ","
-        # self.dictionary_docID_tf[docID] = docTF_int
-        # self.lock.release()
+        if self.string_docID_tf.count(str(docID)) > 0:
+            splitted = self.string_docID_tf.split(',')
+            for doc in splitted:
+                splittedDoc = doc.split('#')
+                if splittedDoc[0] == docID:
+                    oldDF = splittedDoc[1]
+                    docTF_int += int(splittedDoc[1])
+                    splittedDoc[1] = str(docTF_int)
+                    self.string_docID_tf = self.string_docID_tf.replace(splittedDoc[0] + '#' + oldDF,splittedDoc[0] + '#' + splittedDoc[1])
+                    break
 
-        # with self.lock:
-        #     self.termDF += 1
-        #     self.sumTF += docTF_int
-        #     self.dictionary_docID_tf[docID] = docTF_int
+        else:
+            self.termDF += 1
+            self.string_docID_tf += str(docID) + "#" + str(docTF_int) + ","
+        # self.dictionary_docID_tf[docID] = docTF_int
+
+
 
     def toString(self):
         '''
@@ -94,6 +101,8 @@ class DictionaryData:
     def cleanPostingData(self):
         # with self.lock:
         self.string_docID_tf = ""
+        self.sumTF = 0
+        self.termDF = 0
 
 
 class DocumentIndexData:
@@ -102,7 +111,7 @@ class DocumentIndexData:
         self.max_tf = max_tf
         self.uniqueTermCount = uniqueTermsCount
         self.docLength = docLength
-        self.city = city
+        self.city = city.upper()
 
     def toString(self):
         '''

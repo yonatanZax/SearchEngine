@@ -1,8 +1,11 @@
+import os
 from Indexing.MyDictionary import MyDictionary, DocumentIndexData
 import string
+import Configuration as config
 
 class Indexer:
 
+    # TODO - add 2 information on terms or documents
 
     def __init__(self, indexerID):
         self.ID = indexerID
@@ -23,7 +26,7 @@ class Indexer:
         maxFrequentWord = 0
         for term, termData in documentDictionary.items():
             # add the term to the dictionary
-            term = cleanDashesCommas(term)
+            # term = cleanDashesCommas(term)
             if len(term) == 0:
                 continue
             if englishLetters.get(term[0]):
@@ -43,21 +46,48 @@ class Indexer:
         self.documents_dictionary = {}
 
 
+    def uploadDictionary(self):
+#         TODO - implement me
+        x=1
+
+    @staticmethod
+    def merge():
+        from datetime import datetime
+        from Indexing.KWayMerge import Merger
+        from Indexing import FileWriter
+
+        startTime = datetime.now()
+
+        merger = Merger()
+        savedFilesPathList = os.listdir(config.savedFilePath)
+
+        savedFilesPathList.remove('docIndex') # TODO - find a way to fix this
+
+        for folder in savedFilesPathList:
+            letterFilesList = os.listdir(config.savedFilePath + "\\" + folder)
+            mergedList = merger.merge(letterFilesList)
+            FileWriter.writeMergedFile(mergedList , config.savedFilePath + "\\" + folder + "\\mergedFile")
 
 
+        finishTime = datetime.now()
+        timeItTook = finishTime - startTime
 
-def cleanDashesCommas(token):
-    size = len(token)
-    if size > 0:
-        start = 0
-        while start < size:
-            if token[start] == '-' or token[start] == ',' or token[start] == '.' or token[start] == '=':
-                start += 1
-            break
+        print("Entire Merge took: "+ str(timeItTook.seconds) + " seconds")
 
-        token = token[start:].strip('-').strip(',').strip('.')
 
-    return token
+# def cleanDashesCommas(token):
+#     # TODO - remove this function and the use of this in addNewDoc
+#     size = len(token)
+#     if size > 0:
+#         start = 0
+#         while start < size:
+#             if token[start] == '-' or token[start] == ',' or token[start] == '.' or token[start] == '=':
+#                 start += 1
+#             break
+#
+#         token = token[start:].strip('-').strip(',').strip('.')
+#
+#     return token
 
 
 
