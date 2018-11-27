@@ -5,7 +5,7 @@ import Configuration as config
 
 class Indexer:
 
-    # TODO - add 2 information on terms or documents
+    # TODO - add 2 information on terms or documents - added locations
 
     def __init__(self, indexerID):
         self.ID = indexerID
@@ -29,13 +29,15 @@ class Indexer:
             # term = cleanDashesCommas(term)
             if len(term) == 0:
                 continue
+            termFrequency = termData.getTermFrequency()
             if englishLetters.get(term[0]):
-                self.myDictionaryByLetters[term[0].lower()].addTerm(termString=term, docNo=docNo, termFrequency=termData.termFrequency)
+                self.myDictionaryByLetters[term[0].lower()].addTerm(termString=term, docNo=docNo, termFrequency=termFrequency, termPositions=termData.getPositions())
             else:
-                self.myDictionaryByLetters["#"].addTerm(termString=term, docNo=docNo, termFrequency=termData.termFrequency)
-            maxFrequentWord = max(termData.termFrequency, maxFrequentWord)
+                self.myDictionaryByLetters["#"].addTerm(termString=term, docNo=docNo, termFrequency=termFrequency, termPositions=termData.getPositions())
+            maxFrequentWord = max(termFrequency, maxFrequentWord)
         newDocumentIndexData = DocumentIndexData(max_tf=maxFrequentWord, uniqueTermsCount=len(document.termDocDictionary_term_termData), docLength=document.docLength, city = document.city)
         self.documents_dictionary[docNo] = newDocumentIndexData
+
 
     def flushMemory(self):
         from Indexing import FileWriter
@@ -50,55 +52,55 @@ class Indexer:
         x=1
 
 
-    def merge(self):
-        from datetime import datetime
-        from Indexing.KWayMerge import Merger
-        from Indexing import FileWriter
-
-        startTime = datetime.now()
-
-        merger = Merger()
-        savedFilesPathList = os.listdir(config.savedFilePath)
-
-        savedFilesPathList.remove('docIndex') # TODO - find a way to fix this
-        for folder in savedFilesPathList:
-            letterFilesList = os.listdir(config.savedFilePath + "\\" + folder)
-            fileToMergeList = []
-            for letterFile in letterFilesList:
-                if letterFile[1] == str(self.ID):
-                    fileToMergeList.append(letterFile)
-
-            mergedList = merger.merge(fileToMergeList)
-            FileWriter.writeMergedFileTemp(mergedList , config.savedFilePath + "\\" + folder + "\\" + str(folder[0]) + str(self.ID))
-
-
-        finishTime = datetime.now()
-        timeItTook = finishTime - startTime
-
-        # print("Entire Merge took: "+ str(timeItTook.seconds) + " seconds")
-
-    @staticmethod
-    def staticMerge():
-        from datetime import datetime
-        from Indexing.KWayMerge import Merger
-        from Indexing import FileWriter
-
-        startTime = datetime.now()
-
-        merger = Merger()
-        savedFilesPathList = os.listdir(config.savedFilePath)
-
-        savedFilesPathList.remove('docIndex')  # TODO - find a way to fix this
-
-        for folder in savedFilesPathList:
-            letterFilesList = os.listdir(config.savedFilePath + "\\" + folder)
-            mergedList = merger.merge(letterFilesList)
-            FileWriter.writeMergedFile(mergedList, config.savedFilePath + "\\" + folder + "\\mergedFile")
-
-        finishTime = datetime.now()
-        timeItTook = finishTime - startTime
-
-        print("Entire Merge took: " + str(timeItTook.seconds) + " seconds")
+    # def merge(self):
+    #     from datetime import datetime
+    #     from Indexing.KWayMerge import Merger
+    #     from Indexing import FileWriter
+    #
+    #     startTime = datetime.now()
+    #
+    #     merger = Merger()
+    #     savedFilesPathList = os.listdir(config.savedFilePath)
+    #
+    #     savedFilesPathList.remove('docIndex') # TODO - find a way to fix this
+    #     for folder in savedFilesPathList:
+    #         letterFilesList = os.listdir(config.savedFilePath + "\\" + folder)
+    #         fileToMergeList = []
+    #         for letterFile in letterFilesList:
+    #             if letterFile[1] == str(self.ID):
+    #                 fileToMergeList.append(letterFile)
+    #
+    #         mergedList = merger.merge(fileToMergeList)
+    #         FileWriter.writeMergedFileTemp(mergedList , config.savedFilePath + "\\" + folder + "\\" + str(folder[0]) + str(self.ID))
+    #
+    #
+    #     finishTime = datetime.now()
+    #     timeItTook = finishTime - startTime
+    #
+    #     # print("Entire Merge took: "+ str(timeItTook.seconds) + " seconds")
+    #
+    # @staticmethod
+    # def staticMerge():
+    #     from datetime import datetime
+    #     from Indexing.KWayMerge import Merger
+    #     from Indexing import FileWriter
+    #
+    #     startTime = datetime.now()
+    #
+    #     merger = Merger()
+    #     savedFilesPathList = os.listdir(config.savedFilePath)
+    #
+    #     savedFilesPathList.remove('docIndex')  # TODO - find a way to fix this
+    #
+    #     for folder in savedFilesPathList:
+    #         letterFilesList = os.listdir(config.savedFilePath + "\\" + folder)
+    #         mergedList = merger.merge(letterFilesList)
+    #         FileWriter.writeMergedFile(mergedList, config.savedFilePath + "\\" + folder + "\\")
+    #
+    #     finishTime = datetime.now()
+    #     timeItTook = finishTime - startTime
+    #
+    #     print("Entire Merge took: " + str(timeItTook.seconds) + " seconds")
 
 
 

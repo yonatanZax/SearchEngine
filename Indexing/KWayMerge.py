@@ -235,7 +235,7 @@ def test():
     #     print (l)
     print (os.cpu_count())
 
-test()
+# test()
 
 
 

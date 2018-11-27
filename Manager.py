@@ -62,7 +62,7 @@ class MyManager:
 
             filesInLetterFolder = os.listdir(config.savedFilePath + "\\" + letter)
             mergedList = merger.merge(filesInLetterFolder)
-            FileWriter.writeMergedFile(mergedList, config.savedFilePath + "\\" + letter + "\\mergedFile")
+            FileWriter.writeMergedFile(mergedList, config.savedFilePath + "\\" + letter + "\\")
 
 
     def getRun(self):
