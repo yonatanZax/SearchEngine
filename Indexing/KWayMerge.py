@@ -1,5 +1,4 @@
 import heapq
-import Configuration as config
 
 def key(item):
     return item.termLowerCase
@@ -57,9 +56,11 @@ class Merger:
     Algorithm based on: http://stackoverflow.com/questions/5055909/algorithm-for-n-way-merge
     """
 
-    def __init__(self):
+    def __init__(self,config):
         try:
             # 1. create priority queue
+
+            self.config = config
 
             self._heap = MyHeap(key=key)
 
@@ -87,7 +88,7 @@ class Merger:
             # read all the files to a list and close the files
             for file in input_files:
                 # open the file
-                openFile = open(config.savedFilePath + "\\" + file[0] + "\\" + file, 'r')
+                openFile = open(self.config.savedFilePath + "\\" + file[0] + "\\" + file, 'r')
 
                 # read all lines to a list of lists
                 fileList = openFile.readlines()

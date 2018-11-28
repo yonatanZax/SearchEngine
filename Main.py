@@ -1,106 +1,94 @@
 
 import os
-import Configuration as config
 from datetime import datetime
 from Manager import MyManager
 from concurrent.futures import ProcessPoolExecutor
-from Indexing.Indexer import Indexer
-
-def initProject():
-    import shutil
-    import os
-    savedFilesPath = config.savedFilePath
-    if os.path.exists(savedFilesPath):
-        shutil.rmtree(savedFilesPath + "//")
-    while 1:
-        try:
-            os.mkdir(savedFilesPath)
-            break
-        except PermissionError:
-            continue
+from Configuration import ConfigClass
 
 
-    print('Project was created successfully..')
-
+config = None
 
 def main():
-    initProject()
 
-    # GUIRun()
+    mainManager = MainClass()
+    mainManager.GUIRun()
 
-    managerRun()
-
-def GUIRun():
-    import GuiExample
-    print("***   Main Start   ***")
-    root = GuiExample.Tk()
-    root.geometry('500x550')
-    root.title("SearchEngine")
-
-    guiFrame = GuiExample.EngineBuilder(root,numOfManagers=config.managersNumber, numOfTotalFiles=config.listOfFoldersLength)
-    guiFrame.mainloop()
+    # managerRun()
 
 
-def managerRun():
-    import string
-    startTime = datetime.now()
-    managersNumber = config.managersNumber
-    filesPerIteration = config.filesPerIteration
-    listOfFolders = os.listdir(config.corpusPath)
-    listOfFolders.remove(config.stopWordFile)
+class MainClass:
 
-    folderPerManager = int(len(listOfFolders)/managersNumber) + 1
-    lettersList = list(string.ascii_lowercase)
-    lettersList.append('#')
+    def __init__(self):
 
-    lettersPerManager = int(len(lettersList)/managersNumber) + 1
-    toStem = config.toStem
-    managersList = []
-    pool = ProcessPoolExecutor()
-    for i in range(0, managersNumber):
-        startFolder = i * folderPerManager
-        endFolder = (i + 1) * folderPerManager
-        if endFolder > len(listOfFolders):
-            endFolder = len(listOfFolders)
+        self.config = ConfigClass()
 
-        startLetters = i * lettersPerManager
-        endLetters = (i + 1) * lettersPerManager
-        if endLetters > len(lettersList):
-            endLetters = len(lettersList)
+    def GUIRun(self):
+        import GuiExample
 
-        manager = MyManager(managerID = i, filesPerIteration = filesPerIteration,
-                            folderList = listOfFolders[int(startFolder):int(endFolder)],
-                            lettersList = lettersList[int(startLetters):int(endLetters)], toStem = toStem, indexer = None)
-        managersList.append(manager)
+        print("***   Main Start   ***")
+        root = GuiExample.Tk()
+        root.geometry('500x550')
+        root.title("SearchEngine")
 
+        guiFrame = GuiExample.EngineBuilder(root,mainManager=self, config=self.config, numOfTotalFiles=self.config.get__listOfFoldersLength())
+        guiFrame.mainloop()
 
+    def managerRun(self):
+        import string
+        startTime = datetime.now()
+        managersNumber = self.config.get__managersNumber()
+        filesPerIteration = self.config.get__filesPerIteration()
+        listOfFolders = os.listdir(self.config.get__corpusPath())
+        listOfFolders.remove(self.config.get__stopWordFile())
 
-    for manager in zip(managersList, pool.map(run, managersList)):
-        manager[0].getRun()
+        folderPerManager = int(len(listOfFolders) / managersNumber) + 1
+        lettersList = list(string.ascii_lowercase)
+        lettersList.append('#')
 
-    finishTime = datetime.now()
-    timeItTook = finishTime - startTime
+        lettersPerManager = int(len(lettersList) / managersNumber) + 1
+        toStem = self.config.get__toStem()
+        managersList = []
+        pool = ProcessPoolExecutor()
+        for i in range(0, managersNumber):
+            startFolder = i * folderPerManager
+            endFolder = (i + 1) * folderPerManager
+            if endFolder > len(listOfFolders):
+                endFolder = len(listOfFolders)
 
-    print("Term Posting took: " + str(timeItTook.seconds) + " seconds")
+            startLetters = i * lettersPerManager
+            endLetters = (i + 1) * lettersPerManager
+            if endLetters > len(lettersList):
+                endLetters = len(lettersList)
 
-    for manager in zip(managersList, pool.map(managerMerge, managersList)):
-        manager[0].getMerge()
+            manager = MyManager(managerID=i, filesPerIteration=filesPerIteration,
+                                folderList=listOfFolders[int(startFolder):int(endFolder)],
+                                lettersList=lettersList[int(startLetters):int(endLetters)], config=self.config, indexer=None)
+            managersList.append(manager)
 
-    # Indexer.staticMerge()
+        for manager in zip(managersList, pool.map(self.run, managersList)):
+            manager[0].getRun()
 
+        finishTime = datetime.now()
+        timeItTook = finishTime - startTime
 
-    finishTime = datetime.now()
-    timeItTook = finishTime - startTime
+        print("Term Posting took: " + str(timeItTook.seconds) + " seconds")
 
-    print ("Number of files Processed: " + str(len(listOfFolders)))
-    print("Everything took: " + str(timeItTook.seconds) + " seconds")
+        for manager in zip(managersList, pool.map(self.managerMerge, managersList)):
+            manager[0].getMerge()
 
-def run(manager):
-    manager.run()
+        # Indexer.staticMerge()
 
-def managerMerge(manager):
-    manager.merge(config.managersNumber)
+        finishTime = datetime.now()
+        timeItTook = finishTime - startTime
 
+        print("Number of files Processed: " + str(len(listOfFolders)))
+        print("Everything took: " + str(timeItTook.seconds) + " seconds")
+
+    def run(self,manager):
+        manager.run()
+
+    def managerMerge(self,manager):
+        manager.merge()
 
 
 if __name__ == "__main__":

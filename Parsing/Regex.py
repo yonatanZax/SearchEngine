@@ -85,7 +85,6 @@ def convertTokenToTerm(token):
         if findByRule(betweenRule, term):
             return termAsArray[1] + '-' + termAsArray[3]
 
-        # todo - add yearRule
         if findByRule(hasMonthRule, term):
             if basic.isInt(termAsArray[0]):
                 return convert.convertMonthToInt(termAsArray[1][:3].lower()) + '-' + termAsArray[0]
@@ -189,7 +188,6 @@ def getRegexMatches(expression, text, toStem = False):
     # splitedWords = nltk.tokenize.word_tokenize(text)
     # splitedWords = nltk.regexp_tokenize(text, '[^\"\'\n\s\)\(][\S\$\%]+[\-]?[^\"\'\n\s\(\)][\S]+')
     # splitedWords = nltk.regexp_tokenize(text, '[A-Z]{2,}(?![a-z])|[A-Z][a-z]+(?=[A-Z])|[\'\w\-]+')
-    # TODO - the word between exist in the stop words, can cause problems
     withOutStopWords = [word for word in text.split() if word not in stopWordsList]
     #
     text = ' '.join(withOutStopWords)

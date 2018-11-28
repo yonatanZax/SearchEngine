@@ -1,21 +1,23 @@
 from tkinter import *
 from tkinter import filedialog
 
-import Configuration as config
-
+from Configuration import ConfigClass
 
 class EngineBuilder(Frame):
 
     # TODO - make checkbox work
 
-    def __init__(self,master,numOfManagers, numOfTotalFiles):
+
+    def __init__(self, master, mainManager, config, numOfTotalFiles):
+        self.config = config
+        self.mainManager = mainManager
         Frame.__init__(self, master)
         self.grid()
         self.filesDone = 0
         self.numOfTotalFiles = numOfTotalFiles
-        self.numOfFilesPerIteration = config.filesPerIteration
+        self.numOfFilesPerIteration = config.get__filesPerIteration()
         self.managersList = []
-        for i in range(0,numOfManagers):
+        for i in range(0,self.config.get__managersNumber()):
             self.managersList.append(0)
 
         label_0 = Label(self.master, text="Search Engine", width=20, font=("bold", 20))
@@ -26,7 +28,7 @@ class EngineBuilder(Frame):
         label_corpusPath = Label(self.master, text="Corpus path:", width=10, font=("bold", 10))
         label_corpusPath.place(x=50, y=130)
         self.entry_corpusPath_text = StringVar()
-        self.entry_corpusPath_text.set(config.corpusPath)
+        self.entry_corpusPath_text.set(config.get__corpusPath())
         self.entry_corpusPath = Entry(self.master,textvariable=self.entry_corpusPath_text,width=30)
         self.entry_corpusPath.place(x=180, y=130)
 
@@ -34,7 +36,7 @@ class EngineBuilder(Frame):
         label_postingPath = Label(self.master, text="Posting path:", width=10, font=("bold", 10))
         label_postingPath.place(x=50, y=160)
         self.entry_postingPath_text = StringVar()
-        self.entry_postingPath_text.set(config.savedFilePath)
+        self.entry_postingPath_text.set(config.get__savedFileMainFolder())
         self.entry_postingPath = Entry(self.master,textvariable=self.entry_postingPath_text,width=30)
         self.entry_postingPath.place(x=180, y=160)
 
@@ -82,24 +84,28 @@ class EngineBuilder(Frame):
         def deleteEngine():
             # TODO - implement me
             import shutil
-            shutil.rmtree(config.savedFilePath)
+            shutil.rmtree(self.config.get__savedFilePath())
             print("Folder was deleted successfully..")
 
 
         def buildEngine():
             print("Corpus path:     ",self.entry_corpusPath.get())
-            config.setCorpusPath(self.entry_corpusPath.get())
-            print("Posting path:     ",self.entry_postingPath.get())
-            config.setSavedFilePath(self.entry_postingPath.get())
+            corpusPath = str(self.entry_corpusPath.get())
+            self.config.setCorpusPath(corpusPath)
+
+
+
+            saveMainFolderPath = str(self.entry_postingPath.get())
+            self.config.setSaveMainFolderPath(saveMainFolderPath)
+            print("Posting path:     ", saveMainFolderPath)
 
 
             # Todo - disable button
 
 
             print("\n***    ManagerRun    ***")
-            from Main import managerRun
             from threading import Thread
-            th = Thread(target=managerRun)
+            th = Thread(target=self.mainManager.managerRun)
             # threadProgress = Thread(target=updateFileCounter)
             th.start()
             # threadProgress.start()
@@ -165,12 +171,12 @@ class EngineBuilder(Frame):
 
             while flag:
                 time.sleep(60)
-                path = config.savedFilePath + '\\a'
+                path = config.get__savedFilePath() + '\\a'
                 if not os.path.exists(path):
                     continue
                 listOfFiles = os.listdir(path)
-                filesPerIteration = config.filesPerIteration
-                allFilesCount = config.listOfFoldersLength
+                filesPerIteration = config.get__filesPerIteration()
+                allFilesCount = config.get__listOfFoldersLength()
                 totalFileCount = len(listOfFiles) * filesPerIteration
 
                 percent = (totalFileCount/allFilesCount)*50

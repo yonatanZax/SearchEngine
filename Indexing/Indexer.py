@@ -1,12 +1,15 @@
 import os
 from Indexing.MyDictionary import MyDictionary, DocumentIndexData
 import string
+from Indexing.FileWriter import FileWriter
 
 class Indexer:
 
     # TODO - add 2 information on terms or documents - added locations
 
-    def __init__(self, indexerID):
+    def __init__(self, indexerID,config):
+        self.config = config
+        self.fileWriter = FileWriter(self.config)
         self.ID = indexerID
 
         self.myDictionaryByLetters = {}
@@ -40,10 +43,9 @@ class Indexer:
 
 
     def flushMemory(self):
-        from Indexing import FileWriter
-        FileWriter.cleanIndex(self)
+        self.fileWriter.cleanIndex(self)
 
-        FileWriter.cleanDocuments(self.documents_dictionary)
+        self.fileWriter.cleanDocuments(self.documents_dictionary)
         self.documents_dictionary = {}
 
 
@@ -52,16 +54,13 @@ class Indexer:
         x=1
 
 
-    def merge(self):
-        import Configuration as config
-
+    def merge(self, config):
         from datetime import datetime
         from Indexing.KWayMerge import Merger
-        from Indexing import FileWriter
 
         startTime = datetime.now()
 
-        merger = Merger()
+        merger = Merger(config=config)
         savedFilesPathList = os.listdir(config.savedFilePath)
 
         savedFilesPathList.remove('docIndex') # TODO - find a way to fix this
@@ -79,13 +78,15 @@ class Indexer:
                     if iteration == filesPerIteration:
                         iteration = 0
                         mergedList = merger.merge(fileToMergeList)
-                        FileWriter.writeMergedFileTemp(mergedList, config.savedFilePath + "\\" + folder + "\\" + str(folder[0]) + str(self.ID) + "-" + str(counter))
+
+                        self.fileWriter.writeMergedFileTemp(mergedList, config.savedFilePath + "\\" + folder + "\\" + str(folder[0]) + str(self.ID) + "-" + str(counter))
                         fileToMergeList = []
                         counter += 1
 
             if iteration > filesPerIteration / 2:
                 mergedList = merger.merge(fileToMergeList)
-                FileWriter.writeMergedFileTemp(mergedList,config.savedFilePath + "\\" + folder + "\\" + str(folder[0]) + str(self.ID) + "-" + str(counter))
+
+                self.fileWriter.writeMergedFileTemp(mergedList,config.savedFilePath + "\\" + folder + "\\" + str(folder[0]) + str(self.ID) + "-" + str(counter))
             fileToMergeList = []
 
             letterFilesList = os.listdir(config.savedFilePath + "\\" + folder)
@@ -94,7 +95,8 @@ class Indexer:
                     fileToMergeList.append(letterFile)
 
             mergedList = merger.merge(fileToMergeList)
-            FileWriter.writeMergedFileTemp(mergedList,config.savedFilePath + "\\" + folder + "\\" + str(folder[0]) + str(self.ID))
+
+            self.fileWriter.writeMergedFileTemp(mergedList,config.savedFilePath + "\\" + folder + "\\" + str(folder[0]) + str(self.ID))
 
 
         finishTime = datetime.now()

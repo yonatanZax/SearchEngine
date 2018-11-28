@@ -3,8 +3,8 @@ from Parsing.IterativeParsing import IterativeTokenizer
 
 class Parse:
 
-    def __init__(self):
-        self.tokenizer = IterativeTokenizer()
+    def __init__(self,config):
+        self.tokenizer = IterativeTokenizer(config=config)
 
     def parseDoc(self, documentAsString):
         from Indexing.Document import Document

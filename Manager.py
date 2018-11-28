@@ -1,25 +1,30 @@
 from Indexing.Indexer import Indexer
 from ReadFiles.ReadFile import ReadFile
 from Parsing.Parse import Parse
-import Configuration as config
-
-
+from Indexing.FileWriter import FileWriter
 class MyManager:
 
-    def __init__(self, managerID, filesPerIteration, folderList, lettersList, toStem=False, indexer = None):
+
+
+    def __init__(self, managerID, filesPerIteration, folderList, lettersList, config, indexer = None):
         self.ID = managerID
+
+        self.config = config
+
         self.filesPerIteration = filesPerIteration
         self.folderList = folderList
         self.indexer = indexer
         if self.indexer is None:
-            self.indexer = Indexer(managerID)
-        self.fileReader = ReadFile()
-        self.parser = Parse()
+            self.indexer = Indexer(managerID,config=config)
+        self.fileReader = ReadFile(config=self.config)
+        self.fileWriter = FileWriter(self.config)
+        self.parser = Parse(config=self.config)
         self.lettersList = lettersList
-        self.toStem = toStem
+        self.toStem = self.config.toStem
 
 
     def run(self):
+
         counter = 0
         for folder in self.folderList:
 
@@ -39,47 +44,25 @@ class MyManager:
         if counter != 0:
             self.indexer.flushMemory()
 
-        self.indexer.merge()
+        self.indexer.merge(self.config)
 
         print ("Manager " + str(self.ID) + " finished")
 
 
-    # def merge(self,numberOfManagers):
-    #     import Configuration as config
-    #     from Indexing.KWayMerge import Merger
-    #     from Indexing import FileWriter
-    #     import os
-    #
-    #     merger = Merger()
-    #
-    #     for letter in self.lettersList:
-    #         for managerID in range(0,numberOfManagers):
-    #             filesInLetterFolder = os.listdir(config.savedFilePath + "\\" + letter)
-    #             fileToMergeList = []
-    #             for letterFile in filesInLetterFolder:
-    #                 if letterFile[1] == str(managerID):
-    #                    fileToMergeList.append(letterFile)
-    #             mergedList = merger.merge(fileToMergeList)
-    #             FileWriter.writeMergedFileTemp(mergedList, config.savedFilePath + "\\" + letter + "\\" + str(letter[0]) + str(managerID))
-    #
-    #         filesInLetterFolder = os.listdir(config.savedFilePath + "\\" + letter)
-    #         mergedList = merger.merge(filesInLetterFolder)
-    #         FileWriter.writeMergedFile(mergedList, config.savedFilePath + "\\" + letter + "\\")
 
-    def merge(self,numberOfManagers):
+    def merge(self):
         from Indexing.KWayMerge import Merger
-        from Indexing import FileWriter
         import os
 
-        merger = Merger()
+        merger = Merger(self.config)
 
         for letter in self.lettersList:
 
-            filesInLetterFolder = os.listdir(config.savedFilePath + "\\" + letter)
+            filesInLetterFolder = os.listdir(self.config.savedFilePath + "\\" + letter)
             mergedList = merger.merge(filesInLetterFolder)
 
 
-            FileWriter.writeMergedFile(mergedList, config.savedFilePath + "\\" + letter + "\\")
+            self.fileWriter.writeMergedFile(mergedList, self.config.savedFilePath + "\\" + letter + "\\")
 
 
 
