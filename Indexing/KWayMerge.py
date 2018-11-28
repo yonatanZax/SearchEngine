@@ -1,6 +1,5 @@
 import heapq
 import Configuration as config
-from datetime import datetime
 
 def key(item):
     return item.termLowerCase
@@ -83,29 +82,27 @@ class Merger:
         """
 
         try:
-            # open all files
-            open_files = []
-            [open_files.append(open(config.savedFilePath + "\\" + file__[0] + "\\" + file__, 'r')) for file__ in input_files]
-            filesByLines = []
-            i = 0
+            # print (input_files)
+            # filesByLines = []
             # read all the files to a list and close the files
-            for file in open_files:
-                filesByLines.append(file.readlines())
-                i += 1
-                file.close()
-                os.remove(file.name)
+            for file in input_files:
+                # open the file
+                openFile = open(config.savedFilePath + "\\" + file[0] + "\\" + file, 'r')
 
-            # 2. Iterate through each file f
-            # enqueue the tuple (nextTermIn(file), index of file, file) using the first value as priority key
-            for file in filesByLines:
-                text = str(file[0])
-                splittedLine = text.split('|')
+                # read all lines to a list of lists
+                fileList = openFile.readlines()
+                # filesByLines.append(fileList)
+                openFile.close()
+                os.remove(openFile.name)
+
+                # enqueue the first line to the priority  queue
+                firstLine = fileList[0]
+                splittedfirstLine = firstLine.split('|')
                 # the format is: termLowerCase=0, term=1, DF=2, sumDF=3, Posting=4,Index=5,file=6
-                self._heap.push(MergeDataClass(splittedLine[0].lower(), splittedLine[0], splittedLine[1], splittedLine[2], splittedLine[3], 0, file))
+                self._heap.push(MergeDataClass(splittedfirstLine[0].lower(), splittedfirstLine[0], splittedfirstLine[1], splittedfirstLine[2],splittedfirstLine[3], 0, fileList))
 
 
             FinalDictionary = {}
-
 
             # do the first iteration
             currentVal = self._heap.pop()

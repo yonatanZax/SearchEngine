@@ -30,7 +30,8 @@ def writeDictionaryToFile(fileName, headLineToWrite, dictionaryToWrite):
 
 
     # write to the end of the file at one time on another thread
-    _writeToFile(path, lineToWrite)
+    if len(lineToWrite) > 0:
+        _writeToFile(path, lineToWrite)
 
 
 def cleanDocuments(dictionaryToWrite):
@@ -53,6 +54,9 @@ def writeMergedFile(finalList, outputFile):
     lineToWritePost = ""
     lineToWriteDic = ""
     index = 0
+    pathForPosting = outputFile + 'PostingFolder'
+    os.mkdir(pathForPosting)
+    pathForPosting += '\\'
     for line in finalList:
         if index < 999:
             lineToWriteDic += line[0] + '|' + str(index) +'\n'
@@ -66,13 +70,13 @@ def writeMergedFile(finalList, outputFile):
             endTermIndex = line[0].find('|')
             lastTerm = line[0][0:endTermIndex]
 
-            _writeToFile(outputFile + lastTerm + '_post', lineToWritePost)
+            _writeToFile(pathForPosting + lastTerm + '_post', lineToWritePost)
             lineToWritePost = ''
 
     if index != 0:
         endTermIndex = finalList[len(finalList)-1][0].find('|')
         lastTerm = finalList[len(finalList)-1][0][0:endTermIndex]
-        _writeToFile(outputFile + lastTerm + '_post', lineToWritePost)
+        _writeToFile(pathForPosting + lastTerm + '_post', lineToWritePost)
 
     _writeToFile(outputFile + "mergedFile_dic", lineToWriteDic)
 

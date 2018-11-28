@@ -1,6 +1,7 @@
 from Indexing.Indexer import Indexer
 from ReadFiles.ReadFile import ReadFile
 from Parsing.Parse import Parse
+import Configuration as config
 
 
 class MyManager:
@@ -37,13 +38,35 @@ class MyManager:
 
         if counter != 0:
             self.indexer.flushMemory()
-        # self.indexer.merge()
+
+        self.indexer.merge()
 
         print ("Manager " + str(self.ID) + " finished")
 
 
+    # def merge(self,numberOfManagers):
+    #     import Configuration as config
+    #     from Indexing.KWayMerge import Merger
+    #     from Indexing import FileWriter
+    #     import os
+    #
+    #     merger = Merger()
+    #
+    #     for letter in self.lettersList:
+    #         for managerID in range(0,numberOfManagers):
+    #             filesInLetterFolder = os.listdir(config.savedFilePath + "\\" + letter)
+    #             fileToMergeList = []
+    #             for letterFile in filesInLetterFolder:
+    #                 if letterFile[1] == str(managerID):
+    #                    fileToMergeList.append(letterFile)
+    #             mergedList = merger.merge(fileToMergeList)
+    #             FileWriter.writeMergedFileTemp(mergedList, config.savedFilePath + "\\" + letter + "\\" + str(letter[0]) + str(managerID))
+    #
+    #         filesInLetterFolder = os.listdir(config.savedFilePath + "\\" + letter)
+    #         mergedList = merger.merge(filesInLetterFolder)
+    #         FileWriter.writeMergedFile(mergedList, config.savedFilePath + "\\" + letter + "\\")
+
     def merge(self,numberOfManagers):
-        import Configuration as config
         from Indexing.KWayMerge import Merger
         from Indexing import FileWriter
         import os
@@ -51,18 +74,13 @@ class MyManager:
         merger = Merger()
 
         for letter in self.lettersList:
-            for managerID in range(0,numberOfManagers):
-                filesInLetterFolder = os.listdir(config.savedFilePath + "\\" + letter)
-                fileToMergeList = []
-                for letterFile in filesInLetterFolder:
-                    if letterFile[1] == str(managerID):
-                       fileToMergeList.append(letterFile)
-                mergedList = merger.merge(fileToMergeList)
-                FileWriter.writeMergedFileTemp(mergedList, config.savedFilePath + "\\" + letter + "\\" + str(letter[0]) + str(managerID))
 
             filesInLetterFolder = os.listdir(config.savedFilePath + "\\" + letter)
             mergedList = merger.merge(filesInLetterFolder)
+
+
             FileWriter.writeMergedFile(mergedList, config.savedFilePath + "\\" + letter + "\\")
+
 
 
     def getRun(self):

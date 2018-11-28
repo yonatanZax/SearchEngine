@@ -5,6 +5,7 @@
 import os
 projectMainFolder = os.path.dirname(os.path.abspath(__file__)) + '\\'
 
+print ("Configurations")
 
 corpusPath = projectMainFolder + 'corpus'
 savedFilePath = projectMainFolder + 'SavedFiles'
@@ -13,7 +14,7 @@ stopWordFile = 'stop_words.txt'
 stopWordPath = corpusPath + '/' + stopWordFile
 
 managersNumber = os.cpu_count()
-filesPerIteration = 15
+filesPerIteration = 10
 listOfFoldersLength = len(os.listdir(corpusPath))
 
 toStem = False
