@@ -1,6 +1,5 @@
 import heapq
 import Configuration as config
-from datetime import datetime
 
 def key(item):
     return item.termLowerCase
@@ -69,9 +68,9 @@ class Merger:
 
     # TODO - make sure the files already come as full path or check how you want them to come
 
-    # TODO - delete the headline of the temporary posting files
+    # TODO - (DONE) - delete the headline of the temporary posting files
 
-    # TODO - add the dictionary adding logic here
+    # TODO - (DONE) - add the dictionary adding logic here
 
 
     def merge(self, input_files):
@@ -81,30 +80,29 @@ class Merger:
         :param input_files: the files path representing temporary posting files
         :return: a list, where each object in the list is a line for a term
         """
+
         try:
-            # open all files
-            open_files = []
-            [open_files.append(open(config.savedFilePath + "\\" + file__[0] + "\\" + file__, 'r')) for file__ in input_files]
-            filesByLines = []
-            i = 0
+            # print (input_files)
+            # filesByLines = []
             # read all the files to a list and close the files
-            for file in open_files:
-                filesByLines.append(file.readlines())
-                i += 1
-                file.close()
-                os.remove(file.name)
+            for file in input_files:
+                # open the file
+                openFile = open(config.savedFilePath + "\\" + file[0] + "\\" + file, 'r')
 
-            # 2. Iterate through each file f
-            # enqueue the tuple (nextTermIn(file), index of file, file) using the first value as priority key
-            for file in filesByLines:
-                text = str(file[0])
-                splittedLine = text.split('|')
+                # read all lines to a list of lists
+                fileList = openFile.readlines()
+                # filesByLines.append(fileList)
+                openFile.close()
+                os.remove(openFile.name)
+
+                # enqueue the first line to the priority  queue
+                firstLine = fileList[0]
+                splittedfirstLine = firstLine.split('|')
                 # the format is: termLowerCase=0, term=1, DF=2, sumDF=3, Posting=4,Index=5,file=6
-                self._heap.push(MergeDataClass(splittedLine[0].lower(), splittedLine[0], splittedLine[1], splittedLine[2], splittedLine[3], 0, file))
+                self._heap.push(MergeDataClass(splittedfirstLine[0].lower(), splittedfirstLine[0], splittedfirstLine[1], splittedfirstLine[2],splittedfirstLine[3], 0, fileList))
 
 
-            FinalList = {}
-
+            FinalDictionary = {}
 
             # do the first iteration
             currentVal = self._heap.pop()
@@ -156,7 +154,7 @@ class Merger:
                 else:
                     # write to output file
                     # FinalList.append((str(currentValTerm) + '|' + str(currentValDF) + '|' + str(currentValSUMTF) , currentValPosting))
-                    self.addToDic(FinalList,MergeDataClass(currentValTermLower,currentValTerm,currentValDF,currentValSUMTF,currentValPosting))
+                    self.addToDic(FinalDictionary,MergeDataClass(currentValTermLower,currentValTerm,currentValDF,currentValSUMTF,currentValPosting))
                     currentValTermLower = smallestTermLower
                     currentValTerm = smallestTerm
                     currentValDF = int(smallestDF)
@@ -176,12 +174,13 @@ class Merger:
 
             # clean up
             # FinalList.append((str(currentValTerm) + '|' + str(currentValDF) + '|' + str(currentValSUMTF),currentValPosting))
-            self.addToDic(FinalList, MergeDataClass(currentValTermLower, currentValTerm, currentValDF, currentValSUMTF, currentValPosting))
+            self.addToDic(FinalDictionary, MergeDataClass(currentValTermLower, currentValTerm, currentValDF, currentValSUMTF, currentValPosting))
 
             # for line in FinalList:
             #     print (line)
             # print ("Number of terms:" + str(len(FinalList)))
-            return FinalList.values()
+            FinalList = list(FinalDictionary.values())
+            return sorted(FinalList, key=self.sortDicKey)
         except Exception as err_msg:
             print ("Error while merging: %s" % str(err_msg))
             raise err_msg
@@ -196,6 +195,12 @@ class Merger:
                 false if they're not
         """
         return currentValTerm == smallest
+
+    @staticmethod
+    def sortDicKey(item):
+        endTerm = item[0].find('|')
+        returnedTerm = item[0][0:endTerm]
+        return returnedTerm
 
     @staticmethod
     def addToDic(dictionary,item):
@@ -220,9 +225,14 @@ class Merger:
 
 
 def test():
-    merger = Merger()
-    list = merger.merge(['b0_0','b0_1','b1_0','b1_1',])
-    for l in list:
-        print (l)
+    import os
+    # merger = Merger()
+    # list = merger.merge(['b0_0','b0_1'])
+    # for l in list:
+    #     print (l)
+    print (os.cpu_count())
 
 # test()
+
+
+

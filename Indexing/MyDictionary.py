@@ -1,45 +1,21 @@
-import multiprocessing
-import concurrent.futures.process
-import threading
 
 class MyDictionary:
 
     def __init__(self):
         self.dictionary_term_dicData = {}
-        # self.lock = multiprocessing.RLock()
-        # self.lock = threading.RLock()
+
 
     # assuming termString gets in all CAP or all LOW letters already from parser
-    def addTerm(self, termString, docNo, termFrequency):
-        # self.lock.acquire()
-        # termInDictionary = updateTermToDictionaryByTheRules(self.dictionary_term_dicData, termString)
-        # termDicData = self.dictionary_term_dicData.get(termInDictionary)
-        # if termDicData is None:
-        #     # add new term
-        #     termDicData = DictionaryData(len(self.dictionary_term_dicData))
-        #     self.dictionary_term_dicData[termInDictionary] = termDicData
-        # self.lock.release()
-        # # add the doc to the term posting line
-        # termDicData.addDocument(docID=docNo, docTF_int=termFrequency)
-
-        # with self.lock:
-        #     termInDictionary = updateTermToDictionaryByTheRules(self.dictionary_term_dicData, termString)
-        #     termDicData = self.dictionary_term_dicData.get(termInDictionary)
-        #     if termDicData is None:
-        #         # add new term
-        #         termDicData = DictionaryData(len(self.dictionary_term_dicData))
-        #         self.dictionary_term_dicData[termInDictionary] = termDicData
-        # # add the doc to the term posting line
-        # termDicData.addDocument(docID=docNo, docTF_int=termFrequency)
+    def addTerm(self, termString, docNo, termFrequency, termPositions):
 
         termInDictionary = updateTermToDictionaryByTheRules(self.dictionary_term_dicData, termString)
         termDicData = self.dictionary_term_dicData.get(termInDictionary)
         if termDicData is None:
             # add new term
-            termDicData = DictionaryData(len(self.dictionary_term_dicData))
+            termDicData = DictionaryData()
             self.dictionary_term_dicData[termInDictionary] = termDicData
         # add the doc to the term posting line
-        termDicData.addDocument(docID=docNo, docTF_int=termFrequency)
+        termDicData.addDocument(docID=docNo, docTF_int=termFrequency,termPositions= termPositions)
 
 
     def getPostingLine(self, term):
@@ -51,24 +27,21 @@ class MyDictionary:
     def print(self):
         print("MyDictionary Size: " + str(len(self.dictionary_term_dicData)))
         return
-        for term, termData in sorted(self.dictionary_term_dicData.items()):
-            print(term + " - " + termData.toString())
-        print("MyDictionary Size: " + str(len(self.dictionary_term_dicData)))
+
 
 
 class DictionaryData:
 
-    def __init__(self, postingLine):
+    def __init__(self):
         self.termDF = 0
         self.sumTF = 0
-        self.postingLine = postingLine
         self.string_docID_tf = ""
         # self.dictionary_docID_tf = {}
 
 
-    # TODO - something is wrong with the numbers fix it
+    # TODO - (DONE) - something is wrong with the numbers fix it
 
-    def addDocument(self, docID, docTF_int):
+    def addDocument(self, docID, docTF_int, termPositions):
         self.sumTF += docTF_int
         if self.string_docID_tf.count(str(docID)) > 0:
             splitted = self.string_docID_tf.split(',')
@@ -76,14 +49,16 @@ class DictionaryData:
                 splittedDoc = doc.split('#')
                 if splittedDoc[0] == docID:
                     oldDF = splittedDoc[1]
+                    oldPositions = splittedDoc[2]
                     docTF_int += int(splittedDoc[1])
                     splittedDoc[1] = str(docTF_int)
-                    self.string_docID_tf = self.string_docID_tf.replace(splittedDoc[0] + '#' + oldDF,splittedDoc[0] + '#' + splittedDoc[1])
+                    self.string_docID_tf = self.string_docID_tf.replace(splittedDoc[0] + '#' + oldDF+ '#' + oldPositions,splittedDoc[0] + '#' + splittedDoc[1] + splittedDoc[2] + termPositions)
+                    print ("addDocument" + str(docID))
                     break
 
         else:
             self.termDF += 1
-            self.string_docID_tf += str(docID) + "#" + str(docTF_int) + ","
+            self.string_docID_tf += str(docID) + "#" + str(docTF_int) + "#" +  termPositions + ","
         # self.dictionary_docID_tf[docID] = docTF_int
 
 
@@ -93,7 +68,7 @@ class DictionaryData:
         posting Format:
         term|DF|sumTF|DOC#TF,*
         '''
-        arr = [str(self.termDF),str(self.sumTF), self.string_docID_tf.strip(',')]
+        arr = [str(self.termDF),str(self.sumTF), self.string_docID_tf]
         ans = "|".join(arr)
 
         return ans

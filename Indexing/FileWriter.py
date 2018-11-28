@@ -1,7 +1,5 @@
-from AtomicInteger import AtomicCounter
 import os
 import Configuration as config
-import MyExecutors
 
 i = 0
 def cleanIndex(indexer):
@@ -9,7 +7,7 @@ def cleanIndex(indexer):
     # currentFileNumber = i.getAndIncrement()
     currentFileNumber = i
     i += 1
-    headLineToWrite = 'term|DF|sumTF|DOC#TF,*'
+    headLineToWrite = 'term|DF|sumTF|DOC#TF#Position:*,*'
     for dictionaryKey, dictionaryVal in indexer.myDictionaryByLetters.items():
         writeDictionaryToFile(dictionaryKey + str(indexer.ID) + "_" + str(currentFileNumber), headLineToWrite,dictionaryVal)
 
@@ -22,11 +20,6 @@ def writeDictionaryToFile(fileName, headLineToWrite, dictionaryToWrite):
 
     path = config.savedFilePath + '\\' + fileName[0] + '\\' + fileName
 
-    # If file doesn't exists, create a new file with headline
-    result = None
-    if not os.path.exists(path):
-        result = MyExecutors._instance.IOExecutor.apply_async(_createFile, (path, headLineToWrite,))
-
     lineToWrite = ""
     # Iter over all the terms in the dictionary and create a string to write
     for term, termData in sorted(dictionaryToWrite.dictionary_term_dicData.items()):
@@ -36,31 +29,23 @@ def writeDictionaryToFile(fileName, headLineToWrite, dictionaryToWrite):
             termData.cleanPostingData()
 
 
-    # wait for the file to be created
-    if result is not None:
-        result.get()
-
     # write to the end of the file at one time on another thread
-    MyExecutors._instance.IOExecutor.apply_async(_writeToFile, (path,lineToWrite,))
+    if len(lineToWrite) > 0:
+        _writeToFile(path, lineToWrite)
+
 
 def cleanDocuments(dictionaryToWrite):
     path = config.documentsIndexPath
-    result = None
     if not os.path.exists(path):
-        headLineToWrite = 'term|max_tf|uniqueTermCount|docLength|city'
-        result = MyExecutors._instance.IOExecutor.apply_async(_createFile, (path, headLineToWrite,))
+        headLineToWrite = 'DOCID|max_tf|uniqueTermCount|docLength|city'
         _createFile(path, headLineToWrite)
 
     lineToWrite = ""
     for docNo, documentData in sorted(dictionaryToWrite.items()):
         lineToWrite += (docNo + "|" + documentData.toString() + "\n")
 
-    # wait for the file to be created
-    if result is not None:
-        result.get()
-
     # write to the end of the file at one time on another thread
-    MyExecutors._instance.IOExecutor.apply_async(_writeToFile, (path,lineToWrite,))
+    _writeToFile(path, lineToWrite)
 
 # TODO - make sure that if we use stem we won't run over not stemmed files
 # TODO - change path to relative and add the stem and file name to the method signature
@@ -69,17 +54,42 @@ def writeMergedFile(finalList, outputFile):
     lineToWritePost = ""
     lineToWriteDic = ""
     index = 0
+    pathForPosting = outputFile + 'PostingFolder'
+    os.mkdir(pathForPosting)
+    pathForPosting += '\\'
     for line in finalList:
-        lineToWriteDic += line[0] + '|' + str(index) +'\n'
-        lineToWritePost += line[1] + "\n"
-        index += 1
-    _writeToFile(outputFile + "_post",lineToWritePost)
-    _writeToFile(outputFile + "_dic", lineToWriteDic)
+        if index < 999:
+            lineToWriteDic += line[0] + '|' + str(index) +'\n'
+            lineToWritePost += line[1] + "\n"
+            index += 1
+        else:
+            lineToWriteDic += line[0] + '|' + str(index) +'\n'
+            lineToWritePost += line[1] + "\n"
+            index = 0
+
+            endTermIndex = line[0].find('|')
+            lastTerm = line[0][0:endTermIndex]
+
+            _writeToFile(pathForPosting + lastTerm + '_post', lineToWritePost)
+            lineToWritePost = ''
+
+    if index != 0:
+        endTermIndex = finalList[len(finalList)-1][0].find('|')
+        lastTerm = finalList[len(finalList)-1][0][0:endTermIndex]
+        _writeToFile(pathForPosting + lastTerm + '_post', lineToWritePost)
+
+    _writeToFile(outputFile + "mergedFile_dic", lineToWriteDic)
+
+def writeMergedFileTemp(finalList, outputFile):
+    lineToWrite = ""
+    for line in finalList:
+        lineToWrite += line[0] + '|' + line[1] + '\n'
+    _writeToFile(outputFile, lineToWrite)
 
 
 def _createFile(path, headLineString):
     myFile = open(path, 'w')
-    # myFile.write(headLineString + "\n")
+    myFile.write(headLineString + "\n")
     myFile.close()
 
 def _writeToFile(path, lineToWrite):

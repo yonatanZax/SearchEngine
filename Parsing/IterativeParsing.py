@@ -4,7 +4,6 @@ import Configuration as config
 
 
 from Indexing.Document import TermData
-import nltk
 
 class IterativeTokenizer:
 
@@ -137,17 +136,16 @@ def cleanToken(token):
     return None
 
 
-def addTermToDic(termDictionary, term):
+def addTermToDic(termDictionary, term, index):
     from Indexing.MyDictionary import updateTermToDictionaryByTheRules
     term = term.strip(',').strip('.')
     count = 1
     termFromDic = updateTermToDictionaryByTheRules(termDictionary, term)
     termDataFromDic = termDictionary.get(termFromDic)
     if termDataFromDic is not None:
-        count = termDataFromDic.termFrequency + 1
-        termDataFromDic.termFrequency = count
+        termDataFromDic.addPositionToTerm(index)
     else:
-        newTerm = TermData(count, 0)
+        newTerm = TermData(count, index)
         termDictionary[termFromDic] = newTerm
 
 # function that filters vowels
@@ -157,8 +155,7 @@ def filterAll(currWord):
         return False
     return True
 
-# TODO - upgrade the dash func
-
+# TODO - check where we want to change 'strip()' methods to 'rstrip()' or 'lstrip()'
 
 def parseText(text, toStem=config.toStem):
     import Stemmer.Stemmer
@@ -178,40 +175,38 @@ def parseText(text, toStem=config.toStem):
         if cleanedWord[0].isdigit():
             temp, returnedIndex = percentToken(textIndex, splittedText)
             if temp is not None:
+                addTermToDic(termsDic, temp, textIndex)
                 textIndex = returnedIndex
-                addTermToDic(termsDic, temp)
                 continue
             temp, returnedIndex = monthToken_H1(textIndex, splittedText)
             if temp is not None:
+                addTermToDic(termsDic, temp, textIndex)
                 textIndex = returnedIndex
-                addTermToDic(termsDic, temp)
+
                 continue
             numOfDashes = splittedText[textIndex].count('-')
             if numOfDashes > 0:
                 tokenList, returnedIndex = splitDashToken(textIndex, splittedText)
                 for token in tokenList:
                     if len(token) > 0:
-                        addTermToDic(termsDic, token)
+                        addTermToDic(termsDic, token, textIndex)
                 textIndex = returnedIndex
                 continue
             temp, returnedIndex = numTMBT_tokenToTerm(textIndex, splittedText)
             if temp is not None and len(temp) > 0:
+                addTermToDic(termsDic, temp, textIndex)
                 textIndex = returnedIndex
-                addTermToDic(termsDic, temp)
                 continue
-            addTermToDic(termsDic, cleanedWord)
+            addTermToDic(termsDic, cleanedWord, textIndex)
 
 
         else:
-
 
             # TODO - stem suppose to be here somewhere, make sure the toStem gets all the way down to here
             if len(cleanedWord) < 2:
                 docLength -= 1
                 textIndex += 1
                 continue
-
-
 
 
             if cleanedWord[0] == '-' and not cleanedWord[1].isdigit():
@@ -221,37 +216,39 @@ def parseText(text, toStem=config.toStem):
             if cleanedWord[0] == '$':
                 temp, returnedIndex = startWithDollar(textIndex, splittedText)
                 if temp is not None:
+                    addTermToDic(termsDic, temp, textIndex)
                     textIndex = returnedIndex
-                    addTermToDic(termsDic, temp)
                     continue
             numOfDashes = cleanedWord.count('-')
             if cleanedWord.count('-') > 0:
                 if numOfDashes == 1 and cleanedWord[0] == '-':
-                    if len(splittedText[textIndex]) > 1 and splittedText[textIndex][1].isdigit:
-                        addTermToDic(termsDic, cleanedWord)
+                    if len(cleanedWord) > 1 and cleanedWord[1].isdigit:
+                        addTermToDic(termsDic, cleanedWord, textIndex)
                     else:
-                        cleanedToken = cleanToken(splittedText[textIndex][1:len(splittedText[textIndex])])
+                        cleanedToken = cleanToken(cleanedWord[1:len(cleanedWord)])
                         if cleanedToken is not None:
-                            addTermToDic(termsDic, cleanedToken)
+                            addTermToDic(termsDic, cleanedToken, textIndex)
                     textIndex += 1
                     continue
                 else:
                     tokenList, returnedIndex = splitDashToken(textIndex, splittedText)
                     for token in tokenList:
                         if len(token) > 0:
-                            addTermToDic(termsDic, token)
+                            # TODO - check if the term is number
+                            addTermToDic(termsDic, token, textIndex)
                     textIndex = returnedIndex
                     continue
             temp, returnedIndex = dateParse_H2_O(textIndex,splittedText)
             if temp is not None:
+                addTermToDic(termsDic, temp, textIndex)
                 textIndex = returnedIndex
-                addTermToDic(termsDic, temp)
+
                 continue
             if cleanedWord.lower() not in ['may']:
                 if toStem:
                     afterStem = Stemmer.Stemmer.stemTerm(cleanedWord)
                     cleanedWord = afterStem
-                addTermToDic(termsDic, cleanedWord)
+                addTermToDic(termsDic, cleanedWord, textIndex)
             else:
                 docLength -= 1
 
@@ -310,7 +307,7 @@ def splitDashToken(index, textList):
         cleanedTerm = cleanToken(term)
         if cleanedTerm is not None and len(term) > 1:
             ansList.append(term)
-        ansList.append(textList[index])
+    ansList.append(textList[index])
     return ansList, index + 1
 
 # TODO - add 2 rules
