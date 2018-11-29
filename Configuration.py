@@ -29,6 +29,7 @@ class ConfigClass:
         self.stopWordPath = self.corpusPath + '/' + self.stopWordFile
 
         self.managersNumber = os.cpu_count()
+        # self.managersNumber = 1
         self.filesPerIteration = 10
         self.listOfFoldersLength = len(os.listdir(self.corpusPath))
 
@@ -82,6 +83,7 @@ class ConfigClass:
 
     def setToStem(self,bool):
         self.toStem = bool
+        print('Stem changed to: ',bool)
         if not self.toStem:
             self.savedFilePath = self.saveFilesWithoutStem
         else:

@@ -60,8 +60,14 @@ class MainClass:
             if endLetters > len(lettersList):
                 endLetters = len(lettersList)
 
+
+            folderListPerManager = []
+            for j in range(i,len(listOfFolders),managersNumber):
+                folderListPerManager.append(listOfFolders[j])
+
+
             manager = MyManager(managerID=i, filesPerIteration=filesPerIteration,
-                                folderList=listOfFolders[int(startFolder):int(endFolder)],
+                                folderList=folderListPerManager,
                                 lettersList=lettersList[int(startLetters):int(endLetters)], config=self.config, indexer=None)
             managersList.append(manager)
 
