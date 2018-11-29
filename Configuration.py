@@ -5,7 +5,6 @@
 import os
 projectMainFolder = os.path.dirname(os.path.abspath(__file__)) + '\\'
 
-print ("Configurations")
 
 corpusPath = projectMainFolder + 'corpus'
 savedFilePath = projectMainFolder + 'SavedFiles'

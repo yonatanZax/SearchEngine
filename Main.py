@@ -76,6 +76,7 @@ def managerRun():
 
 
     for manager in zip(managersList, pool.map(run, managersList)):
+        # TODO - receive the cities dictionary, then merge it, get the data
         manager[0].getRun()
 
     finishTime = datetime.now()

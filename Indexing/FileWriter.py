@@ -35,17 +35,21 @@ def writeDictionaryToFile(fileName, headLineToWrite, dictionaryToWrite):
 
 
 def cleanDocuments(dictionaryToWrite):
+
     path = config.documentsIndexPath
     if not os.path.exists(path):
         headLineToWrite = 'DOCID|max_tf|uniqueTermCount|docLength|city'
         _createFile(path, headLineToWrite)
 
+
     lineToWrite = ""
     for docNo, documentData in sorted(dictionaryToWrite.items()):
         lineToWrite += (docNo + "|" + documentData.toString() + "\n")
 
+
     # write to the end of the file at one time on another thread
     _writeToFile(path, lineToWrite)
+
 
 # TODO - make sure that if we use stem we won't run over not stemmed files
 # TODO - change path to relative and add the stem and file name to the method signature

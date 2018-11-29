@@ -84,6 +84,7 @@ class MyManager:
 
 
     def getRun(self):
+        # TODO - return the cities dictionary
         print ("Got manager " + str(self.ID) + ' run')
 
     def getMerge(self):

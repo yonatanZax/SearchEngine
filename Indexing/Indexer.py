@@ -1,5 +1,5 @@
 import os
-from Indexing.MyDictionary import MyDictionary, DocumentIndexData
+from Indexing.MyDictionary import MyDictionary, DocumentIndexData,CityIndexData
 import string
 
 class Indexer:
@@ -16,7 +16,7 @@ class Indexer:
 
         self.documents_dictionary = {}
 
-        self.country_dictionary = {}
+        self.city_dictionary = {}
 
     def addNewDoc(self, document):
         # go over each term in the doc
@@ -25,17 +25,26 @@ class Indexer:
         maxFrequentWord = 0
         for term, termData in documentDictionary.items():
             # add the term to the dictionary
-            # term = cleanDashesCommas(term)
             if len(term) == 0:
                 continue
             termFrequency = termData.getTermFrequency()
             if englishLetters.get(term[0]):
+
                 self.myDictionaryByLetters[term[0].lower()].addTerm(termString=term, docNo=docNo, termFrequency=termFrequency, termPositions=termData.getPositions())
             else:
                 self.myDictionaryByLetters["#"].addTerm(termString=term, docNo=docNo, termFrequency=termFrequency, termPositions=termData.getPositions())
             maxFrequentWord = max(termFrequency, maxFrequentWord)
         newDocumentIndexData = DocumentIndexData(max_tf=maxFrequentWord, uniqueTermsCount=len(document.termDocDictionary_term_termData), docLength=document.docLength, city = document.city)
         self.documents_dictionary[docNo] = newDocumentIndexData
+
+        if document.city is not None:
+            try:
+                if self.city_dictionary.get(document.city) is not None:
+                    self.city_dictionary[document.city] = CityIndexData(docNo, document.termDocDictionary_term_termData["ZAXROY"].getPositions())
+                else:
+                    self.city_dictionary[document.city].addDocumentToCity(docNo, document.termDocDictionary_term_termData["ZAXROY"].getPositions())
+            except Exception as ex:
+                return
 
 
     def flushMemory(self):
@@ -53,12 +62,9 @@ class Indexer:
 
     def merge(self):
         import Configuration as config
-
-        from datetime import datetime
         from Indexing.KWayMerge import Merger
         from Indexing import FileWriter
 
-        startTime = datetime.now()
 
         merger = Merger()
         savedFilesPathList = os.listdir(config.savedFilePath)
@@ -96,10 +102,7 @@ class Indexer:
             FileWriter.writeMergedFileTemp(mergedList,config.savedFilePath + "\\" + folder + "\\" + str(folder[0]) + str(self.ID))
 
 
-        finishTime = datetime.now()
-        timeItTook = finishTime - startTime
 
-        # print("Entire Merge took: "+ str(timeItTook.seconds) + " seconds")
 
     # @staticmethod
     # def staticMerge():

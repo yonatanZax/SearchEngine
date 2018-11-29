@@ -93,8 +93,21 @@ class DocumentIndexData:
         max_tf|uniqueTermCount|docLength|city
         :return:
         '''
-        ans = str(self.max_tf) + '|' + str(self.uniqueTermCount) + '|' + str(self.docLength) + '|' + str(self.city)
+        ans = '|'.join([str(self.max_tf) , str(self.uniqueTermCount), str(self.docLength) ,str(self.city)])
         return ans
+
+
+class CityIndexData:
+
+    def __init__(self,doc,locations):
+        self.country = ''
+        self.currency = ''
+        self.population = 0
+        self.dictionary_doc_locations = {}
+        self.dictionary_doc_locations[doc] = locations
+
+    def addDocumentToCity(self, docID, locations):
+        self.dictionary_doc_locations[docID] = locations
 
 # get the format of the term how its saved in the dictionary or none if its not in the dictionary
 def getTermDictionaryForm(dictionary, termString):
