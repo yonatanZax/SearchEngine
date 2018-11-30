@@ -21,16 +21,19 @@ class MainClass:
     def __init__(self):
 
         self.config = ConfigClass()
+        self.GuiManager = None
 
     def GUIRun(self):
         import GuiExample
 
         print("***   Main Start   ***")
         root = GuiExample.Tk()
-        root.geometry('500x550')
+        root.geometry('500x600')
+        # root.geometry('800x1000')
         root.title("SearchEngine")
 
         guiFrame = GuiExample.EngineBuilder(root,mainManager=self, config=self.config, numOfTotalFiles=self.config.get__listOfFoldersLength())
+        # self.GuiManager = guiFrame
         guiFrame.mainloop()
 
     def managerRun(self):
@@ -89,6 +92,8 @@ class MainClass:
 
         print("Number of files Processed: " + str(len(listOfFolders)))
         print("Everything took: " + str(timeItTook.seconds) + " seconds")
+
+        # self.GuiManager.buildButton.enableBuildButton()
 
     def run(self,manager):
         manager.run()

@@ -1,46 +1,5 @@
 
 
-
-
-
-
-
-'''
-Jan.
-Feb.
-Mar.
-Apr.
-May
-June
-July
-Aug.
-Sept.
-Oct.
-Nov.
-Dec.
-'''
-
-
-def convertMonthToInt(month):
-    # January | February | March | April | May | June
-    # July | August | September | October | November | December
-
-    return {
-        'jan': '01',
-        'feb': '02',
-        'mar': '03',
-        'apr': '04',
-        'may': '05',
-        'june': '06',
-        'july': '07',
-        'aug': '08',
-        'sep': '09',
-        'oct': '10',
-        'nov': '11',
-        'dec': '12',
-    }[month]
-
-
 def convertTMBT_toLetter(tmbt):
 
     return {
@@ -70,7 +29,7 @@ def convertNumToMoneyFormat(numAsString):
     if moduloMillion >= 1:
         if str(moduloMillion).endswith('.0'):
             moduloMillion = int(moduloMillion)
-        return (str(moduloMillion)[:7] + ' M')
+        return (str("{0:.2f}".format(round(moduloMillion,2))).rstrip('0').rstrip('.') + ' M')
     else:
         if str(numAsFloat).endswith('.0'):
             numAsFloat = int(numAsFloat)
@@ -82,19 +41,33 @@ def convertNumToKMBformat(numAsString):
     from BasicMethods import isfloat
     if isfloat(numToFloat):
         numAsFloat = float(numToFloat)
-        moduloMillion = numAsFloat / 1000000000
+        moduloMillion = numAsFloat / 100000000
         if moduloMillion >= 1:
-            return (str(moduloMillion)[:6].rstrip('0').rstrip('.') + ' B')
+            return (str("{0:.2f}".format(round(moduloMillion,2))).rstrip('0').rstrip('.') + ' B')
         elif moduloMillion * 100 >= 1:
-            return (str(moduloMillion * 100)[:6].rstrip('0').rstrip('.') + ' M')
-        elif moduloMillion * 1000000 >= 1:
-            return (str(moduloMillion * 1000000)[:6].rstrip('0').rstrip('.') + ' K')
+            return (str("{0:.2f}".format(round(moduloMillion*100,2))).rstrip('0').rstrip('.') + ' M')
+        elif moduloMillion * 100000 >= 1:
+            return (str("{0:.2f}".format(round(moduloMillion*100000,2))).rstrip('0').rstrip('.') + ' K')
         else:
-            return str(numAsFloat)[:6].rstrip('0').rstrip('.')
+            return str("{0:.2f}".format(round(numAsFloat,2))).rstrip('0').rstrip('.')
     else:
         return numToFloat.rstrip('0').rstrip('.')
 
 
 def removeCommasFromNumber(numAsString):
     return numAsString.replace(',','')
+
+
+
+
+
+
+
+
+
+
+# import subprocess as sp
+# programName = "notepad.exe"
+# fileName = "D:\SearchEngine\corpus\stop_words.txt"
+# sp.Popen([programName, fileName])
 

@@ -44,7 +44,7 @@ class MyManager:
         if counter != 0:
             self.indexer.flushMemory()
 
-        self.indexer.merge(self.config)
+        self.indexer.merge()
 
         print ("Manager " + str(self.ID) + " finished")
 

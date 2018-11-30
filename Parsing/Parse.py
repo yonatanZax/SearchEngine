@@ -11,7 +11,7 @@ class Parse:
         from Indexing.Document import Document
 
         docNo = 'doc null'
-        cityAsArray = [""]
+        city = ""
         try:
             topOfText1 = documentAsString[0:int(len(documentAsString)/10)]
             topOfText2 = documentAsString[0:int(len(documentAsString)/6)]
@@ -24,8 +24,9 @@ class Parse:
             cityLine = re.findall(r"<F P=104>(.+?)</F>", topOfText2)
             if len(cityLine) > 0:
                 cityAsArray = re.findall(r"[a-zA-Z]+", cityLine[0].strip(' '))
+                city = cityAsArray[0]
                 if cityAsArray[0].lower() in ['new','san','sao','la','tel','santa']:
-                    cityAsArray = [str(cityAsArray[0]) + ' ' + str(cityAsArray[1])]
+                    city = city + ' ' + str(cityAsArray[1])
             if len(countryLine) > 0:
                 country = countryLine[0].strip(' ')
 
@@ -33,6 +34,7 @@ class Parse:
             onlyText = documentAsString.split("<TEXT>")
             if len(onlyText) > 0:
                 documentAsString = onlyText[1]
+                documentAsString.replace(city,"ZAXROY")
             else: return None
         except IndexError as e:
             print('DocNo: ',docNo)
@@ -41,7 +43,7 @@ class Parse:
             return None
 
         termDictionary, docLength = self.tokenizer.getTermDicFromText(documentAsString)
-        document =  Document(docNo, termDictionary, docLength, city = cityAsArray[0])
+        document =  Document(docNo, termDictionary, docLength, city = city)
         return document
 
 
@@ -252,9 +254,9 @@ Column
 
 
 '''
-from Configuration import ConfigClass
-p = Parse(ConfigClass())
-p.parseDoc(text2)
-
-
+# from Configuration import ConfigClass
+# p = Parse(ConfigClass())
+# p.parseDoc(text2)
+#
+#
 

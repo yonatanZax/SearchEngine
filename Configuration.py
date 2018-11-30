@@ -16,14 +16,14 @@ class ConfigClass:
         self.saveFilesWithStem = self.savedFileMainFolder + "\\WithStem"
         self.saveFilesWithoutStem = self.savedFileMainFolder + "\\WithoutStem"
 
-        if os.path.exists(self.savedFileMainFolder):
-            shutil.rmtree(self.savedFileMainFolder)
-        while 1:
-            try:
-                os.mkdir(self.savedFileMainFolder)
-                break
-            except PermissionError:
-                continue
+        # if os.path.exists(self.savedFileMainFolder):
+        #     shutil.rmtree(self.savedFileMainFolder)
+        # while 1:
+        #     try:
+        #         os.mkdir(self.savedFileMainFolder)
+        #         break
+        #     except PermissionError:
+        #         continue
 
         self.stopWordFile = 'stop_words.txt'
         self.stopWordPath = self.corpusPath + '/' + self.stopWordFile
@@ -70,10 +70,16 @@ class ConfigClass:
         self.saveFilesWithoutStem = self.savedFileMainFolder + "\\WithoutStem"
 
         if not self.toStem:
+            if os.path.exists(self.saveFilesWithoutStem):
+                shutil.rmtree(self.saveFilesWithoutStem)
+            os.mkdir(self.saveFilesWithoutStem)
             if not os.path.exists(self.saveFilesWithoutStem):
                 os.mkdir(self.saveFilesWithoutStem)
             self.savedFilePath = self.saveFilesWithoutStem
         else:
+            if os.path.exists(self.saveFilesWithStem):
+                shutil.rmtree(self.saveFilesWithStem)
+            os.mkdir(self.saveFilesWithStem)
             if not os.path.exists(self.saveFilesWithStem):
                 os.mkdir(self.saveFilesWithStem)
             self.savedFilePath = self.saveFilesWithStem

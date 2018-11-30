@@ -2,11 +2,9 @@ from tkinter import *
 from tkinter import filedialog
 
 from Configuration import ConfigClass
+from threading import Thread
 
 class EngineBuilder(Frame):
-
-    # TODO - make checkbox work
-
 
     def __init__(self, master, mainManager, config, numOfTotalFiles):
         self.config = config
@@ -16,6 +14,16 @@ class EngineBuilder(Frame):
         # self.filesDone = 0
         # self.numOfTotalFiles = numOfTotalFiles
         self.numOfFilesPerIteration = config.get__filesPerIteration()
+
+        from GuiDisplayDF import DisplayDataFrame
+
+        self.displayClass = DisplayDataFrame()
+        # self.displayClass.runAndCloseFast()
+
+
+
+
+
 
         label_0 = Label(self.master, text="Search Engine", width=20, font=("bold", 20))
         label_0.place(x=90, y=60)
@@ -79,40 +87,7 @@ class EngineBuilder(Frame):
 
 
 
-        def deleteEngine():
-            # TODO - implement me
-            import shutil
-            shutil.rmtree(self.config.get__savedFileMainFolder())
-            print("Folder was deleted successfully..")
-
-        def buildEngine():
-            print("Corpus path:     ", self.entry_corpusPath.get())
-            corpusPath = str(self.entry_corpusPath.get())
-            self.config.setCorpusPath(corpusPath)
-            # self.disableBuildBtn()
-            print(self.stemmingCheckBox)
-
-
-
-            saveMainFolderPath = str(self.entry_postingPath.get())
-            self.config.setSaveMainFolderPath(saveMainFolderPath)
-            print("Posting path:     ", saveMainFolderPath)
-
-
-            # Todo - disable button
-
-
-            print("\n***    ManagerRun    ***")
-            from threading import Thread
-            th = Thread(target=self.mainManager.managerRun)
-            # threadProgress = Thread(target=updateFileCounter)
-            th.start()
-            # threadProgress.start()
-            print('Start')
-            # managerRun()
-
-
-        self.deleteButton = Button(self.master, text='Delete', width=10, bg='red', fg='white',command= deleteEngine)
+        self.deleteButton = Button(self.master, text='Delete', width=10, bg='red', fg='white',command= self.deleteEngine)
         self.deleteButton.place(x=100, y=250)
         self.buildButton = Button(self.master, text='Build', width=10, bg='green', fg='white',command= self.buildEngine)
         self.buildButton.place(x=200, y=250)
@@ -146,7 +121,7 @@ class EngineBuilder(Frame):
 
         self.uploadDicButton = Button(self.master, text='Upload', width=10, bg='blue', fg='white',command= uploadDictionary)
         self.uploadDicButton.place(x=170, y=380)
-        self.showDicButton = Button(self.master, text='Show', width=10, bg='blue', fg='white',command= showDictionary)
+        self.showDicButton = Button(self.master, text='Show', width=10, bg='blue', fg='white',command= self.displayDicionary)
         self.showDicButton.place(x=270, y=380)
 
 
@@ -171,36 +146,52 @@ class EngineBuilder(Frame):
 
 
 
-        def updateFileCounter(self):
-            flag = True
-            label = "Progress:     ["
-            import os
-            import time
+    def updateFileCounter(self):
+        flag = True
+        label = "Progress:     ["
+        import os
+        import time
 
-            while flag:
-                time.sleep(60)
-                path = config.get__savedFilePath() + '\\a'
-                if not os.path.exists(path):
-                    continue
-                listOfFiles = os.listdir(path)
-                filesPerIteration = config.get__filesPerIteration()
-                allFilesCount = config.get__listOfFoldersLength()
-                totalFileCount = len(listOfFiles) * filesPerIteration
+        while flag:
+            time.sleep(60)
+            path = self.config.get__savedFilePath() + '\\a'
+            if not os.path.exists(path):
+                continue
+            listOfFiles = os.listdir(path)
+            filesPerIteration = self.config.get__filesPerIteration()
+            allFilesCount = self.config.get__listOfFoldersLength()
+            totalFileCount = len(listOfFiles) * filesPerIteration
 
-                percent = (totalFileCount/allFilesCount)*50
-                linesAsString = ''
-                for i in range(0,percent):
-                    linesAsString += '|'
-                for i in range(percent,50):
-                    linesAsString += ' '
+            percent = (totalFileCount/allFilesCount)*50
+            linesAsString = ''
+            for i in range(0,percent):
+                linesAsString += '|'
+            for i in range(percent,50):
+                linesAsString += ' '
 
-                self.label_progress['label'] = label + linesAsString + '] ' + str(percent*2) + '% '
+            self.label_progress['label'] = label + linesAsString + '] ' + str(percent*2) + '% '
 
 
 
-    def disableBuildBtn(self):
+
+
+
+    def displayDicionary(self):
+
+
+        t = Thread(target=self.displayClass.run)
+
+        t.start()
+
+
+    def deleteEngine(self):
+        import shutil
+        shutil.rmtree(self.config.get__savedFileMainFolder())
+        print("Folder was deleted successfully..")
         self.buildButton.configure(state=NORMAL)
         self.deleteButton.configure(state=DISABLED)
+
+
 
     def buildEngine(self):
         print("Corpus path:     ", self.entry_corpusPath.get())
@@ -213,36 +204,39 @@ class EngineBuilder(Frame):
 
         saveMainFolderPath = str(self.entry_postingPath.get())
         self.config.setSaveMainFolderPath(saveMainFolderPath)
+
         print("Posting path:     ", saveMainFolderPath)
 
-        # Todo (DONE) - disable button
+
         self.buildButton.configure(state=DISABLED)
         self.deleteButton.configure(state=NORMAL)
 
-        print("\n***    ManagerRun    ***")
+        print("\n***    ManagerRun    ***\n")
+
         from threading import Thread
         th = Thread(target=self.mainManager.managerRun)
         # threadProgress = Thread(target=updateFileCounter)
         th.start()
         # threadProgress.start()
-        print('Start')
-        # managerRun()
 
 
 
-
-if __name__ == "__main__":
-
-
-
-    root = Tk()
-    root.geometry('500x550')
-    root.title("SearchEngine")
+    def enableBuildButton(self):
+        self.buildButton.configure(state=NORMAL)
 
 
-
-    guiFrame = EngineBuilder(root)
-    guiFrame.mainloop()
+# if __name__ == "__main__":
+#
+#
+#
+#     root = Tk()
+#     root.geometry('500x550')
+#     root.title("SearchEngine")
+#
+#
+#
+#     guiFrame = EngineBuilder(root)
+#     guiFrame.mainloop()
 
 
 
