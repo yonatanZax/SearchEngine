@@ -223,17 +223,3 @@ class Merger:
             dictionary[item[0]] = (str(termInDic) + '|' + str(termDF) + '|' + str(termSUMDF), termTuple[1] + item[4])
 
 
-
-
-def test():
-    import os
-    # merger = Merger()
-    # list = merger.merge(['b0_0','b0_1'])
-    # for l in list:
-    #     print (l)
-    print (os.cpu_count())
-
-# test()
-
-
-
