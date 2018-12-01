@@ -121,7 +121,15 @@ def getColumnIndexFromHeadLline(headlineAsArray, colName):
     return colIndex
 
 
+def getDataFrameFromFile(path, sep):
+    import pandas as pd
+    try:
+        df = pd.read_csv(path,sep, index_col=0)
+    except:
+        # print('Error in BasicMethods, getDataFrameFromFile')
+        return None
 
+    return df
 
 
 

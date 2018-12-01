@@ -67,11 +67,6 @@ class Merger:
         except Exception as err_msg:
             print ("Error while creating Merger: %s" % str(err_msg))
 
-    # TODO - make sure the files already come as full path or check how you want them to come
-
-    # TODO - (DONE) - delete the headline of the temporary posting files
-
-    # TODO - (DONE) - add the dictionary adding logic here
 
 
     def merge(self, input_files):
@@ -81,6 +76,8 @@ class Merger:
         :param input_files: the files path representing temporary posting files
         :return: a list, where each object in the list is a line for a term
         """
+        if len(input_files) == 0:
+            return []
 
         try:
             # print (input_files)

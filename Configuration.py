@@ -3,6 +3,7 @@
 # ********************  Configurations File  ********************
 import os
 import shutil
+import string
 
 
 
@@ -76,6 +77,7 @@ class ConfigClass:
             if not os.path.exists(self.saveFilesWithoutStem):
                 os.mkdir(self.saveFilesWithoutStem)
             self.savedFilePath = self.saveFilesWithoutStem
+
         else:
             if os.path.exists(self.saveFilesWithStem):
                 shutil.rmtree(self.saveFilesWithStem)
@@ -83,6 +85,11 @@ class ConfigClass:
             if not os.path.exists(self.saveFilesWithStem):
                 os.mkdir(self.saveFilesWithStem)
             self.savedFilePath = self.saveFilesWithStem
+
+        lettersList = list(string.ascii_lowercase)
+        lettersList.append('#')
+        for letter in lettersList:
+            os.mkdir(self.savedFilePath + '\\' + letter)
 
         self.setSavedFilePath(self.savedFilePath)
 

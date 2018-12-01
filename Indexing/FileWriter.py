@@ -18,10 +18,7 @@ class FileWriter:
 
     def writeDictionaryToFile(self,fileName, headLineToWrite, dictionaryToWrite):
 
-        dirPath = self.config.savedFilePath + '\\' + fileName[0]
 
-        if not os.path.exists(dirPath):
-            os.mkdir(dirPath)
 
         path = self.config.savedFilePath + '\\' + fileName[0] + '\\' + fileName
 
@@ -50,8 +47,7 @@ class FileWriter:
         # write to the end of the file at one time on another thread
         self.writeToFile(path, lineToWrite)
 
-    # TODO (DONE) - make sure that if we use stem we won't run over not stemmed files
-    # TODO (DONE) - change path to relative and add the stem and file name to the method signature
+
 
     def writeMergedFile(self,finalList, outputFile):
         lineToWritePost = ""
@@ -87,6 +83,7 @@ class FileWriter:
         lineToWrite = ""
         for line in finalList:
             lineToWrite += line[0] + '|' + line[1] + '\n'
+
         self.writeToFile(outputFile, lineToWrite)
 
     def createFile(self,path, headLineString):

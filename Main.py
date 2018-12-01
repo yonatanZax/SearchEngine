@@ -4,8 +4,6 @@ from datetime import datetime
 from Manager import MyManager
 from concurrent.futures import ProcessPoolExecutor
 from concurrent.futures import as_completed
-from multiprocessing import Pipe
-from multiprocessing import Queue
 from Configuration import ConfigClass
 from Indexing.CountriesAPI import CityAPI
 
@@ -25,6 +23,9 @@ class MainClass:
     def __init__(self):
 
         self.config = ConfigClass()
+        # from ReadFiles.ReadFile import ReadFile
+        #
+        # readClass = ReadFile(self.config)
 
         self.cityAPI = CityAPI()
 
@@ -33,7 +34,8 @@ class MainClass:
 
         print("***   Main Start   ***")
         root = GuiExample.Tk()
-        root.geometry('500x550')
+        root.geometry('500x600')
+        # root.geometry('800x1000')
         root.title("SearchEngine")
 
         guiFrame = GuiExample.EngineBuilder(root,mainManager=self, config=self.config, numOfTotalFiles=self.config.get__listOfFoldersLength())
@@ -73,11 +75,14 @@ class MainClass:
 
         dictionary_city_cityData = {}
 
+        totalNumberOfDocuments = 0
+
         future_manager_dic = {pool.submit(self.run, manager): manager for manager in managersList}
         for future_manager in as_completed(future_manager_dic):
             manager = future_manager_dic[future_manager]
             manager.getRun()
-            tempCityData = future_manager.result()
+            tempCityData , numberOfDocs = future_manager.result()
+            totalNumberOfDocuments += numberOfDocs
             for city, cityData in tempCityData.items():
                 if dictionary_city_cityData.get(city) is None:
                     if cityData is None:
@@ -111,12 +116,13 @@ class MainClass:
         print("Number of files Processed: " , str(len(listOfFolders)))
         print("Everything took: " , str(timeItTook.seconds) , " seconds")
         print("Number of Terms: " , str(totalNumberOfTerms))
+        print("Number of Docs: " , str(totalNumberOfDocuments))
 
     @staticmethod
     def run( manager):
         # print("in run main")
-        manager.run()
-        return manager.indexer.city_dictionary
+        numberOfDocs = manager.run()
+        return manager.indexer.city_dictionary, numberOfDocs
 
 
 
@@ -141,9 +147,16 @@ class MainClass:
         #     writeLine += '|'.join([info1,info2,info3,'\n'])
         # print(writeLine)
         writeLine = ''
+        listToWrite = []
         try:
-            writeLine = '\n'.join(['|'.join([city, self.cityAPI.getInformationAsString(city), cityData.getDocLocationsAsString()]) for city,cityData in sorted(dictionary_city_cityData.items())])
-
+            for city, cityData in sorted(dictionary_city_cityData.items()):
+                information = self.cityAPI.getInformationAsString(city)
+                if information is None:
+                    continue
+                locations =  cityData.getDocLocationsAsString()
+                listToWrite.append('|'.join([city, information, locations]))
+            # writeLine = '\n'.join(['|'.join([city, self.cityAPI.getInformationAsString(city), cityData.getDocLocationsAsString()]) for city,cityData in sorted(dictionary_city_cityData.items())])
+            writeLine = '\n'.join(writeLine)
             # print(writeLine)
         except Exception as ex:
             print('ERROR in API' , str(ex) )

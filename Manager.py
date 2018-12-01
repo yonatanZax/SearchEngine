@@ -27,6 +27,7 @@ class MyManager:
     def run(self):
 
         counter = 0
+        numberOfDocuments = 0
         for folder in self.folderList:
 
             counter += 1
@@ -35,6 +36,7 @@ class MyManager:
                 parsedDocument = self.parser.parseDoc(document)
                 if parsedDocument is None:
                     continue
+                numberOfDocuments += 1
                 self.indexer.addNewDoc(parsedDocument)
 
             if counter == self.filesPerIteration:
@@ -45,39 +47,14 @@ class MyManager:
         if counter != 0:
             self.indexer.flushMemory()
 
-        print("Manager " , str(self.ID) , " Finished parsing all files")
+        print("Manager " , str(self.ID) , " Finished parsing all files, Parsed: " , str(numberOfDocuments), " Docs")
 
         self.indexer.merge()
 
         print("Manager " , str(self.ID) , " Finished merging his files")
 
-        # self.conn.send(self.indexer.city_dictionary)
-        # self.conn.close()
-        # self.q.put(self.indexer.city_dictionary)
-        # print ("Manager " + str(self.ID) + " finished")
+        return numberOfDocuments
 
-
-    # def merge(self,numberOfManagers):
-    #     import Configuration as config
-    #     from Indexing.KWayMerge import Merger
-    #     from Indexing import FileWriter
-    #     import os
-    #
-    #     merger = Merger()
-    #
-    #     for letter in self.lettersList:
-    #         for managerID in range(0,numberOfManagers):
-    #             filesInLetterFolder = os.listdir(config.savedFilePath + "\\" + letter)
-    #             fileToMergeList = []
-    #             for letterFile in filesInLetterFolder:
-    #                 if letterFile[1] == str(managerID):
-    #                    fileToMergeList.append(letterFile)
-    #             mergedList = merger.merge(fileToMergeList)
-    #             FileWriter.writeMergedFileTemp(mergedList, config.savedFilePath + "\\" + letter + "\\" + str(letter[0]) + str(managerID))
-    #
-    #         filesInLetterFolder = os.listdir(config.savedFilePath + "\\" + letter)
-    #         mergedList = merger.merge(filesInLetterFolder)
-    #         FileWriter.writeMergedFile(mergedList, config.savedFilePath + "\\" + letter + "\\")
 
     def merge(self):
         from Indexing.KWayMerge import Merger
@@ -103,8 +80,9 @@ class MyManager:
         return self.indexer.city_dictionary
 
     def getRun(self):
-        # TODO - return the cities dictionary
         print ("Got manager " , str(self.ID) , ' run')
 
     def getMerge(self):
         print ("Got manager " , str(self.ID) , ' merge')
+
+

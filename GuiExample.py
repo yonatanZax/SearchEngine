@@ -65,7 +65,6 @@ class EngineBuilder(Frame):
         label_4 = Label(self.master, text="Language", width=10, font=("bold", 10))
         label_4.place(x=50, y=190)
 
-        # TODO - make drop list work
 
         list1 = ['English', 'Spanish', 'Hebrew'];
         c = StringVar()

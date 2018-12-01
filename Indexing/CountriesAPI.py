@@ -27,23 +27,26 @@ class CityAPI:
         :param cityName: the city name
         :return: the information as a format: Country, currency, population
         """
-        city = self.geoCoder.geonames(cityName, key = self.usename)
-        # city = self.geoCoder.get(cityName,key = self.usename)
-        if city is None or self.dictionary_country_currencyPopulation.get(city.country_code) is None:
-            print (cityName )
-            return
-            # print (city.country_code)
-            # print (city.population)
-            # print (self.dictionary_country_currencyPopulation[city.country_code])
+        try:
+            city = self.geoCoder.geonames(cityName, key = self.usename)
 
-        return [city.country, str(self.dictionary_country_currencyPopulation[city.country_code][0]), str(self.dictionary_country_currencyPopulation[city.country_code][1])]
+            # city = self.geoCoder.get(cityName,key = self.usename)
+            if city is None or self.dictionary_country_currencyPopulation.get(city.country_code) is None:
+                print (cityName )
+                return None
+
+
+            return [city.country, str(self.dictionary_country_currencyPopulation[city.country_code][0]), str(self.dictionary_country_currencyPopulation[city.country_code][1])]
+        except Exception as err:
+            print(err)
+            return None
 
     def getInformationAsString(self, cityName):
         return '|'.join(self.getInformation(cityName))
 
 
 # cityAPI = CityAPI()
-# print(cityAPI.getInformation(['paris','london']))
+# print(cityAPI.getInformation('Aemstedam'))
 #
 #
 #

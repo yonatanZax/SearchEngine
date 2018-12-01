@@ -156,7 +156,6 @@ class IterativeTokenizer:
             return False
         return True
 
-    # TODO (DONE) - check where we want to change 'strip()' methods to 'rstrip()' or 'lstrip()'
 
     def parseText(self,text):
         import Stemmer.Stemmer
@@ -170,7 +169,8 @@ class IterativeTokenizer:
                                                                                                                    '').replace(
             '~', '').replace(';', '').replace(':', '').replace('*', '').replace('+', '').replace('|', '').replace('&',
                                                                                                                   '').replace(
-            '=', '').replace('--', ' ')  # TODO - change the '--' to replace to '-'
+            '=', '')
+        text = re.sub(r'[-]+','-',text)
         splittedText = text.split(' ')
         splittedText = list(filter(self.filterAll, splittedText))
         size = len(splittedText)
@@ -211,7 +211,6 @@ class IterativeTokenizer:
 
             else:
 
-                # TODO (DONE) - stem suppose to be here somewhere, make sure the toStem gets all the way down to here
                 if len(cleanedWord) < 2:
                     docLength -= 1
                     textIndex += 1
@@ -320,6 +319,11 @@ class IterativeTokenizer:
         token = textList[index]
         tokenList = token.split('-')
         ansList = []
+        if len(tokenList) > 0 and len(tokenList[0]) > 0 and tokenList[0][0] == 'S':
+            term, returnedIndex = self.startWithDollar(0, tokenList)
+
+        # TODO - finish adding the dollars rules here, what to do with term and what to do with returned index
+
         for term in tokenList:
             cleanedTerm = self.cleanToken(term)
             if cleanedTerm is not None and len(term) > 1:
@@ -365,44 +369,49 @@ class IterativeTokenizer:
 
         # locking for 1/2
         curIndex += 1
-        numWithSlash = listOfTokens[curIndex]
-        p = 0
-        if numWithSlash[p].isdigit():
-            numWithSlashToAdd = numWithSlash[p]
-            p += 1
-            hasSlash = False
-            while p < len(numWithSlash):
+        if curIndex < len(listOfTokens):
+            numWithSlash = listOfTokens[curIndex]
+            p = 0
+            if numWithSlash[p].isdigit():
+                numWithSlashToAdd = numWithSlash[p]
+                p += 1
+                hasSlash = False
+                while p < len(numWithSlash):
 
-                if numWithSlash[p].isdigit():
-                    numWithSlashToAdd += numWithSlash[p]
-                    p += 1
-                elif numWithSlash[p] == '/':
-                    if not hasSlash:
-                        hasSlash = True
+                    if numWithSlash[p].isdigit():
                         numWithSlashToAdd += numWithSlash[p]
                         p += 1
+                    elif numWithSlash[p] == '/':
+                        if not hasSlash:
+                            hasSlash = True
+                            numWithSlashToAdd += numWithSlash[p]
+                            p += 1
+                        else:
+                            # if nextToken has more than 1 slash , meaning is not a fraction
+                            term = convert.convertNumToKMBformat(term)
+                            return term, curIndex
                     else:
-                        # if nextToken has more than 1 slash , meaning is not a fraction
-                        # TODO (DONE) - convert term
-                        term = convert.convertNumToKMBformat(term)
-                        return term, curIndex
-                else:
-                    break
+                        break
 
-                p = p + 1
+                    p = p + 1
 
-            if hasSlash:
-                term = term + ' ' + numWithSlash
+                if hasSlash:
+                    term = term + ' ' + numWithSlash
+                    return term + ' Dollars', curIndex + 1
+
+            checkTMBT = listOfTokens[curIndex]
+            if checkTMBT in ['Thousand', 'thousand', 'Million', 'million', 'Billion', 'billion', 'Trillion',
+                             'trillion']:
+                term = str(float(term) * convert.convertTMBT_toNum(tmbtString=checkTMBT.lower()))
+                term = convert.convertNumToMoneyFormat(term)
                 return term + ' Dollars', curIndex + 1
 
-        checkTMBT = listOfTokens[curIndex]
-        if checkTMBT in ['Thousand', 'thousand', 'Million', 'million', 'Billion', 'billion', 'Trillion', 'trillion']:
-            term = str(float(term) * convert.convertTMBT_toNum(tmbtString=checkTMBT.lower()))
             term = convert.convertNumToMoneyFormat(term)
-            return term + ' Dollars', curIndex + 1
+            return term + ' Dollars', curIndex
 
-        term = convert.convertNumToMoneyFormat(term)
-        return term + ' Dollars', curIndex
+        else:
+            return term + ' Dollars', curIndex
+
 
     def numTMBT_tokenToTerm(self,curIndex, listOfTokens):
         import Parsing.ConvertMethods  as convert
@@ -438,87 +447,97 @@ class IterativeTokenizer:
 
         # locking for 1/2
         curIndex += 1
-        numWithSlash = listOfTokens[curIndex]
-        p = 0
-        if numWithSlash[p].isdigit():
-            numWithSlashToAdd = numWithSlash[p]
-            p += 1
-            hasSlash = False
-            while p < len(numWithSlash):
+        if curIndex < len(listOfTokens):
+            numWithSlash = listOfTokens[curIndex]
+            p = 0
+            if numWithSlash[p].isdigit():
+                numWithSlashToAdd = numWithSlash[p]
+                p += 1
+                hasSlash = False
+                while p < len(numWithSlash):
 
-                if numWithSlash[p].isdigit():
-                    numWithSlashToAdd += numWithSlash[p]
-                    p += 1
-                elif numWithSlash[p] == '/':
-                    if not hasSlash:
-                        hasSlash = True
+                    if numWithSlash[p].isdigit():
                         numWithSlashToAdd += numWithSlash[p]
                         p += 1
+                    elif numWithSlash[p] == '/':
+                        if not hasSlash:
+                            hasSlash = True
+                            numWithSlashToAdd += numWithSlash[p]
+                            p += 1
+                        else:
+                            # if nextToken has more than 1 slash , meaning is not a fraction
+                            return None, curIndex - 1
                     else:
-                        # if nextToken has more than 1 slash , meaning is not a fraction
-                        return None, curIndex - 1
-                else:
-                    break
+                        break
 
-                p = p + 1
+                    p = p + 1
 
-            if hasSlash:
-                term = term + ' ' + numWithSlash
-                curIndex += 1
-                checkForUSDOLLARS = listOfTokens[curIndex]
-                if checkForUSDOLLARS == 'U.S':
+                if hasSlash:
+                    term = term + ' ' + numWithSlash
                     curIndex += 1
                     checkForUSDOLLARS = listOfTokens[curIndex]
-                    if checkForUSDOLLARS in ['Dollars', 'dollars']:
+                    if checkForUSDOLLARS == 'U.S':
+                        curIndex += 1
+                        checkForUSDOLLARS = listOfTokens[curIndex]
+                        if checkForUSDOLLARS in ['Dollars', 'dollars']:
+                            term = convert.convertNumToMoneyFormat(term)
+                            return term + ' Dollars', curIndex + 1
+                        return term, curIndex - 1
+
+                    elif checkForUSDOLLARS in ['Dollars', 'dollars']:
                         term = convert.convertNumToMoneyFormat(term)
                         return term + ' Dollars', curIndex + 1
-                    return term, curIndex - 1
-
-                elif checkForUSDOLLARS in ['Dollars', 'dollars']:
-                    term = convert.convertNumToMoneyFormat(term)
-                    return term + ' Dollars', curIndex + 1
-                return term, curIndex
-
-        checkTMBT = listOfTokens[curIndex]
-        if checkTMBT in ['Thousand', 'thousand', 'Million', 'million', 'Billion', 'billion', 'Trillion', 'trillion']:
-            if basic.isfloat(term):
-                term = str(float(term) * convert.convertTMBT_toNum(tmbtString=checkTMBT.lower()))
-                curIndex += 1
-                checkForUSDOLLARS = listOfTokens[curIndex]
-                if checkForUSDOLLARS == 'U.S':
-                    curIndex += 1
-                    checkForUSDOLLARS = listOfTokens[curIndex]
-                    if checkForUSDOLLARS in ['Dollars', 'dollars']:
-                        term = convert.convertNumToMoneyFormat(term)
-                        return term + ' Dollars', curIndex + 1
-                    return term, curIndex - 1
-
-                elif checkForUSDOLLARS in ['Dollars', 'dollars']:
-                    term = convert.convertNumToMoneyFormat(term)
-                    return term + ' Dollars', curIndex + 1
-                else:
-                    term = convert.convertNumToKMBformat(term)
                     return term, curIndex
-            else:
-                return term, curIndex
 
-        checkForUSDOLLARS = listOfTokens[curIndex]
-        if checkForUSDOLLARS == 'U.S':
-            curIndex += 1
+            checkTMBT = listOfTokens[curIndex]
+            if checkTMBT in ['Thousand', 'thousand', 'Million', 'million', 'Billion', 'billion', 'Trillion',
+                             'trillion']:
+                if basic.isfloat(term):
+                    term = str(float(term) * convert.convertTMBT_toNum(tmbtString=checkTMBT.lower()))
+                    curIndex += 1
+                    if curIndex < len(listOfTokens):
+                        checkForUSDOLLARS = listOfTokens[curIndex]
+                        if checkForUSDOLLARS == 'U.S':
+                            curIndex += 1
+                            checkForUSDOLLARS = listOfTokens[curIndex]
+                            if checkForUSDOLLARS in ['Dollars', 'dollars']:
+                                term = convert.convertNumToMoneyFormat(term)
+                                return term + ' Dollars', curIndex + 1
+                            return term, curIndex - 1
+
+                        elif checkForUSDOLLARS in ['Dollars', 'dollars']:
+                            term = convert.convertNumToMoneyFormat(term)
+                            return term + ' Dollars', curIndex + 1
+                        else:
+                            term = convert.convertNumToKMBformat(term)
+                            return term, curIndex
+                    else:
+                        term = convert.convertNumToKMBformat(term)
+                        return term, curIndex
+
+                else:
+                    return term, curIndex
+
             checkForUSDOLLARS = listOfTokens[curIndex]
-            if checkForUSDOLLARS in ['Dollars', 'dollars']:
+            if checkForUSDOLLARS == 'U.S':
+                curIndex += 1
+                checkForUSDOLLARS = listOfTokens[curIndex]
+                if checkForUSDOLLARS in ['Dollars', 'dollars']:
+                    term = convert.convertNumToMoneyFormat(term)
+                    return term + ' Dollars', curIndex + 1
+                return term, curIndex - 1
+
+            elif checkForUSDOLLARS in ['Dollars', 'dollars']:
                 term = convert.convertNumToMoneyFormat(term)
                 return term + ' Dollars', curIndex + 1
-            return term, curIndex - 1
 
-        elif checkForUSDOLLARS in ['Dollars', 'dollars']:
-            term = convert.convertNumToMoneyFormat(term)
-            return term + ' Dollars', curIndex + 1
+            term = convert.convertNumToKMBformat(term)
+            return term, curIndex
 
-        term = convert.convertNumToKMBformat(term)
-        return term, curIndex
+        else:
+            return term, curIndex
 
-#     TODO - encapsulate all the functions
+
 
 
 
