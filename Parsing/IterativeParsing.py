@@ -162,6 +162,7 @@ class IterativeTokenizer:
         import Stemmer.Stemmer
 
         self.betweenPattern.sub(self.replaceBetween, text)
+        text = re.sub(r"[-]+", '-', text)
         text = text.replace("\n", '').replace('\t', '').replace('{', '').replace('}', '').replace('[', '').replace(']',
                                                                                                                    '').replace(
             '\"', '').replace('\'', '').replace('(', '').replace(')', '').replace('?', '').replace('!', '').replace('#',
@@ -170,7 +171,9 @@ class IterativeTokenizer:
                                                                                                                    '').replace(
             '~', '').replace(';', '').replace(':', '').replace('*', '').replace('+', '').replace('|', '').replace('&',
                                                                                                                   '').replace(
-            '=', '').replace('--', ' ')  # TODO - change the '--' to replace to '-'
+            '=', '')  # TODO - change the '--' to replace to '-'
+
+
         splittedText = text.split(' ')
         splittedText = list(filter(self.filterAll, splittedText))
         size = len(splittedText)
@@ -316,7 +319,6 @@ class IterativeTokenizer:
         return None, index
 
     def splitDashToken(self,index, textList):
-        tokenList = []
         token = textList[index]
         tokenList = token.split('-')
         ansList = []
@@ -472,19 +474,27 @@ class IterativeTokenizer:
                 if hasSlash:
                     term = term + ' ' + numWithSlash
                     curIndex += 1
-                    checkForUSDOLLARS = listOfTokens[curIndex]
-                    if checkForUSDOLLARS == 'U.S':
-                        curIndex += 1
+                    if curIndex < len(listOfTokens):
                         checkForUSDOLLARS = listOfTokens[curIndex]
-                        if checkForUSDOLLARS in ['Dollars', 'dollars']:
+                        if checkForUSDOLLARS == 'U.S':
+                            curIndex += 1
+                            if curIndex < len(listOfTokens):
+                                checkForUSDOLLARS = listOfTokens[curIndex]
+                                if checkForUSDOLLARS in ['Dollars', 'dollars']:
+                                    term = convert.convertNumToMoneyFormat(term)
+                                    return term + ' Dollars', curIndex + 1
+                                return term, curIndex - 1
+                            return term, curIndex - 1
+
+
+                        elif checkForUSDOLLARS in ['Dollars', 'dollars']:
                             term = convert.convertNumToMoneyFormat(term)
                             return term + ' Dollars', curIndex + 1
-                        return term, curIndex - 1
+                        return term, curIndex
+                    else:
+                        return term, curIndex
 
-                    elif checkForUSDOLLARS in ['Dollars', 'dollars']:
-                        term = convert.convertNumToMoneyFormat(term)
-                        return term + ' Dollars', curIndex + 1
-                    return term, curIndex
+
 
             checkTMBT = listOfTokens[curIndex]
             if checkTMBT in ['Thousand', 'thousand', 'Million', 'million', 'Billion', 'billion', 'Trillion',
@@ -496,11 +506,15 @@ class IterativeTokenizer:
                         checkForUSDOLLARS = listOfTokens[curIndex]
                         if checkForUSDOLLARS == 'U.S':
                             curIndex += 1
-                            checkForUSDOLLARS = listOfTokens[curIndex]
-                            if checkForUSDOLLARS in ['Dollars', 'dollars']:
-                                term = convert.convertNumToMoneyFormat(term)
-                                return term + ' Dollars', curIndex + 1
+                            if curIndex < listOfTokens:
+                                checkForUSDOLLARS = listOfTokens[curIndex]
+                                if checkForUSDOLLARS in ['Dollars', 'dollars']:
+                                    term = convert.convertNumToMoneyFormat(term)
+                                    return term + ' Dollars', curIndex + 1
+                                return term, curIndex - 1
                             return term, curIndex - 1
+
+
 
                         elif checkForUSDOLLARS in ['Dollars', 'dollars']:
                             term = convert.convertNumToMoneyFormat(term)
@@ -518,10 +532,12 @@ class IterativeTokenizer:
             checkForUSDOLLARS = listOfTokens[curIndex]
             if checkForUSDOLLARS == 'U.S':
                 curIndex += 1
-                checkForUSDOLLARS = listOfTokens[curIndex]
-                if checkForUSDOLLARS in ['Dollars', 'dollars']:
-                    term = convert.convertNumToMoneyFormat(term)
-                    return term + ' Dollars', curIndex + 1
+                if curIndex < len(listOfTokens):
+                    checkForUSDOLLARS = listOfTokens[curIndex]
+                    if checkForUSDOLLARS in ['Dollars', 'dollars']:
+                        term = convert.convertNumToMoneyFormat(term)
+                        return term + ' Dollars', curIndex + 1
+                    return term, curIndex - 1
                 return term, curIndex - 1
 
             elif checkForUSDOLLARS in ['Dollars', 'dollars']:

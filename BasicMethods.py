@@ -133,6 +133,11 @@ def getDataFrameFromFile(path, sep):
 
 
 
+def getStringSizeInBytes(string):
+    return len(string.encode('utf-8'))
+
+
+
 
 
 

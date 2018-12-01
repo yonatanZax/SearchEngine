@@ -166,10 +166,12 @@ class EngineBuilder(Frame):
 
     def displayDicionary(self):
 
-
+        self.disableButtons()
+        print('Display dictionary')
         t = Thread(target=self.displayClass.run)
-
+        displayThread = Thread(target=self.listener,args =(t,self.enableButtons))
         t.start()
+        displayThread.start()
 
 
     def deleteEngine(self):
@@ -196,16 +198,39 @@ class EngineBuilder(Frame):
         print("Posting path:     ", saveMainFolderPath)
 
 
-        self.buildButton.configure(state=DISABLED)
-        self.deleteButton.configure(state=NORMAL)
+        self.disableButtons()
 
         print("\n***    ManagerRun    ***\n")
 
         from threading import Thread
         th = Thread(target=self.mainManager.managerRun)
-        # threadProgress = Thread(target=updateFileCounter)
         th.start()
+
+        threadWaitUntilBuildDone = Thread(target=self.listener, args=(th,self.enableButtons))
+        threadWaitUntilBuildDone.start()
+
+
+        # threadProgress = Thread(target=updateFileCounter)
         # threadProgress.start()
+
+
+    @ staticmethod
+    def listener(thread,action):
+        print('Gui - waiting to join')
+        thread.join()
+        action()
+
+    def enableButtons(self):
+        self.buildButton.configure(state = NORMAL)
+        self.deleteButton.configure(state = NORMAL)
+        self.showDicButton.configure(state = NORMAL)
+        self.uploadDicButton.configure(state = NORMAL)
+
+    def disableButtons(self):
+        self.buildButton.configure(state = DISABLED)
+        self.deleteButton.configure(state = DISABLED)
+        self.showDicButton.configure(state = DISABLED)
+        self.uploadDicButton.configure(state = DISABLED)
 
 
 
