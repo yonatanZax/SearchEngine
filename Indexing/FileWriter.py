@@ -50,7 +50,7 @@ class FileWriter:
         # write to the end of the file at one time on another thread
         self.writeToFile(path, lineToWrite)
 
-    # TODO (DONE) - make sure that if we use stem we won't run over not stemmed files
+    # ToDo (DONE) - make sure that if we use stem we won't run over not stemmed files
     # TODO (DONE) - change path to relative and add the stem and file name to the method signature
 
     def writeMergedFile(self,finalList, outputFile):

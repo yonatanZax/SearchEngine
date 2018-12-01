@@ -2981,7 +2981,7 @@ class ReadFile:
 # '''
 #
 #
-# import re
+import re
 # filteredText2 = re.sub(r"[A-Z]?[a-z]+ [A-Z]?[a-z]+ \([A-Z][A-Z]\)", "ZAX",text)
 # filteredText3 = re.sub(r"[A-Z]?[a-z]+[ -][A-Z]?[a-z]+ [A-Z][a-z]+ \([A-Z][A-Z][A-Z]\)", "ZAX",text)
 # filteredText4 = re.sub(r"[A-Z]?[a-z]+ [A-Z]?[a-z]+ [A-Z][a-z]+ [A-Z][a-z]+ \([A-Z][A-Z][A-Z][A-Z]\)", "ZAX",text)
@@ -2992,8 +2992,8 @@ class ReadFile:
 # # print(filteredText3AND)
 #
 # t = "Nippon Credit Bank (NCB)"
-# # filteredText3 = re.sub(r"[A-Z]?[a-z]+ [A-Z]?[a-z]+ [A-Z][a-z]+ \([A-Z][A-Z][A-Z]\)", "ZAX",t)
-# # print(filteredText3)
+# filteredText3 = re.sub(r"[A-Z]?[a-z]+ [A-Z]?[a-z]+ [A-Z][a-z]+ \([A-Z][A-Z][A-Z]\)", "ZAX",t)
+# print(filteredText3)
 #
 # t2 = "construct a local-area network (LAN) that will combine image "
 # filteredText3 = re.sub(r"[A-Z]?[a-z]+[ -][A-Z]?[a-z]+ [A-Z]?[a-z]+ \([A-Z][A-Z][A-Z]\)", "ZAX",t2)

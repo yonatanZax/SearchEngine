@@ -30,15 +30,15 @@ class MainClass:
         self.cityAPI = CityAPI()
 
     def GUIRun(self):
-        import GuiExample
+        from Gui import GuiMainView
 
         print("***   Main Start   ***")
-        root = GuiExample.Tk()
+        root = GuiMainView.Tk()
         root.geometry('500x600')
         # root.geometry('800x1000')
         root.title("SearchEngine")
 
-        guiFrame = GuiExample.EngineBuilder(root,mainManager=self, config=self.config, numOfTotalFiles=self.config.get__listOfFoldersLength())
+        guiFrame = GuiMainView.EngineBuilder(root, mainManager=self, config=self.config, numOfTotalFiles=self.config.get__listOfFoldersLength())
         # self.GuiManager = guiFrame
         guiFrame.mainloop()
 

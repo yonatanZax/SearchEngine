@@ -74,7 +74,7 @@ class App(QWidget):
         import numpy as np
         p_file = 'D:\SearchEngine\SavedFiles - fullCorpus 29.11\WithoutStem\docIndex'
         dashboard_df = pd.read_csv(p_file, sep='|', error_bad_lines=False, index_col=False, dtype='unicode')
-        df = pd.DataFrame(np.random.randint(0, 100, size=(100, 4)), columns=list('ABCD'))
+        df = pd.DataFrame(np.random.randint(0, 100, size=(100, 4)))
         self.tableWidget = TableWidget(dashboard_df, self)
 
         # table selection change
@@ -97,9 +97,9 @@ class DisplayDataFrame:
     def runAndCloseFast(self):
         app = QApplication(sys.argv)
         ex = App()
-        timer = QTimer()
-        timer.start(500)  # You may change this if you wish.
-        timer.timeout.connect(lambda: None)  # Let the interpreter run each 500 ms.
+        # timer = QTimer()
+        # timer.start(500)  # You may change this if you wish.
+        # timer.timeout.connect(lambda: None)  # Let the interpreter run each 500 ms.
         # Your code here.
         # sys.exit(app.exec_())
         app.exec_()
@@ -110,7 +110,7 @@ class DisplayDataFrame:
         sys.exit(app.exec_())
 
 
-# if __name__ == '__main__':
-#     app = QApplication(sys.argv)
-#     ex = App()
-#     sys.exit(app.exec_())
+if __name__ == '__main__':
+    app = QApplication(sys.argv)
+    ex = App()
+    sys.exit(app.exec_())

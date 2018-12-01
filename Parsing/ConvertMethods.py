@@ -31,9 +31,9 @@ def convertNumToMoneyFormat(numAsString):
             moduloMillion = int(moduloMillion)
         return (str("{0:.2f}".format(round(moduloMillion,2))).rstrip('0').rstrip('.') + ' M')
     else:
-        if str(numAsFloat).endswith('.0'):
-            numAsFloat = int(numAsFloat)
-        return str(numAsFloat)
+        # if str(numAsFloat).endswith('.0'):
+        #     numAsFloat = int(numAsFloat)
+        return str(str("{0:.2f}".format(round(numAsFloat,2))).rstrip('0').rstrip('.'))
 
 
 def convertNumToKMBformat(numAsString):
@@ -60,14 +60,4 @@ def removeCommasFromNumber(numAsString):
 
 
 
-
-
-
-
-
-
-# import subprocess as sp
-# programName = "notepad.exe"
-# fileName = "D:\SearchEngine\corpus\stop_words.txt"
-# sp.Popen([programName, fileName])
 
