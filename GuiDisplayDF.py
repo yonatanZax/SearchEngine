@@ -26,7 +26,7 @@ class TableWidget(QTableWidget):
         nColumns = len(self.df.columns)
         self.setRowCount(nRows)
         self.setColumnCount(nColumns)
-        self.setHorizontalHeaderLabels(['id', 'name', 'username','Phone'])
+        self.setHorizontalHeaderLabels(['DOCID', 'max_tf', 'uniqueTermCount','DocLength','city'])
 
         for i in range(self.rowCount()):
             for j in range(self.columnCount()):
@@ -72,8 +72,10 @@ class App(QWidget):
     def createTable(self):
         # Create Dataframe
         import numpy as np
+        p_file = 'D:\SearchEngine\SavedFiles - fullCorpus 29.11\WithoutStem\docIndex'
+        dashboard_df = pd.read_csv(p_file, sep='|', error_bad_lines=False, index_col=False, dtype='unicode')
         df = pd.DataFrame(np.random.randint(0, 100, size=(100, 4)), columns=list('ABCD'))
-        self.tableWidget = TableWidget(df, self)
+        self.tableWidget = TableWidget(dashboard_df, self)
 
         # table selection change
         self.tableWidget.doubleClicked.connect(self.on_click)

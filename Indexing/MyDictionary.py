@@ -78,7 +78,32 @@ class DocumentIndexData:
         max_tf|uniqueTermCount|docLength|city
         :return:
         '''
-        ans = str(self.max_tf) + '|' + str(self.uniqueTermCount) + '|' + str(self.docLength) + '|' + str(self.city)
+        ans = '|'.join([str(self.max_tf) , str(self.uniqueTermCount), str(self.docLength) ,str(self.city)])
+        return ans
+
+
+class CityIndexData:
+
+    def __init__(self,doc,locations):
+        # self.country = ''
+        # self.currency = ''
+        # self.population = 0
+        self.dictionary_doc_locations = {}
+        self.dictionary_doc_locations[doc] = locations
+
+    def __iadd__(self, other):
+        for docID,locations in other.dictionary_doc_locations.items():
+            self.dictionary_doc_locations[docID] = locations
+        return self
+
+    def addDocumentToCity(self, docID, locations):
+        self.dictionary_doc_locations[docID] = locations
+
+    def getDocLocationsAsString(self):
+        # ansList = []
+        # for doc, locations in sorted(self.dictionary_doc_locations.items()):
+        #     ansList.append('|'.join())
+        ans = ','.join(['#'.join([doc,locations]) for doc,locations in sorted(self.dictionary_doc_locations.items())])
         return ans
 
 # get the format of the term how its saved in the dictionary or none if its not in the dictionary
@@ -124,33 +149,3 @@ def updateTermToDictionaryByTheRules(dictionary, termString):
         return ans
 
 
-
-
-def TEST_updateTermToDictionaryByTheRules():
-    dic = { "brand": "Ford",
-            "MODEL": "Mustang"}
-
-    term = "Brand"
-    result = updateTermToDictionaryByTheRules(dic,term)
-    print ("1. " + str(result == "brand"))
-
-    result = updateTermToDictionaryByTheRules(dic, "Model")
-    print ("2. " + str(result == "MODEL"))
-
-    result = updateTermToDictionaryByTheRules(dic, "model")
-    print ("3. " + str(result == "model"))
-
-
-def TEST_addTerm():
-    myDic = MyDictionary()
-    myDic.addTerm(termString="one", docNo=1, termFrequency=3 )
-    myDic.print()
-    myDic.addTerm(termString="One",docNo=2,termFrequency=2)
-    myDic.print()
-    myDic.addTerm(termString="Two", docNo=2, termFrequency=2)
-    myDic.print()
-    myDic.addTerm(termString="two", docNo=3, termFrequency=3)
-    myDic.print()
-
-# TEST_updateTermToDictionaryByTheRules()
-# TEST_addTerm()

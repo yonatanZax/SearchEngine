@@ -1,5 +1,5 @@
 import os
-from Indexing.MyDictionary import MyDictionary, DocumentIndexData
+from Indexing.MyDictionary import MyDictionary, DocumentIndexData, CityIndexData
 import string
 from Indexing.FileWriter import FileWriter
 
@@ -19,7 +19,7 @@ class Indexer:
 
         self.documents_dictionary = {}
 
-        self.country_dictionary = {}
+        self.city_dictionary = {}
 
     def addNewDoc(self, document):
         # go over each term in the doc
@@ -28,11 +28,12 @@ class Indexer:
         maxFrequentWord = 0
         for term, termData in documentDictionary.items():
             # add the term to the dictionary
-            # term = cleanDashesCommas(term)
             if len(term) == 0:
                 continue
             termFrequency = termData.getTermFrequency()
             if englishLetters.get(term[0]):
+                if term == 'ZAXROY':
+                    term = document.city
                 self.myDictionaryByLetters[term[0].lower()].addTerm(termString=term, docNo=docNo, termFrequency=termFrequency, termPositions=termData.getPositions())
             else:
                 if len(term) > 0:
@@ -40,6 +41,22 @@ class Indexer:
             maxFrequentWord = max(termFrequency, maxFrequentWord)
         newDocumentIndexData = DocumentIndexData(max_tf=maxFrequentWord, uniqueTermsCount=len(document.termDocDictionary_term_termData), docLength=document.docLength, city = document.city)
         self.documents_dictionary[docNo] = newDocumentIndexData
+
+        if len(document.city) > 1:
+            positions = ''
+            try:
+                positions = document.termDocDictionary_term_termData["ZAXROY"].getPositions()
+
+            except Exception as ex:
+            # print("CITYERROR: " + str(ex) + " " + str(docNo) + " " + str(document.city))
+                x=1
+
+            if self.city_dictionary.get(document.city) is None:
+                self.city_dictionary[document.city] = CityIndexData(docNo, positions)
+            else:
+                self.city_dictionary[document.city].addDocumentToCity(docNo, positions)
+
+
 
 
     def flushMemory(self):
@@ -99,8 +116,6 @@ class Indexer:
             self.fileWriter.writeMergedFileTemp(mergedList,self.config.savedFilePath + "\\" + folder + "\\" + str(folder[0]) + str(self.ID))
 
 
-        finishTime = datetime.now()
-        timeItTook = finishTime - startTime
 
 
 

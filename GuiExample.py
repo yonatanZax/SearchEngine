@@ -124,23 +124,11 @@ class EngineBuilder(Frame):
         self.showDicButton = Button(self.master, text='Show', width=10, bg='blue', fg='white',command= self.displayDicionary)
         self.showDicButton.place(x=270, y=380)
 
-
-
-
-
-
+        # from tkinter import scrolledtext
+        # self.txtbox = scrolledtext.ScrolledText(width= 200)
         #
-        # def buttonClick():
-        #     print("query:   " + self.entry_1.get())
-        #
-        #
-        # self.submitButton = Button(self.master, text='Search', width=10, bg='blue', fg='white',command= buttonClick).place(x=280, y=225)
-        # self.submitButton.grid()
-
-        # label_docText = Label(self.master,
-        #                 text="Text:    ............\n  ......\n    .......\n   ................\n  .....\n     .......\n   ........",
-        #                 width=20, font=("bold", 10))
-        # label_docText.place(x=70, y=300)
+        # self.txtbox.place(x= 100, y = 420)
+        # # self.txtbox.
 
 
 
@@ -219,10 +207,6 @@ class EngineBuilder(Frame):
         th.start()
         # threadProgress.start()
 
-
-
-    def enableBuildButton(self):
-        self.buildButton.configure(state=NORMAL)
 
 
 # if __name__ == "__main__":

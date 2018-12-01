@@ -112,7 +112,7 @@ class ConfigClass:
         return self.saveFilesWithStem
 
     def get__saveFilesWithoutStem(self):
-        return self.aveFilesWithoutStem
+        return self.saveFilesWithoutStem
 
     def get__stopWordFile(self):
         return self.stopWordFile
