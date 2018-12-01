@@ -27,26 +27,32 @@ class CityAPI:
         :param cityName: the city name
         :return: the information as a format: Country, currency, population
         """
-        city = self.geoCoder.geonames(cityName, key = self.usename,featureClass='A')
+        city = self.geoCoder.geonames(cityName, key = self.usename)
+        # city = self.geoCoder.get(cityName,key = self.usename)
+        if city is None or self.dictionary_country_currencyPopulation.get(city.country_code) is None:
+            print (cityName )
+            return
+            # print (city.country_code)
+            # print (city.population)
+            # print (self.dictionary_country_currencyPopulation[city.country_code])
 
-        print (city.country_code)
-        print (city.population)
-        print (self.dictionary_country_currencyPopulation[city.country_code])
+        return [city.country, str(self.dictionary_country_currencyPopulation[city.country_code][0]), str(self.dictionary_country_currencyPopulation[city.country_code][1])]
 
-        return city.counryself.dictionary_country_currencyPopulation[city.country_code][0],self.dictionary_country_currencyPopulation[1]
-
-
-cityAPI = CityAPI()
-cityAPI.getInformation('tel')
+    def getInformationAsString(self, cityName):
+        return '|'.join(self.getInformation(cityName))
 
 
-
-g = geocoder.geonames('New York', key='myengine', featureClass='A')
-print(g.address)
-restCountries = RestCountries()
-all = restCountries.all()
-country = all[0]
-print(country.currencies)
+# cityAPI = CityAPI()
+# print(cityAPI.getInformation(['paris','london']))
+#
+#
+#
+# g = geocoder.geonames('New York', key='myengine', featureClass='A')
+# print(g.address)
+# restCountries = RestCountries()
+# all = restCountries.all()
+# country = all[0]
+# print(country.currencies)
 # country.
 # for country in all:
 #     print (country)

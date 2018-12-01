@@ -1,12 +1,10 @@
 
-import os
-import Configuration as config
-
 
 class ReadFile:
 
-    def __init__(self):
-        self.path = config.corpusPath
+    def __init__(self, config):
+        self.config = config
+        self.path = self.config.get__corpusPath()
 
 
     def _readTextFromFile(self, filePath):

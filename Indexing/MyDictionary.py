@@ -43,22 +43,22 @@ class DictionaryData:
 
     def addDocument(self, docID, docTF_int, termPositions):
         self.sumTF += docTF_int
-        if self.string_docID_tf.count(str(docID)) > 0:
-            splitted = self.string_docID_tf.split(',')
-            for doc in splitted:
-                splittedDoc = doc.split('#')
-                if splittedDoc[0] == docID:
-                    oldDF = splittedDoc[1]
-                    oldPositions = splittedDoc[2]
-                    docTF_int += int(splittedDoc[1])
-                    splittedDoc[1] = str(docTF_int)
-                    self.string_docID_tf = self.string_docID_tf.replace(splittedDoc[0] + '#' + oldDF+ '#' + oldPositions,splittedDoc[0] + '#' + splittedDoc[1] + splittedDoc[2] + termPositions)
-                    print ("addDocument" + str(docID))
-                    break
-
-        else:
-            self.termDF += 1
-            self.string_docID_tf += str(docID) + "#" + str(docTF_int) + "#" +  termPositions + ","
+        # if self.string_docID_tf.count(str(docID)) > 0:
+        #     splitted = self.string_docID_tf.split(',')
+        #     for doc in splitted:
+        #         splittedDoc = doc.split('#')
+        #         if splittedDoc[0] == docID:
+        #             oldDF = splittedDoc[1]
+        #             oldPositions = splittedDoc[2]
+        #             docTF_int += int(splittedDoc[1])
+        #             splittedDoc[1] = str(docTF_int)
+        #             self.string_docID_tf = self.string_docID_tf.replace(splittedDoc[0] + '#' + oldDF+ '#' + oldPositions,splittedDoc[0] + '#' + splittedDoc[1] + splittedDoc[2] + termPositions)
+        #             print ("addDocument" + str(docID))
+        #             break
+        #
+        # else:
+        self.termDF += 1
+        self.string_docID_tf += str(docID) + "#" + str(docTF_int) + "#" +  termPositions + ","
         # self.dictionary_docID_tf[docID] = docTF_int
 
 
@@ -100,14 +100,26 @@ class DocumentIndexData:
 class CityIndexData:
 
     def __init__(self,doc,locations):
-        self.country = ''
-        self.currency = ''
-        self.population = 0
+        # self.country = ''
+        # self.currency = ''
+        # self.population = 0
         self.dictionary_doc_locations = {}
         self.dictionary_doc_locations[doc] = locations
 
+    def __iadd__(self, other):
+        for docID,locations in other.dictionary_doc_locations.items():
+            self.dictionary_doc_locations[docID] = locations
+        return self
+
     def addDocumentToCity(self, docID, locations):
         self.dictionary_doc_locations[docID] = locations
+
+    def getDocLocationsAsString(self):
+        # ansList = []
+        # for doc, locations in sorted(self.dictionary_doc_locations.items()):
+        #     ansList.append('|'.join())
+        ans = ','.join(['#'.join([doc,locations]) for doc,locations in sorted(self.dictionary_doc_locations.items())])
+        return ans
 
 # get the format of the term how its saved in the dictionary or none if its not in the dictionary
 def getTermDictionaryForm(dictionary, termString):

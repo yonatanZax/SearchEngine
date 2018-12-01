@@ -3,7 +3,7 @@
 
 class Document:
 
-    def __init__(self, docNo, termDocDictionary = None, docLength=0, city=None):
+    def __init__(self, docNo, termDocDictionary = None, docLength=0, city=''):
         self.docNo = docNo
         self.termDocDictionary_term_termData = termDocDictionary
         self.docLength = docLength

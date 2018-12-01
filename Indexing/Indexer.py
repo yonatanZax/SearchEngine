@@ -1,12 +1,15 @@
 import os
 from Indexing.MyDictionary import MyDictionary, DocumentIndexData,CityIndexData
 import string
+from Indexing.FileWriter import FileWriter
 
 class Indexer:
 
     # TODO - add 2 information on terms or documents - added locations
 
-    def __init__(self, indexerID):
+    def __init__(self, indexerID,config):
+        self.config = config
+        self.fileWriter = FileWriter(self.config)
         self.ID = indexerID
 
         self.myDictionaryByLetters = {}
@@ -29,29 +32,37 @@ class Indexer:
                 continue
             termFrequency = termData.getTermFrequency()
             if englishLetters.get(term[0]):
-
+                if term == 'ZAXROY':
+                    term = document.city
                 self.myDictionaryByLetters[term[0].lower()].addTerm(termString=term, docNo=docNo, termFrequency=termFrequency, termPositions=termData.getPositions())
             else:
-                self.myDictionaryByLetters["#"].addTerm(termString=term, docNo=docNo, termFrequency=termFrequency, termPositions=termData.getPositions())
+                if len(term) > 0:
+                    self.myDictionaryByLetters["#"].addTerm(termString=term, docNo=docNo, termFrequency=termFrequency, termPositions=termData.getPositions())
             maxFrequentWord = max(termFrequency, maxFrequentWord)
         newDocumentIndexData = DocumentIndexData(max_tf=maxFrequentWord, uniqueTermsCount=len(document.termDocDictionary_term_termData), docLength=document.docLength, city = document.city)
         self.documents_dictionary[docNo] = newDocumentIndexData
 
-        if document.city is not None:
+        if len(document.city) > 1:
+            positions = ''
             try:
-                if self.city_dictionary.get(document.city) is not None:
-                    self.city_dictionary[document.city] = CityIndexData(docNo, document.termDocDictionary_term_termData["ZAXROY"].getPositions())
-                else:
-                    self.city_dictionary[document.city].addDocumentToCity(docNo, document.termDocDictionary_term_termData["ZAXROY"].getPositions())
+                positions = document.termDocDictionary_term_termData["ZAXROY"].getPositions()
+
             except Exception as ex:
-                return
+            # print("CITYERROR: " + str(ex) + " " + str(docNo) + " " + str(document.city))
+                x=1
+
+            if self.city_dictionary.get(document.city) is None:
+                self.city_dictionary[document.city] = CityIndexData(docNo, positions)
+            else:
+                self.city_dictionary[document.city].addDocumentToCity(docNo, positions)
+
+
 
 
     def flushMemory(self):
-        from Indexing import FileWriter
-        FileWriter.cleanIndex(self)
+        self.fileWriter.cleanIndex(self)
 
-        FileWriter.cleanDocuments(self.documents_dictionary)
+        self.fileWriter.cleanDocuments(self.documents_dictionary)
         self.documents_dictionary = {}
 
 
@@ -61,17 +72,17 @@ class Indexer:
 
 
     def merge(self):
-        import Configuration as config
+        from datetime import datetime
         from Indexing.KWayMerge import Merger
-        from Indexing import FileWriter
 
+        startTime = datetime.now()
 
-        merger = Merger()
-        savedFilesPathList = os.listdir(config.savedFilePath)
+        merger = Merger(config=self.config)
+        savedFilesPathList = os.listdir(self.config.savedFilePath)
 
         savedFilesPathList.remove('docIndex') # TODO - find a way to fix this
         for folder in savedFilesPathList:
-            letterFilesList = os.listdir(config.savedFilePath + "\\" + folder)
+            letterFilesList = os.listdir(self.config.savedFilePath + "\\" + folder)
             fileToMergeList = []
             filesPerIteration = 10
             iteration = 0
@@ -84,23 +95,25 @@ class Indexer:
                     if iteration == filesPerIteration:
                         iteration = 0
                         mergedList = merger.merge(fileToMergeList)
-                        FileWriter.writeMergedFileTemp(mergedList, config.savedFilePath + "\\" + folder + "\\" + str(folder[0]) + str(self.ID) + "-" + str(counter))
+
+                        self.fileWriter.writeMergedFileTemp(mergedList, self.config.savedFilePath + "\\" + folder + "\\" + str(folder[0]) + str(self.ID) + "-" + str(counter))
                         fileToMergeList = []
                         counter += 1
 
             if iteration > filesPerIteration / 2:
                 mergedList = merger.merge(fileToMergeList)
-                FileWriter.writeMergedFileTemp(mergedList,config.savedFilePath + "\\" + folder + "\\" + str(folder[0]) + str(self.ID) + "-" + str(counter))
+
+                self.fileWriter.writeMergedFileTemp(mergedList,self.config.savedFilePath + "\\" + folder + "\\" + str(folder[0]) + str(self.ID) + "-" + str(counter))
             fileToMergeList = []
 
-            letterFilesList = os.listdir(config.savedFilePath + "\\" + folder)
+            letterFilesList = os.listdir(self.config.savedFilePath + "\\" + folder)
             for letterFile in letterFilesList:
                 if letterFile[1] == str(self.ID):
                     fileToMergeList.append(letterFile)
 
             mergedList = merger.merge(fileToMergeList)
-            FileWriter.writeMergedFileTemp(mergedList,config.savedFilePath + "\\" + folder + "\\" + str(folder[0]) + str(self.ID))
 
+            self.fileWriter.writeMergedFileTemp(mergedList,self.config.savedFilePath + "\\" + folder + "\\" + str(folder[0]) + str(self.ID))
 
 
 

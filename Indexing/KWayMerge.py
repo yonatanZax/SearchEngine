@@ -1,5 +1,4 @@
 import heapq
-import Configuration as config
 
 def key(item):
     return item.termLowerCase
@@ -57,9 +56,11 @@ class Merger:
     Algorithm based on: http://stackoverflow.com/questions/5055909/algorithm-for-n-way-merge
     """
 
-    def __init__(self):
+    def __init__(self,config):
         try:
             # 1. create priority queue
+
+            self.config = config
 
             self._heap = MyHeap(key=key)
 
@@ -87,21 +88,23 @@ class Merger:
             # read all the files to a list and close the files
             for file in input_files:
                 # open the file
-                openFile = open(config.savedFilePath + "\\" + file[0] + "\\" + file, 'r')
+                with open(self.config.savedFilePath + "\\" + file[0] + "\\" + file, 'r') as openFile:
 
-                # read all lines to a list of lists
-                fileList = openFile.readlines()
-                # filesByLines.append(fileList)
-                openFile.close()
-                os.remove(openFile.name)
+                    # read all lines to a list of lists
+                    fileList = openFile.readlines()
+                    # filesByLines.append(fileList)
+                    openFile.close()
+                    os.remove(openFile.name)
 
-                # enqueue the first line to the priority  queue
-                firstLine = fileList[0]
-                splittedfirstLine = firstLine.split('|')
-                # the format is: termLowerCase=0, term=1, DF=2, sumDF=3, Posting=4,Index=5,file=6
-                self._heap.push(MergeDataClass(splittedfirstLine[0].lower(), splittedfirstLine[0], splittedfirstLine[1], splittedfirstLine[2],splittedfirstLine[3], 0, fileList))
+                    # enqueue the first line to the priority  queue
+                    firstLine = fileList[0]
+                    splittedfirstLine = firstLine.split('|')
+                    # the format is: termLowerCase=0, term=1, DF=2, sumDF=3, Posting=4,Index=5,file=6
+                    self._heap.push(MergeDataClass(splittedfirstLine[0].lower(), splittedfirstLine[0], splittedfirstLine[1], splittedfirstLine[2],splittedfirstLine[3], 0, fileList))
+        except PermissionError as err:
+            print ('Error while opening files in Merge',str(err.filename))
 
-
+        try:
             FinalDictionary = {}
 
             # do the first iteration
