@@ -4,19 +4,18 @@ import os
 class FileWriter:
 
     def __init__(self, config):
-        self.i = 0
+        self.counter = 0
         self.config = config
 
     def cleanIndex(self,indexer):
         # currentFileNumber = i.getAndIncrement()
-        currentFileNumber = self.i
-        self.i += 1
-        headLineToWrite = 'term|DF|sumTF|DOC#TF#Position:*,*'
+        currentFileNumber = self.counter
+        self.counter += 1
+        # headLineToWrite = 'term|DF|sumTF|DOC#TF#Position:*,*'
         for dictionaryKey, dictionaryVal in indexer.myDictionaryByLetters.items():
-            self.writeDictionaryToFile(dictionaryKey + str(indexer.ID) + "_" + str(currentFileNumber), headLineToWrite,
-                                  dictionaryVal)
+            self.writeDictionaryToFile(dictionaryKey + str(indexer.ID) + "_" + str(currentFileNumber),dictionaryVal)
 
-    def writeDictionaryToFile(self,fileName, headLineToWrite, dictionaryToWrite):
+    def writeDictionaryToFile(self,fileName, dictionaryToWrite):
 
 
 

@@ -108,7 +108,7 @@ class MainClass:
             totalNumberOfTerms += future_manager.result()
             if firstManagerToFinish:
                 firstManagerToFinish = False
-                self.getCitiesDataAndWriteIt(dictionary_city_cityData)
+                self.getCitiesDataAndWriteItWithSession(dictionary_city_cityData)
 
 
         finishTime = datetime.now()
@@ -156,9 +156,37 @@ class MainClass:
                     continue
                 locations =  cityData.getDocLocationsAsString()
                 listToWrite.append('|'.join([city, information, locations]))
-            # writeLine = '\n'.join(['|'.join([city, self.cityAPI.getInformationAsString(city), cityData.getDocLocationsAsString()]) for city,cityData in sorted(dictionary_city_cityData.items())])
             writeLine = '\n'.join(listToWrite)
-            # print(writeLine)
+        except Exception as ex:
+            print('ERROR in API' , str(ex) )
+
+        if len(writeLine) > 0:
+            try:
+                path = self.config.savedFilePath + '/cityIndex'
+                myFile = open(path, 'a', encoding='utf-8')
+                myFile.write(writeLine)
+                myFile.close()
+            except IOError as ex:
+                print (str(ex))
+            except UnicodeEncodeError as ex:
+                print('ERROR in writing' , str(ex))
+
+
+    def getCitiesDataAndWriteItWithSession(self,dictionary_city_cityData):
+        """
+        writing format: City|Country|Currency|Population|Doc:#loc:loc*,Doc:loc:loc**
+        :param dictionary_city_cityData:
+        :return:
+        """
+        writeLine = ''
+        listToWrite = []
+        try:
+            dictionaryFromAPI = self.cityAPI.getDetailsWithGeobytesWithSession(dictionary_city_cityData.keys())
+
+            for cityName in dictionaryFromAPI.keys():
+                listToWrite.append('|'.join([cityName, dictionaryFromAPI[cityName], dictionary_city_cityData[cityName].getDocLocationsAsString()]))
+            writeLine = '\n'.join(listToWrite)
+
         except Exception as ex:
             print('ERROR in API' , str(ex) )
 

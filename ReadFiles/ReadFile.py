@@ -6,8 +6,8 @@ class ReadFile:
         self.config = config
         self.path = self.config.get__corpusPath()
 
-
-    def _readTextFromFile(self, filePath):
+    @staticmethod
+    def _readTextFromFile( filePath):
 
         file = open(filePath,'r')
         fileText = file.read()

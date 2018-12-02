@@ -33,9 +33,9 @@ class Parse:
                 # cityAsArray = re.findall(r"[a-zA-Z]+", cityLine[0].strip(' '))
                 splittedCity =  cityLine.strip(' ').split(' ')
                 city = splittedCity[0]
-                if city.lower() in ['new','san','sao','la','tel','santa','hong','xian']:
+                if city.lower() in ['new','san','sao','la','tel','santa','hong','xian','cape']:
                     city = city + ' ' + splittedCity[1].strip(' ')
-                if city.isalpha() and city.lower() not in ['bartaman','dokumentation','nezavisimaya']:
+                if city.isalpha() and city.lower() not in ['bartaman','dokumentation','nezavisimaya','calcutta']:
                     documentAsString = documentAsString.replace(city, 'ZAXROY')
                 else:
                     city = ''

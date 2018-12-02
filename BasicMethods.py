@@ -145,12 +145,13 @@ def get2DArrayFromFile(path, sep = '|'):
 
         with myFile:
             lines = myFile.readlines()
+            myFile.close()
+
             twoDArray = []
 
             for line in lines:
                 twoDArray.append(line.split(sep)[:-1])
 
-            myFile.close()
 
             return twoDArray
 

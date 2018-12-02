@@ -240,7 +240,7 @@ class EngineBuilder(Frame):
 
     @ staticmethod
     def listener(thread,action):
-        print('Gui - waiting to join')
+        # print('Gui - waiting to join')
         thread.join()
         action()
 

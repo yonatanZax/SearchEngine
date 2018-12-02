@@ -160,10 +160,8 @@ class IterativeTokenizer:
     def parseText(self,text):
 
         self.betweenPattern.sub(self.replaceBetween, text)
-        text = text.replace("\n", '').replace('\t', '').replace('{', '').replace('}', '').replace('[', '').replace(']',
-                                                                                                                   '').replace(
-            '\"', '').replace('\'', '').replace('(', '').replace(')', '').replace('?', '').replace('!', '').replace('#',
-                                                                                                                    '').replace(
+        text = text.replace("\n", '').replace('\t', '').replace('{', '').replace('}', '').replace('[', '').replace(']','').replace('\"', '')\
+            .replace('\'', '').replace('(', '').replace(')', '').replace('?', '').replace('!', '').replace('#','').replace(
             '@', '').replace('/', '').replace('\\', '').replace('_', '').replace('>', '').replace('<', '').replace('`',
                                                                                                                    '').replace(
             '~', '').replace(';', '').replace(':', '').replace('*', '').replace('+', '').replace('|', '').replace('&',
@@ -175,7 +173,7 @@ class IterativeTokenizer:
         splittedText = list(filter(self.filterAll, splittedText))
         return self.parseFromList(splittedText, 0)
 
-    def parseFromList(self,splittedText, offset = 0):
+    def parseFromList(self, splittedText, offset = 0):
         import Stemmer.Stemmer
 
 

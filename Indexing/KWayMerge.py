@@ -9,8 +9,8 @@ class MergeDataClass:
     def __init__(self,termLowerCase, term, DF, sumDF, Posting,Index = 0,file = None):
         self.termLowerCase=termLowerCase
         self.term=term
-        self.selfDF=DF
-        self.sumDF=sumDF
+        self.DF=DF
+        self.sumTF=sumDF
         self.Posting=Posting
         self.Index=Index
         self.file=file
@@ -24,9 +24,9 @@ class MergeDataClass:
         if item == 1:
             return self.term
         if item == 2:
-            return self.selfDF
+            return self.DF
         if item == 3:
-            return self.sumDF
+            return self.sumTF
         if item == 4:
             return self.Posting
         if item == 5:
@@ -36,8 +36,7 @@ class MergeDataClass:
 
 
 class MyHeap(object):
-   def __init__(self, initial=None, key=lambda x:x):
-       self.key = key
+   def __init__(self, initial=None):
        if initial:
            self.data = [(key(item), item) for item in initial]
            heapq.heapify(self.data)
@@ -62,7 +61,7 @@ class Merger:
 
             self.config = config
 
-            self._heap = MyHeap(key=key)
+            self._heap = MyHeap()
 
         except Exception as err_msg:
             print ("Error while creating Merger: %s" % str(err_msg))
