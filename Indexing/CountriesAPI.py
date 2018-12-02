@@ -42,6 +42,9 @@ class CityAPI:
             return None
 
     def getInformationAsString(self, cityName):
+        information = self.getInformation(cityName)
+        if information is None:
+            return None
         return '|'.join(self.getInformation(cityName))
 
 
@@ -51,18 +54,7 @@ class CityAPI:
 #
 #
 # g = geocoder.geonames('New York', key='myengine', featureClass='A')
-# print(g.address)
-# restCountries = RestCountries()
-# all = restCountries.all()
-# country = all[0]
-# print(country.currencies)
-# country.
-# for country in all:
-#     print (country)
+g = geocoder.google('New York', key='AIzaSyCG6LwcdSUeuHsTOB_lCRlzRqvcOTiqC5I',method='places')
+# d = geocoder.get('New York', key='AIzaSyCG6LwcdSUeuHsTOB_lCRlzRqvcOTiqC5I')
+# print(g.country)
 
-
-# germany = pycountry.countries.get(alpha_2='DE')
-# print (germany)
-# currencyList = list(pycountry.currencies)
-# for i in range(0,len(currencyList)):
-#     print (currencyList[i])

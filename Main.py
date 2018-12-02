@@ -30,15 +30,16 @@ class MainClass:
         self.cityAPI = CityAPI()
 
     def GUIRun(self):
-        import GuiExample
+        from Gui import GuiMainView
 
         print("***   Main Start   ***")
-        root = GuiExample.Tk()
+        root = GuiMainView.Tk()
         root.geometry('500x600')
         # root.geometry('800x1000')
         root.title("SearchEngine")
 
-        guiFrame = GuiExample.EngineBuilder(root,mainManager=self, config=self.config, numOfTotalFiles=self.config.get__listOfFoldersLength())
+        guiFrame = GuiMainView.EngineBuilder(root, mainManager=self, config=self.config, numOfTotalFiles=self.config.get__listOfFoldersLength())
+        # self.GuiManager = guiFrame
         guiFrame.mainloop()
 
     def managerRun(self):
@@ -156,7 +157,7 @@ class MainClass:
                 locations =  cityData.getDocLocationsAsString()
                 listToWrite.append('|'.join([city, information, locations]))
             # writeLine = '\n'.join(['|'.join([city, self.cityAPI.getInformationAsString(city), cityData.getDocLocationsAsString()]) for city,cityData in sorted(dictionary_city_cityData.items())])
-            writeLine = '\n'.join(writeLine)
+            writeLine = '\n'.join(listToWrite)
             # print(writeLine)
         except Exception as ex:
             print('ERROR in API' , str(ex) )

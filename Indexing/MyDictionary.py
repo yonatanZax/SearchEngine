@@ -43,23 +43,8 @@ class DictionaryData:
 
     def addDocument(self, docID, docTF_int, termPositions):
         self.sumTF += docTF_int
-        # if self.string_docID_tf.count(str(docID)) > 0:
-        #     splitted = self.string_docID_tf.split(',')
-        #     for doc in splitted:
-        #         splittedDoc = doc.split('#')
-        #         if splittedDoc[0] == docID:
-        #             oldDF = splittedDoc[1]
-        #             oldPositions = splittedDoc[2]
-        #             docTF_int += int(splittedDoc[1])
-        #             splittedDoc[1] = str(docTF_int)
-        #             self.string_docID_tf = self.string_docID_tf.replace(splittedDoc[0] + '#' + oldDF+ '#' + oldPositions,splittedDoc[0] + '#' + splittedDoc[1] + splittedDoc[2] + termPositions)
-        #             print ("addDocument" + str(docID))
-        #             break
-        #
-        # else:
         self.termDF += 1
         self.string_docID_tf += str(docID) + "#" + str(docTF_int) + "#" +  termPositions + ","
-        # self.dictionary_docID_tf[docID] = docTF_int
 
 
 
@@ -164,33 +149,3 @@ def updateTermToDictionaryByTheRules(dictionary, termString):
         return ans
 
 
-
-
-def TEST_updateTermToDictionaryByTheRules():
-    dic = { "brand": "Ford",
-            "MODEL": "Mustang"}
-
-    term = "Brand"
-    result = updateTermToDictionaryByTheRules(dic,term)
-    print ("1. " + str(result == "brand"))
-
-    result = updateTermToDictionaryByTheRules(dic, "Model")
-    print ("2. " + str(result == "MODEL"))
-
-    result = updateTermToDictionaryByTheRules(dic, "model")
-    print ("3. " + str(result == "model"))
-
-
-def TEST_addTerm():
-    myDic = MyDictionary()
-    myDic.addTerm(termString="one", docNo=1, termFrequency=3 )
-    myDic.print()
-    myDic.addTerm(termString="One",docNo=2,termFrequency=2)
-    myDic.print()
-    myDic.addTerm(termString="Two", docNo=2, termFrequency=2)
-    myDic.print()
-    myDic.addTerm(termString="two", docNo=3, termFrequency=3)
-    myDic.print()
-
-# TEST_updateTermToDictionaryByTheRules()
-# TEST_addTerm()

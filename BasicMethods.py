@@ -132,8 +132,33 @@ def getDataFrameFromFile(path, sep):
     return df
 
 
+def getStringSizeInBytes(string):
+    return len(string.encode('utf-8'))
 
 
 
+
+def get2DArrayFromFile(path, sep = '|'):
+
+    try:
+        myFile = open(path,'r')
+
+        with myFile:
+            lines = myFile.readlines()
+            twoDArray = []
+
+            for line in lines:
+                twoDArray.append(line.split(sep)[:-1])
+
+            myFile.close()
+
+            return twoDArray
+
+
+
+
+
+    except Exception as ex:
+        print("Error while converting file to 2D array, E: ",ex)
 
 

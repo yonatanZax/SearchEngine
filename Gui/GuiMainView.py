@@ -1,8 +1,14 @@
+import string
 from tkinter import *
 from tkinter import filedialog
 
-from Configuration import ConfigClass
 from threading import Thread
+
+import os
+
+from BasicMethods import get2DArrayFromFile
+from Gui.TkinterTable import TableView
+
 
 class EngineBuilder(Frame):
 
@@ -14,6 +20,7 @@ class EngineBuilder(Frame):
         # self.filesDone = 0
         # self.numOfTotalFiles = numOfTotalFiles
         self.numOfFilesPerIteration = config.get__filesPerIteration()
+
 
         label_0 = Label(self.master, text="Search Engine", width=20, font=("bold", 20))
         label_0.place(x=90, y=60)
@@ -57,7 +64,8 @@ class EngineBuilder(Frame):
 
 
 
-
+        self.data = None
+        self.headline = None
 
 
 
@@ -100,36 +108,17 @@ class EngineBuilder(Frame):
         label_postingPath.place(x=30, y=380)
 
 
-        def uploadDictionary():
-            print("Uploading dictionary...")
 
-
-        def showDictionary():
-            print("Show dictionary...")
-
-
-        self.uploadDicButton = Button(self.master, text='Upload', width=10, bg='blue', fg='white',command= uploadDictionary)
+        self.uploadDicButton = Button(self.master, text='Upload', width=10, bg='blue', fg='white',command= self.loadDictionary)
         self.uploadDicButton.place(x=170, y=380)
         self.showDicButton = Button(self.master, text='Show', width=10, bg='blue', fg='white',command= self.displayDicionary)
         self.showDicButton.place(x=270, y=380)
 
-
-
-
-
-
+        # from tkinter import scrolledtext
+        # self.txtbox = scrolledtext.ScrolledText(width= 200)
         #
-        # def buttonClick():
-        #     print("query:   " + self.entry_1.get())
-        #
-        #
-        # self.submitButton = Button(self.master, text='Search', width=10, bg='blue', fg='white',command= buttonClick).place(x=280, y=225)
-        # self.submitButton.grid()
-
-        # label_docText = Label(self.master,
-        #                 text="Text:    ............\n  ......\n    .......\n   ................\n  .....\n     .......\n   ........",
-        #                 width=20, font=("bold", 10))
-        # label_docText.place(x=70, y=300)
+        # self.txtbox.place(x= 100, y = 420)
+        # # self.txtbox.
 
 
 
@@ -164,13 +153,49 @@ class EngineBuilder(Frame):
 
 
 
+    def loadDictionary(self):
+
+        self.disableButtons()
+        print('Load dictionary')
+
+        savedFolderPath = self.config.get__savedFilePath()
+        lettersList = list(string.ascii_lowercase)
+        lettersList.append('#')
+
+        totalList = []
+        for letter in lettersList:
+            path = savedFolderPath + '\\' + letter + '\\' + 'mergedFile_dic'
+            if not os.path.exists(path):
+                self.enableButtons()
+                return
+            totalList = totalList + get2DArrayFromFile(path)
+
+        self.headline = ['Term', 'df', 'sumTF']
+        self.data = totalList
+
+        self.enableButtons()
+
+
 
     def displayDicionary(self):
 
+        self.disableButtons()
+        print('Display dictionary')
 
-        t = Thread(target=self.displayClass.run)
+        if self.data is None or self.headline is None:
+            self.enableButtons()
+            return
 
+
+        self.displayClass = TableView(self.data, self.headline)
+
+
+
+
+        t = Thread(target=self.displayClass.run,args=())
+        displayThread = Thread(target=self.listener,args =(t,self.enableButtons))
         t.start()
+        displayThread.start()
 
 
     def deleteEngine(self):
@@ -197,35 +222,39 @@ class EngineBuilder(Frame):
         print("Posting path:     ", saveMainFolderPath)
 
 
-        self.buildButton.configure(state=DISABLED)
-        self.deleteButton.configure(state=NORMAL)
+        self.disableButtons()
 
         print("\n***    ManagerRun    ***\n")
 
         from threading import Thread
         th = Thread(target=self.mainManager.managerRun)
-        # threadProgress = Thread(target=updateFileCounter)
         th.start()
+
+        threadWaitUntilBuildDone = Thread(target=self.listener, args=(th,self.enableButtons))
+        threadWaitUntilBuildDone.start()
+
+
+        # threadProgress = Thread(target=updateFileCounter)
         # threadProgress.start()
 
 
+    @ staticmethod
+    def listener(thread,action):
+        print('Gui - waiting to join')
+        thread.join()
+        action()
 
-    def enableBuildButton(self):
-        self.buildButton.configure(state=NORMAL)
+    def enableButtons(self):
+        self.buildButton.configure(state = NORMAL)
+        self.deleteButton.configure(state = NORMAL)
+        self.showDicButton.configure(state = NORMAL)
+        self.uploadDicButton.configure(state = NORMAL)
 
-
-# if __name__ == "__main__":
-#
-#
-#
-#     root = Tk()
-#     root.geometry('500x550')
-#     root.title("SearchEngine")
-#
-#
-#
-#     guiFrame = EngineBuilder(root)
-#     guiFrame.mainloop()
+    def disableButtons(self):
+        self.buildButton.configure(state = DISABLED)
+        self.deleteButton.configure(state = DISABLED)
+        self.showDicButton.configure(state = DISABLED)
+        self.uploadDicButton.configure(state = DISABLED)
 
 
 

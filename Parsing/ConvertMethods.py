@@ -1,46 +1,5 @@
 
 
-
-
-
-
-
-'''
-Jan.
-Feb.
-Mar.
-Apr.
-May
-June
-July
-Aug.
-Sept.
-Oct.
-Nov.
-Dec.
-'''
-
-
-def convertMonthToInt(month):
-    # January | February | March | April | May | June
-    # July | August | September | October | November | December
-
-    return {
-        'jan': '01',
-        'feb': '02',
-        'mar': '03',
-        'apr': '04',
-        'may': '05',
-        'june': '06',
-        'july': '07',
-        'aug': '08',
-        'sep': '09',
-        'oct': '10',
-        'nov': '11',
-        'dec': '12',
-    }[month]
-
-
 def convertTMBT_toLetter(tmbt):
 
     return {
@@ -72,9 +31,9 @@ def convertNumToMoneyFormat(numAsString):
             moduloMillion = int(moduloMillion)
         return (str("{0:.2f}".format(round(moduloMillion,2))).rstrip('0').rstrip('.') + ' M')
     else:
-        if str(numAsFloat).endswith('.0'):
-            numAsFloat = int(numAsFloat)
-        return str(numAsFloat)
+        # if str(numAsFloat).endswith('.0'):
+        #     numAsFloat = int(numAsFloat)
+        return str(str("{0:.2f}".format(round(numAsFloat,2))).rstrip('0').rstrip('.'))
 
 
 def convertNumToKMBformat(numAsString):
@@ -101,14 +60,4 @@ def removeCommasFromNumber(numAsString):
 
 
 
-
-
-
-
-
-
-# import subprocess as sp
-# programName = "notepad.exe"
-# fileName = "D:\SearchEngine\corpus\stop_words.txt"
-# sp.Popen([programName, fileName])
 
