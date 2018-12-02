@@ -27,6 +27,7 @@ class MyManager:
     def run(self):
 
         counter = 0
+        numberOfDocuments = 0
         for folder in self.folderList:
 
             counter += 1
@@ -35,6 +36,7 @@ class MyManager:
                 parsedDocument = self.parser.parseDoc(document)
                 if parsedDocument is None:
                     continue
+                numberOfDocuments += 1
                 self.indexer.addNewDoc(parsedDocument)
 
             if counter == self.filesPerIteration:
@@ -45,12 +47,13 @@ class MyManager:
         if counter != 0:
             self.indexer.flushMemory()
 
-        print("Manager " , str(self.ID) , " Finished parsing all files")
+        print("Manager " , str(self.ID) , " Finished parsing all files, Parsed: " , str(numberOfDocuments), " Docs")
 
         self.indexer.merge()
 
         print("Manager " , str(self.ID) , " Finished merging his files")
 
+        return numberOfDocuments
 
 
     def merge(self):
@@ -77,8 +80,9 @@ class MyManager:
         return self.indexer.city_dictionary
 
     def getRun(self):
-        # TODO - return the cities dictionary
         print ("Got manager " , str(self.ID) , ' run')
 
     def getMerge(self):
         print ("Got manager " , str(self.ID) , ' merge')
+
+

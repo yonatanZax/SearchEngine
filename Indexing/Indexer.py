@@ -1,5 +1,5 @@
 import os
-from Indexing.MyDictionary import MyDictionary, DocumentIndexData, CityIndexData
+from Indexing.MyDictionary import MyDictionary, DocumentIndexData,CityIndexData
 import string
 from Indexing.FileWriter import FileWriter
 
@@ -28,7 +28,9 @@ class Indexer:
         maxFrequentWord = 0
         for term, termData in documentDictionary.items():
             # add the term to the dictionary
-            if len(term) == 0:
+            if len(term) <= 1:
+                continue
+            if not englishLetters.get(term[0]) and not term[0].isdigit():
                 continue
             termFrequency = termData.getTermFrequency()
             if englishLetters.get(term[0]):
@@ -66,10 +68,6 @@ class Indexer:
         self.documents_dictionary = {}
 
 
-    def uploadDictionary(self):
-#         TODO - implement me
-        x=1
-
 
     def merge(self):
         from datetime import datetime
@@ -80,7 +78,7 @@ class Indexer:
         merger = Merger(config=self.config)
         savedFilesPathList = os.listdir(self.config.savedFilePath)
 
-        savedFilesPathList.remove('docIndex') # TODO - find a way to fix this
+        savedFilesPathList.remove('docIndex')
         for folder in savedFilesPathList:
             letterFilesList = os.listdir(self.config.savedFilePath + "\\" + folder)
             fileToMergeList = []
@@ -114,8 +112,6 @@ class Indexer:
             mergedList = merger.merge(fileToMergeList)
 
             self.fileWriter.writeMergedFileTemp(mergedList,self.config.savedFilePath + "\\" + folder + "\\" + str(folder[0]) + str(self.ID))
-
-
 
 
 

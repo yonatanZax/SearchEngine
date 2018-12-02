@@ -2,6 +2,7 @@ import re
 import BasicMethods as basic
 from Indexing.Document import TermData
 from Indexing.MyDictionary import updateTermToDictionaryByTheRules
+import Stemmer.Stemmer
 
 
 class IterativeTokenizer:
@@ -137,7 +138,7 @@ class IterativeTokenizer:
         return None
 
     def addTermToDic(self,termDictionary, term, index):
-        term = term.rstrip(',').rstrip('.')
+        term = term.rstrip(',').rstrip('.').rstrip('-')
         if len(term) == 0:
             return
         count = 1
@@ -156,13 +157,10 @@ class IterativeTokenizer:
             return False
         return True
 
-    # TODO (DONE) - check where we want to change 'strip()' methods to 'rstrip()' or 'lstrip()'
 
     def parseText(self,text):
-        import Stemmer.Stemmer
 
         self.betweenPattern.sub(self.replaceBetween, text)
-        text = re.sub(r"[-]+", '-', text)
         text = text.replace("\n", '').replace('\t', '').replace('{', '').replace('}', '').replace('[', '').replace(']',
                                                                                                                    '').replace(
             '\"', '').replace('\'', '').replace('(', '').replace(')', '').replace('?', '').replace('!', '').replace('#',
@@ -171,50 +169,70 @@ class IterativeTokenizer:
                                                                                                                    '').replace(
             '~', '').replace(';', '').replace(':', '').replace('*', '').replace('+', '').replace('|', '').replace('&',
                                                                                                                   '').replace(
-            '=', '')  # TODO - change the '--' to replace to '-'
-
-
+            '=', '')
+        text = re.sub(r'[-]+','-',text)
+        text = re.sub(r'[.]+', '.', text)
         splittedText = text.split(' ')
         splittedText = list(filter(self.filterAll, splittedText))
-        size = len(splittedText)
-        textIndex = 0
-        termsDic = {}
+        return self.parseFromList(splittedText, 0)
+
+    def parseFromList(self,splittedText, offset = 0):
+
+
         docLength = 0
+        size = len(splittedText)
+        termsDic = {}
+        textIndex = 0
         while textIndex < size:
             cleanedWord = splittedText[textIndex]
             docLength += 1
 
+            if cleanedWord[0] == '.':
+                cleanedWord = '0' + cleanedWord
+
             if cleanedWord[0].isdigit():
                 temp, returnedIndex = self.percentToken(textIndex, splittedText)
                 if temp is not None:
-                    self.addTermToDic(termsDic, temp, textIndex)
+                    self.addTermToDic(termsDic, temp, textIndex + offset)
                     textIndex = returnedIndex
                     continue
                 temp, returnedIndex = self.monthToken_H1(textIndex, splittedText)
                 if temp is not None:
-                    self.addTermToDic(termsDic, temp, textIndex)
+                    self.addTermToDic(termsDic, temp, textIndex + offset)
                     textIndex = returnedIndex
 
                     continue
                 numOfDashes = splittedText[textIndex].count('-')
                 if numOfDashes > 0:
-                    tokenList, returnedIndex = self.splitDashToken(textIndex, splittedText)
-                    for token in tokenList:
+                    tokenDic, LengthReturned = self.splitDashToken(textIndex, splittedText)
+                    i = 0
+                    for token, termData in tokenDic.items():
                         if len(token) > 0:
-                            self.addTermToDic(termsDic, token, textIndex)
+                            # TODO (DONE) - check if the term is number
+                            self.addTermToDic(termsDic, token, textIndex + i)
+                    textIndex += 1
+                    docLength += LengthReturned
+                    continue
+
+
+
+
+
+                termList, returnedIndex = self.numTMBT_tokenToTerm(textIndex, splittedText)
+                if termList is None:
                     textIndex = returnedIndex
                     continue
-                temp, returnedIndex = self.numTMBT_tokenToTerm(textIndex, splittedText)
-                if temp is not None and len(temp) > 0:
-                    self.addTermToDic(termsDic, temp, textIndex)
-                    textIndex = returnedIndex
-                    continue
-                self.addTermToDic(termsDic, cleanedWord, textIndex)
+
+                for i in range(0,len(termList)):
+                    self.addTermToDic(termsDic, termList[i], textIndex + i)
+
+                textIndex = returnedIndex
+                continue
+
 
 
             else:
 
-                # TODO (DONE) - stem suppose to be here somewhere, make sure the toStem gets all the way down to here
                 if len(cleanedWord) < 2:
                     docLength -= 1
                     textIndex += 1
@@ -223,34 +241,43 @@ class IterativeTokenizer:
                 if cleanedWord[0] == '-' and not cleanedWord[1].isdigit():
                     cleanedWord = cleanedWord[1:]
 
-                if cleanedWord[0] == '$':
-                    temp, returnedIndex = self.startWithDollar(textIndex, splittedText)
-                    if temp is not None:
-                        self.addTermToDic(termsDic, temp, textIndex)
-                        textIndex = returnedIndex
-                        continue
                 numOfDashes = cleanedWord.count('-')
                 if cleanedWord.count('-') > 0:
                     if numOfDashes == 1 and cleanedWord[0] == '-':
                         if len(cleanedWord) > 1 and cleanedWord[1].isdigit:
-                            self.addTermToDic(termsDic, cleanedWord, textIndex)
+                            self.addTermToDic(termsDic, cleanedWord, textIndex + offset)
                         else:
                             cleanedToken = self.cleanToken(cleanedWord[1:len(cleanedWord)])
                             if cleanedToken is not None:
-                                self.addTermToDic(termsDic, cleanedToken, textIndex)
+                                self.addTermToDic(termsDic, cleanedToken, textIndex + offset)
                         textIndex += 1
                         continue
                     else:
-                        tokenList, returnedIndex = self.splitDashToken(textIndex, splittedText)
-                        for token in tokenList:
+                        tokenDic, LengthReturned = self.splitDashToken(textIndex, splittedText)
+                        i = 0
+                        for token,termData in tokenDic.items():
                             if len(token) > 0:
                                 # TODO (DONE) - check if the term is number
-                                self.addTermToDic(termsDic, token, textIndex)
+                                self.addTermToDic(termsDic, token, textIndex + i)
+                        textIndex += 1
+                        docLength += LengthReturned
+                        continue
+
+                if cleanedWord[0] == '$':
+                    termList, returnedIndex = self.startWithDollar(textIndex, splittedText)
+                    if termList is None:
                         textIndex = returnedIndex
                         continue
+
+                    for i in range(0, len(termList)):
+                        self.addTermToDic(termsDic, termList[i], textIndex + i)
+
+                    textIndex = returnedIndex
+                    continue
+
                 temp, returnedIndex = self.dateParse_H2_O(textIndex, splittedText)
                 if temp is not None:
-                    self.addTermToDic(termsDic, temp, textIndex)
+                    self.addTermToDic(termsDic, temp, textIndex + offset)
                     textIndex = returnedIndex
 
                     continue
@@ -269,7 +296,7 @@ class IterativeTokenizer:
                                 self.dictionary_term_stemmedTerm[lowerCaseCleanedWord] = self.dictionary_term_stemmedTerm[lowerCaseCleanedWord].lower()
                             cleanedWord = self.dictionary_term_stemmedTerm[lowerCaseCleanedWord]
                     if len(cleanedWord) > 0:
-                        self.addTermToDic(termsDic, cleanedWord, textIndex)
+                        self.addTermToDic(termsDic, cleanedWord, textIndex + offset)
                     else:
                         docLength -= 1
                 else:
@@ -278,6 +305,10 @@ class IterativeTokenizer:
             textIndex += 1
 
         return termsDic, docLength
+
+
+
+
 
     def percentToken(self,index, textList):
         currWord = textList[index]
@@ -319,17 +350,39 @@ class IterativeTokenizer:
         return None, index
 
     def splitDashToken(self,index, textList):
-        token = textList[index]
-        tokenList = token.split('-')
-        ansList = []
-        for term in tokenList:
-            cleanedTerm = self.cleanToken(term)
-            if cleanedTerm is not None and len(term) > 1:
-                ansList.append(term)
-        ansList.append(textList[index])
-        return ansList, index + 1
+        # tokenList = []
+        # token = textList[index]
+        # tokenList = token.split('-')
+        # ansList = []
+        # if len(tokenList) > 0 and len(tokenList[0]) > 0 and tokenList[0][0] == 'S':
+        #     term, returnedIndex = self.startWithDollar(0, tokenList)
+        #
+        # # TODO - finish adding the dollars rules here, what to do with term and what to do with returned index
+        #
+        # for term in tokenList:
+        #     cleanedTerm = self.cleanToken(term)
+        #     if cleanedTerm is not None and len(term) > 1:
+        #         ansList.append(term)
+        # ansList.append(textList[index])
+        splittedText = textList[index].split('-')
+        splittedText = list(filter(self.filterAll, splittedText))
+
+        termsDic, docLength = self.parseFromList(splittedText,index)
+        if '$' in textList[index] or 'illion' in textList[index]:
+            return termsDic, docLength
+        self.addTermToDic(termsDic, textList[index], index)
+
+        return termsDic, docLength
 
     # TODO - add 2 rules
+
+
+
+
+
+
+
+
 
     def startWithDollar(self,curIndex, listOfTokens):
         import Parsing.ConvertMethods  as convert
@@ -342,9 +395,11 @@ class IterativeTokenizer:
 
         while p < len(token):
             # token = 1,550.23 -> 1550.23
+            if token[p] == 'O':
+                token = token[:p] + '0' + token[p+1:]
             if token[p] == '.':
                 if hasDot:
-                    return token, curIndex + 1
+                    return [token], curIndex + 1
                 else:
                     hasDot = True
                     term += token[p]
@@ -358,12 +413,27 @@ class IterativeTokenizer:
                 continue
             elif token[p].lower() in ['m', 'k', 'b', 't']:
                 if not basic.isfloat(term):
-                    return token, curIndex + 1
-                term = str(float(term) * convert.convertTMBT_toNum('', token[p].lower()))
-            else:
-                return token, curIndex + 1
+                    return [term], curIndex + 1
+                elif p + 1 < len(token):
+                    if token[p].lower() == 'b' and token[p+1].lower() == 'n':
+                        term = str(float(term) * convert.convertTMBT_toNum('', 'bn'))
+                        p += 2
+                else:
+                    term = str(float(term) * convert.convertTMBT_toNum('', token[p].lower()))
 
-            p = p + 1
+                # term = convert.convertNumToKMBformat(term)
+
+                if p < len(token):
+                    if token[p] == '.':
+                        hasDot = True
+                    p += 1
+                    continue
+
+            else:
+                term = convert.convertNumToMoneyFormat(term)
+                return [term + ' Dollars', token[p:]], curIndex + 1
+
+            p += 1
 
         # locking for 1/2
         curIndex += 1
@@ -385,10 +455,11 @@ class IterativeTokenizer:
                             numWithSlashToAdd += numWithSlash[p]
                             p += 1
                         else:
+                            if token[p] == '.':
+                                p += 1
                             # if nextToken has more than 1 slash , meaning is not a fraction
-                            # TODO (DONE) - convert term
-                            term = convert.convertNumToKMBformat(term)
-                            return term, curIndex
+                            # term = convert.convertNumToKMBformat(term)
+                            return [term, token[p + 1:]], curIndex - 1
                     else:
                         break
 
@@ -396,34 +467,48 @@ class IterativeTokenizer:
 
                 if hasSlash:
                     term = term + ' ' + numWithSlash
-                    return term + ' Dollars', curIndex + 1
+                    return [term + ' Dollars'], curIndex + 1
 
             checkTMBT = listOfTokens[curIndex]
             if checkTMBT in ['Thousand', 'thousand', 'Million', 'million', 'Billion', 'billion', 'Trillion',
                              'trillion']:
                 term = str(float(term) * convert.convertTMBT_toNum(tmbtString=checkTMBT.lower()))
                 term = convert.convertNumToMoneyFormat(term)
-                return term + ' Dollars', curIndex + 1
+                return [term + ' Dollars'], curIndex + 1
 
             term = convert.convertNumToMoneyFormat(term)
-            return term + ' Dollars', curIndex
+            return [term + ' Dollars'], curIndex
 
         else:
-            return term + ' Dollars', curIndex
+            term = convert.convertNumToMoneyFormat(term)
+            return [term + ' Dollars'], curIndex
+
+
+
+
+
+
 
 
     def numTMBT_tokenToTerm(self,curIndex, listOfTokens):
         import Parsing.ConvertMethods  as convert
         token = listOfTokens[curIndex]
+        if token[0] == '.':
+            token = '0' + token
         term = token[0]
         p = 1
         hasDot = False
 
         while p < len(token):
+
             # token = 1,550.23 -> 1550.23
+
+            if token[p] == 'O':
+                token = token[:p] + '0' + token[p+1:]
             if token[p] == '.':
                 if hasDot:
-                    return token, curIndex + 1
+                    term = convert.convertNumToKMBformat(term)
+                    return [term,token[p+1:]], curIndex + 1
                 else:
                     hasDot = True
                     term += token[p]
@@ -437,12 +522,29 @@ class IterativeTokenizer:
                 continue
             elif token[p].lower() in ['m', 'k', 'b', 't']:
                 if not basic.isfloat(term):
-                    return token, curIndex + 1
-                term = str(float(term) * convert.convertTMBT_toNum('', token[p].lower()))
-            else:
-                return token, curIndex + 1
+                    term = convert.convertNumToKMBformat(term)
+                    return [term, token[p:]], curIndex + 1
+                elif p + 1 < len(token):
+                    if token[p].lower() == 'b' and token[p + 1].lower() == 'n':
+                        term = str(float(term) * convert.convertTMBT_toNum('', 'bn'))
+                        p += 2
+                else:
+                    term = str(float(term) * convert.convertTMBT_toNum('', token[p].lower()))
+                # term = convert.convertNumToKMBformat(term)
 
-            p = p + 1
+                if p < len(token):
+                    if token[p] == '.':
+                        hasDot = True
+                    p += 1
+                    continue
+
+            else:
+
+                # Todo - return list
+                term = convert.convertNumToKMBformat(term)
+                return [term, token[p:]], curIndex + 1
+
+            p += 1
 
         # locking for 1/2
         curIndex += 1
@@ -464,8 +566,11 @@ class IterativeTokenizer:
                             numWithSlashToAdd += numWithSlash[p]
                             p += 1
                         else:
+                            if token[p] == '.':
+                                p += 1
                             # if nextToken has more than 1 slash , meaning is not a fraction
-                            return None, curIndex - 1
+                            term = convert.convertNumToKMBformat(term)
+                            return [term, token[p+1:]], curIndex - 1
                     else:
                         break
 
@@ -474,27 +579,21 @@ class IterativeTokenizer:
                 if hasSlash:
                     term = term + ' ' + numWithSlash
                     curIndex += 1
-                    if curIndex < len(listOfTokens):
+                    checkForUSDOLLARS = listOfTokens[curIndex]
+                    if checkForUSDOLLARS == 'U.S':
+                        curIndex += 1
                         checkForUSDOLLARS = listOfTokens[curIndex]
-                        if checkForUSDOLLARS == 'U.S':
-                            curIndex += 1
-                            if curIndex < len(listOfTokens):
-                                checkForUSDOLLARS = listOfTokens[curIndex]
-                                if checkForUSDOLLARS in ['Dollars', 'dollars']:
-                                    term = convert.convertNumToMoneyFormat(term)
-                                    return term + ' Dollars', curIndex + 1
-                                return term, curIndex - 1
-                            return term, curIndex - 1
-
-
-                        elif checkForUSDOLLARS in ['Dollars', 'dollars']:
+                        if checkForUSDOLLARS in ['Dollars', 'dollars']:
                             term = convert.convertNumToMoneyFormat(term)
-                            return term + ' Dollars', curIndex + 1
-                        return term, curIndex
-                    else:
-                        return term, curIndex
+                            return [term + ' Dollars'], curIndex + 1
+                        term = convert.convertNumToKMBformat(term)
+                        return [term], curIndex - 1
 
-
+                    elif checkForUSDOLLARS in ['Dollars', 'dollars']:
+                        term = convert.convertNumToMoneyFormat(term)
+                        return [term + ' Dollars'], curIndex + 1
+                    term = convert.convertNumToKMBformat(term)
+                    return [term], curIndex
 
             checkTMBT = listOfTokens[curIndex]
             if checkTMBT in ['Thousand', 'thousand', 'Million', 'million', 'Billion', 'billion', 'Trillion',
@@ -506,52 +605,80 @@ class IterativeTokenizer:
                         checkForUSDOLLARS = listOfTokens[curIndex]
                         if checkForUSDOLLARS == 'U.S':
                             curIndex += 1
-                            if curIndex < listOfTokens:
-                                checkForUSDOLLARS = listOfTokens[curIndex]
-                                if checkForUSDOLLARS in ['Dollars', 'dollars']:
-                                    term = convert.convertNumToMoneyFormat(term)
-                                    return term + ' Dollars', curIndex + 1
-                                return term, curIndex - 1
-                            return term, curIndex - 1
-
-
+                            checkForUSDOLLARS = listOfTokens[curIndex]
+                            if checkForUSDOLLARS in ['Dollars', 'dollars']:
+                                term = convert.convertNumToMoneyFormat(term)
+                                return [term + ' Dollars'], curIndex + 1
+                            term = convert.convertNumToKMBformat(term)
+                            return [term, curIndex - 1]
 
                         elif checkForUSDOLLARS in ['Dollars', 'dollars']:
                             term = convert.convertNumToMoneyFormat(term)
-                            return term + ' Dollars', curIndex + 1
+                            return [term + ' Dollars'], curIndex + 1
                         else:
                             term = convert.convertNumToKMBformat(term)
-                            return term, curIndex
+                            return [term], curIndex
                     else:
                         term = convert.convertNumToKMBformat(term)
-                        return term, curIndex
+                        return [term], curIndex
 
                 else:
-                    return term, curIndex
+                    term = convert.convertNumToKMBformat(term)
+                    return [term], curIndex
 
             checkForUSDOLLARS = listOfTokens[curIndex]
             if checkForUSDOLLARS == 'U.S':
                 curIndex += 1
-                if curIndex < len(listOfTokens):
-                    checkForUSDOLLARS = listOfTokens[curIndex]
-                    if checkForUSDOLLARS in ['Dollars', 'dollars']:
-                        term = convert.convertNumToMoneyFormat(term)
-                        return term + ' Dollars', curIndex + 1
-                    return term, curIndex - 1
-                return term, curIndex - 1
+                checkForUSDOLLARS = listOfTokens[curIndex]
+                if checkForUSDOLLARS in ['Dollars', 'dollars']:
+                    term = convert.convertNumToMoneyFormat(term)
+                    return [term + ' Dollars'], curIndex + 1
+                return [term], curIndex - 1
 
             elif checkForUSDOLLARS in ['Dollars', 'dollars']:
                 term = convert.convertNumToMoneyFormat(term)
-                return term + ' Dollars', curIndex + 1
+                return [term + ' Dollars'], curIndex + 1
 
             term = convert.convertNumToKMBformat(term)
-            return term, curIndex
+            return [term], curIndex
 
         else:
-            return term, curIndex
-
-
-#     TODO - encapsulate all the functions
+            term = convert.convertNumToMoneyFormat(term)
+            return [term], curIndex
 
 
 
+from Configuration import ConfigClass
+
+# .08
+# 1.10
+# 12O
+# 15.5
+# 1
+# Y124
+# $49
+# bn.China
+# $59
+# bn.Combined
+# $69
+# bn.Funds
+text = ''' 
+
+ $19bnlast
+ $29bnof
+ $9bnover
+ $1200
+ $1200300
+ $120000
+ 23bn
+ 25bn
+ 38O
+ 3O4.1
+ 44.80
+ 5OO
+ 60.3bn
+#  66O'''
+# parser = IterativeTokenizer(ConfigClass())
+# dic, length = parser.parseText(text)
+# print(dic)
+#

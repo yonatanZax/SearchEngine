@@ -19,6 +19,7 @@ def convertTMBT_toNum(tmbtString, letter=None):
         'K': 1000,
         'M': 1000000,
         'B': 1000000000,
+        'BN': 1000000000,
         'T': 1000000000000,
     }[tmbtLetter]
 
@@ -41,13 +42,13 @@ def convertNumToKMBformat(numAsString):
     from BasicMethods import isfloat
     if isfloat(numToFloat):
         numAsFloat = float(numToFloat)
-        moduloMillion = numAsFloat / 100000000
+        moduloMillion = numAsFloat / 1000000000
         if moduloMillion >= 1:
             return (str("{0:.2f}".format(round(moduloMillion,2))).rstrip('0').rstrip('.') + ' B')
-        elif moduloMillion * 100 >= 1:
-            return (str("{0:.2f}".format(round(moduloMillion*100,2))).rstrip('0').rstrip('.') + ' M')
-        elif moduloMillion * 100000 >= 1:
-            return (str("{0:.2f}".format(round(moduloMillion*100000,2))).rstrip('0').rstrip('.') + ' K')
+        elif moduloMillion * 1000 >= 1:
+            return (str("{0:.2f}".format(round(moduloMillion*1000,2))).rstrip('0').rstrip('.') + ' M')
+        elif moduloMillion * 1000000 >= 1:
+            return (str("{0:.2f}".format(round(moduloMillion*1000000,2))).rstrip('0').rstrip('.') + ' K')
         else:
             return str("{0:.2f}".format(round(numAsFloat,2))).rstrip('0').rstrip('.')
     else:

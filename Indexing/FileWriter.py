@@ -4,24 +4,20 @@ import os
 class FileWriter:
 
     def __init__(self, config):
-        self.i = 0
+        self.counter = 0
         self.config = config
 
     def cleanIndex(self,indexer):
         # currentFileNumber = i.getAndIncrement()
-        currentFileNumber = self.i
-        self.i += 1
-        headLineToWrite = 'term|DF|sumTF|DOC#TF#Position:*,*'
+        currentFileNumber = self.counter
+        self.counter += 1
+        # headLineToWrite = 'term|DF|sumTF|DOC#TF#Position:*,*'
         for dictionaryKey, dictionaryVal in indexer.myDictionaryByLetters.items():
-            self.writeDictionaryToFile(dictionaryKey + str(indexer.ID) + "_" + str(currentFileNumber), headLineToWrite,
-                                  dictionaryVal)
+            self.writeDictionaryToFile(dictionaryKey + str(indexer.ID) + "_" + str(currentFileNumber),dictionaryVal)
 
-    def writeDictionaryToFile(self,fileName, headLineToWrite, dictionaryToWrite):
+    def writeDictionaryToFile(self,fileName, dictionaryToWrite):
 
-        dirPath = self.config.savedFilePath + '\\' + fileName[0]
 
-        if not os.path.exists(dirPath):
-            os.mkdir(dirPath)
 
         path = self.config.savedFilePath + '\\' + fileName[0] + '\\' + fileName
 
@@ -50,8 +46,7 @@ class FileWriter:
         # write to the end of the file at one time on another thread
         self.writeToFile(path, lineToWrite)
 
-    # ToDo (DONE) - make sure that if we use stem we won't run over not stemmed files
-    # TODO (DONE) - change path to relative and add the stem and file name to the method signature
+
 
     def writeMergedFile(self,finalList, outputFile):
         lineToWritePost = ""
@@ -87,6 +82,7 @@ class FileWriter:
         lineToWrite = ""
         for line in finalList:
             lineToWrite += line[0] + '|' + line[1] + '\n'
+
         self.writeToFile(outputFile, lineToWrite)
 
     def createFile(self,path, headLineString):

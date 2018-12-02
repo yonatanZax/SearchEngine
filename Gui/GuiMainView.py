@@ -158,19 +158,22 @@ class EngineBuilder(Frame):
         self.disableButtons()
         print('Load dictionary')
 
+        saveMainFolderPath = str(self.entry_postingPath.get())
+        self.config.setSaveMainFolderPath(saveMainFolderPath)
+
         savedFolderPath = self.config.get__savedFilePath()
         lettersList = list(string.ascii_lowercase)
         lettersList.append('#')
 
         totalList = []
         for letter in lettersList:
-            path = savedFolderPath + '\\' + letter + '\\' + 'mergedFile_dic'
+            path = savedFolderPath + '/' + letter + '/' + 'mergedFile_dic'
             if not os.path.exists(path):
                 self.enableButtons()
                 return
             totalList = totalList + get2DArrayFromFile(path)
 
-        self.headline = ['Term', 'df', '# posting']
+        self.headline = ['Term', 'df', 'sumTF','# Posting']
         self.data = totalList
 
         self.enableButtons()
@@ -217,7 +220,7 @@ class EngineBuilder(Frame):
         self.config.setToStem(check)
 
         saveMainFolderPath = str(self.entry_postingPath.get())
-        self.config.setSaveMainFolderPath(saveMainFolderPath)
+        self.config.setSaveMainFolderPath(saveMainFolderPath,True)
 
         print("Posting path:     ", saveMainFolderPath)
 

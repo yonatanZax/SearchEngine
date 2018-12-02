@@ -18,16 +18,6 @@ class MyDictionary:
         termDicData.addDocument(docID=docNo, docTF_int=termFrequency,termPositions= termPositions)
 
 
-    def getPostingLine(self, term):
-        dicData = self.dictionary_term_dicData.get(term)
-        if dicData is not None:
-            return dicData.postingLine
-        return None
-
-    def print(self):
-        print("MyDictionary Size: " + str(len(self.dictionary_term_dicData)))
-        return
-
 
 
 class DictionaryData:
