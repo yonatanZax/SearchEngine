@@ -102,8 +102,6 @@ class EngineBuilder(Frame):
 
 
 
-
-
         label_postingPath = Label(self.master, text="Dictionary:", width=20, font=("bold", 10))
         label_postingPath.place(x=30, y=380)
 
@@ -113,6 +111,10 @@ class EngineBuilder(Frame):
         self.uploadDicButton.place(x=170, y=380)
         self.showDicButton = Button(self.master, text='Show', width=10, bg='blue', fg='white',command= self.displayDicionary)
         self.showDicButton.place(x=270, y=380)
+
+        self.label_buildDetails = Label(self.master, text="",width=50 ,font=("bold",10))
+        self.label_buildDetails.place(x=50,y=420)
+
 
         # from tkinter import scrolledtext
         # self.txtbox = scrolledtext.ScrolledText(width= 200)
@@ -158,19 +160,22 @@ class EngineBuilder(Frame):
         self.disableButtons()
         print('Load dictionary')
 
+        saveMainFolderPath = str(self.entry_postingPath.get())
+        self.config.setSaveMainFolderPath(saveMainFolderPath)
+
         savedFolderPath = self.config.get__savedFilePath()
         lettersList = list(string.ascii_lowercase)
         lettersList.append('#')
 
         totalList = []
         for letter in lettersList:
-            path = savedFolderPath + '\\' + letter + '\\' + 'mergedFile_dic'
+            path = savedFolderPath + '/' + letter + '/' + 'mergedFile_dic'
             if not os.path.exists(path):
                 self.enableButtons()
                 return
             totalList = totalList + get2DArrayFromFile(path)
 
-        self.headline = ['Term', 'df', 'sumTF']
+        self.headline = ['Term', 'df', 'sumTF','# Posting']
         self.data = totalList
 
         self.enableButtons()
@@ -217,7 +222,7 @@ class EngineBuilder(Frame):
         self.config.setToStem(check)
 
         saveMainFolderPath = str(self.entry_postingPath.get())
-        self.config.setSaveMainFolderPath(saveMainFolderPath)
+        self.config.setSaveMainFolderPath(saveMainFolderPath,True)
 
         print("Posting path:     ", saveMainFolderPath)
 
@@ -227,10 +232,13 @@ class EngineBuilder(Frame):
         print("\n***    ManagerRun    ***\n")
 
         from threading import Thread
-        th = Thread(target=self.mainManager.managerRun)
-        th.start()
+        from concurrent.futures import ThreadPoolExecutor
 
-        threadWaitUntilBuildDone = Thread(target=self.listener, args=(th,self.enableButtons))
+        executor = ThreadPoolExecutor()
+        future = executor.submit(self.mainManager.managerRun)
+
+
+        threadWaitUntilBuildDone = Thread(target=self.buildListener, args=(future,))
         threadWaitUntilBuildDone.start()
 
 
@@ -243,6 +251,30 @@ class EngineBuilder(Frame):
         # print('Gui - waiting to join')
         thread.join()
         action()
+
+
+    def buildListener(self,future):
+        timeItTook, maxParsingTime, totalMerging, gettingCountryDetailsTime, totalNumberOfTerms, totalNumberOfDocuments = future.result()
+        print("Number of Terms: " , str(totalNumberOfTerms))
+        print("Number of Docs: " , str(totalNumberOfDocuments))
+        print("Parsing Time: " , str(maxParsingTime))
+        print("Merging Time: " , str(totalMerging))
+        print("Getting Country Details Time: " , str(gettingCountryDetailsTime))
+        print("Everything took: " , str(timeItTook) , " seconds")
+        self.enableButtons()
+        self.setBuildDetails(timeItTook, maxParsingTime, totalMerging, gettingCountryDetailsTime, totalNumberOfTerms, totalNumberOfDocuments)
+
+    def setBuildDetails(self, timeItTook, maxParsingTime, totalMerging, gettingCountryDetailsTime, totalNumberOfTerms, totalNumberOfDocuments):
+        detailString = 'Details:\n'
+        detailString += "\tNumber of Terms: " , str(totalNumberOfTerms) + "\n"
+        detailString += "\tNumber of Docs: " , str(totalNumberOfDocuments) + "\n"
+        detailString += "\tParsing Time: " , str(maxParsingTime) + "\n"
+        detailString += "\tMerging Time: " , str(totalMerging) + "\n"
+        detailString += "\tGetting Country Details Time: " , str(gettingCountryDetailsTime) + "\n"
+        detailString += "\tEverything took: " , str(timeItTook) , " seconds"
+        self.label_buildDetails['text'] = detailString
+
+
 
     def enableButtons(self):
         self.buildButton.configure(state = NORMAL)

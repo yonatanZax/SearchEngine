@@ -28,7 +28,9 @@ class Indexer:
         maxFrequentWord = 0
         for term, termData in documentDictionary.items():
             # add the term to the dictionary
-            if len(term) == 0:
+            if len(term) <= 1:
+                continue
+            if not englishLetters.get(term[0]) and not term[0].isdigit():
                 continue
             termFrequency = termData.getTermFrequency()
             if englishLetters.get(term[0]):

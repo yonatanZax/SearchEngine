@@ -4,6 +4,7 @@
 import os
 import shutil
 import string
+import sys
 
 
 
@@ -11,27 +12,22 @@ class ConfigClass:
 
 
     def __init__(self):
-        projectMainFolder = os.path.dirname(os.path.abspath(__file__)) + '\\'
+        projectMainFolder = os.path.dirname(os.path.abspath(__file__)) + '/'
         self.corpusPath = projectMainFolder + 'corpus'
         self.savedFileMainFolder = projectMainFolder + 'SavedFiles'
-        self.saveFilesWithStem = self.savedFileMainFolder + "\\WithStem"
-        self.saveFilesWithoutStem = self.savedFileMainFolder + "\\WithoutStem"
+        self.saveFilesWithStem = self.savedFileMainFolder + "/WithStem"
+        self.saveFilesWithoutStem = self.savedFileMainFolder + "/WithoutStem"
 
-        # if os.path.exists(self.savedFileMainFolder):
-        #     shutil.rmtree(self.savedFileMainFolder)
-        # while 1:
-        #     try:
-        #         os.mkdir(self.savedFileMainFolder)
-        #         break
-        #     except PermissionError:
-        #         continue
 
         self.stopWordFile = 'stop_words.txt'
         self.stopWordPath = self.corpusPath + '/' + self.stopWordFile
 
         self.managersNumber = os.cpu_count()
+        if self.managersNumber == 1:
+            self.managersNumber = 4
         # self.managersNumber = 1
         self.filesPerIteration = 10
+        self.minimumTermAppearanceThreshold = 3
         self.listOfFoldersLength = len(os.listdir(self.corpusPath))
 
         self.toStem = False
@@ -63,35 +59,53 @@ class ConfigClass:
         self.documentsIndexPath = savedFilePath + '/docIndex'
 
 
-    def setSaveMainFolderPath(self,newPath):
+
+
+    def setSaveMainFolderPath(self,newPath,delete=False):
         if not os.path.exists(newPath):
             os.mkdir(newPath)
         self.savedFileMainFolder = newPath
-        self.saveFilesWithStem = self.savedFileMainFolder + "\\WithStem"
-        self.saveFilesWithoutStem = self.savedFileMainFolder + "\\WithoutStem"
+        self.saveFilesWithStem = self.savedFileMainFolder + "/WithStem"
+        self.saveFilesWithoutStem = self.savedFileMainFolder + "/WithoutStem"
 
         if not self.toStem:
-            if os.path.exists(self.saveFilesWithoutStem):
-                shutil.rmtree(self.saveFilesWithoutStem)
-            os.mkdir(self.saveFilesWithoutStem)
-            if not os.path.exists(self.saveFilesWithoutStem):
+            # Build code
+            if delete:
+                if os.path.exists(self.saveFilesWithoutStem):
+                    shutil.rmtree(self.saveFilesWithoutStem)
                 os.mkdir(self.saveFilesWithoutStem)
-            self.savedFilePath = self.saveFilesWithoutStem
+                self.savedFilePath = self.saveFilesWithoutStem
+
+            elif not delete:
+                if not os.path.exists(self.saveFilesWithoutStem):
+                    os.mkdir(self.saveFilesWithoutStem)
+                self.savedFilePath = self.saveFilesWithoutStem
+
 
         else:
-            if os.path.exists(self.saveFilesWithStem):
-                shutil.rmtree(self.saveFilesWithStem)
-            os.mkdir(self.saveFilesWithStem)
-            if not os.path.exists(self.saveFilesWithStem):
+            # Build code
+            if delete:
+                if os.path.exists(self.saveFilesWithStem):
+                    shutil.rmtree(self.saveFilesWithStem)
                 os.mkdir(self.saveFilesWithStem)
-            self.savedFilePath = self.saveFilesWithStem
+                self.savedFilePath = self.saveFilesWithStem
 
-        lettersList = list(string.ascii_lowercase)
-        lettersList.append('#')
-        for letter in lettersList:
-            os.mkdir(self.savedFilePath + '\\' + letter)
+
+
+            elif not delete:
+                if not os.path.exists(self.saveFilesWithStem):
+                    os.mkdir(self.saveFilesWithStem)
+                self.savedFilePath = self.saveFilesWithStem
+
+        if delete:
+            lettersList = list(string.ascii_lowercase)
+            lettersList.append('#')
+            for letter in lettersList:
+                os.mkdir(self.savedFilePath + '/' + letter)
+
 
         self.setSavedFilePath(self.savedFilePath)
+
 
 
     def setToStem(self,bool):
@@ -135,7 +149,6 @@ class ConfigClass:
 
     def get__listOfFoldersLength(self):
         return self.listOfFoldersLength
-
 
     def get__documentsIndexPath(self):
         return self.documentsIndexPath

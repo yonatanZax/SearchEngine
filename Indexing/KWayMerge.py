@@ -172,12 +172,8 @@ class Merger:
                     self._heap.push(MergeDataClass(str(splittedLine[0].lower()), splittedLine[0], splittedLine[1], splittedLine[2], splittedLine[3], smallestIndex, smallestFile))
 
             # clean up
-            # FinalList.append((str(currentValTerm) + '|' + str(currentValDF) + '|' + str(currentValSUMTF),currentValPosting))
             self.addToDic(FinalDictionary, MergeDataClass(currentValTermLower, currentValTerm, currentValDF, currentValSUMTF, currentValPosting))
 
-            # for line in FinalList:
-            #     print (line)
-            # print ("Number of terms:" + str(len(FinalList)))
             FinalList = list(FinalDictionary.values())
             return sorted(FinalList, key=self.sortDicKey)
         except Exception as err_msg:
@@ -197,8 +193,9 @@ class Merger:
 
     @staticmethod
     def sortDicKey(item):
-        endTerm = item[0].find('|')
-        returnedTerm = item[0][0:endTerm]
+        # endTerm = item[0].find('|')
+        # returnedTerm = item[0][0:endTerm]
+        returnedTerm = item[0][0]
         return returnedTerm
 
     @staticmethod
@@ -206,32 +203,21 @@ class Merger:
         # if the item doesn't appear in the dictionary at all
         termTuple = dictionary.get(item[0])
         if termTuple is None:
-            dictionary[item[0]] = (str(item[1]) + '|' + str(item[2]) + '|' + str(item[3]),item[4])
+            dictionary[item[0]] = ([str(item[1]) , int(item[2]) , int(item[3])], item[4])
         else:
             # meaning the term is in the dictionary
-            termDictionaryPartSplitted = termTuple[0].split('|')
-            termInDic = termDictionaryPartSplitted[0]
-            termDF = int(termDictionaryPartSplitted[1]) + int(item[2])
-            termSUMDF = int(termDictionaryPartSplitted[2]) + int(item[3])
+            # termDictionaryPartSplitted = termTuple[0].split('|')
+            # termInDic = termDictionaryPartSplitted[0]
+            termInDic = termTuple[0][0]
+            # termDF = int(termDictionaryPartSplitted[1]) + int(item[2])
+            termDF = int(termTuple[0][1]) + int(item[2])
+            # termSUMTF = int(termDictionaryPartSplitted[2]) + int(item[3])
+            termSUMTF = int(termTuple[0][2]) + int(item[3])
 
             # they don't look the same need to change how it appear
             if termInDic != item[1]:
                 termInDic = item[0]
 
-            dictionary[item[0]] = (str(termInDic) + '|' + str(termDF) + '|' + str(termSUMDF), termTuple[1] + item[4])
-
-
-
-
-def test():
-    import os
-    # merger = Merger()
-    # list = merger.merge(['b0_0','b0_1'])
-    # for l in list:
-    #     print (l)
-    print (os.cpu_count())
-
-# test()
-
+            dictionary[item[0]] = ([str(termInDic) , termDF , termSUMTF], termTuple[1] + item[4])
 
 
