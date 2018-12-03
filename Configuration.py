@@ -26,6 +26,7 @@ class ConfigClass:
         if self.managersNumber == 1:
             self.managersNumber = 4
         # self.managersNumber = 1
+        # self.filesPerIteration = 1
         self.filesPerIteration = 10
         self.minimumTermAppearanceThreshold = 3
         self.listOfFoldersLength = len(os.listdir(self.corpusPath))
@@ -38,9 +39,25 @@ class ConfigClass:
 
         self.documentsIndexPath = self.savedFilePath + '/docIndex'
 
+
+
+        # self.buildSummary = ''
+
+
         print('Project was created successfully..')
 
 
+
+
+    # def setBuildDetails(self, timeItTook, maxParsingTime, totalMerging, gettingCountryDetailsTime, totalNumberOfTerms, totalNumberOfDocuments):
+    #     detailString = 'Details:\n'
+    #     detailString += "\tNumber of Terms: " + str(totalNumberOfTerms) + "\n"
+    #     detailString += "\tNumber of Docs: " + str(totalNumberOfDocuments) + "\n"
+    #     detailString += "\tParsing Time: " + str(maxParsingTime) + "\n"
+    #     detailString += "\tMerging Time: " + str(totalMerging) + "\n"
+    #     detailString += "\tGetting Country Details Time: " + str(gettingCountryDetailsTime) + "\n"
+    #     detailString += "\tEverything took: " + str(timeItTook) + " seconds"
+    #     self.buildSummary = detailString
 
 
 
@@ -105,6 +122,9 @@ class ConfigClass:
 
 
         self.setSavedFilePath(self.savedFilePath)
+        if not os.path.exists(self.savedFilePath + '/Progress'):
+            os.mkdir(self.savedFilePath + '/Progress')
+            os.mkdir(self.savedFilePath + '/Progress/Posting')
 
 
 

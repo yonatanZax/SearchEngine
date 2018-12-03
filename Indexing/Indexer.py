@@ -63,14 +63,9 @@ class Indexer:
 
     def flushMemory(self):
         self.fileWriter.cleanIndex(self)
-
         self.fileWriter.cleanDocuments(self.documents_dictionary)
         self.documents_dictionary = {}
 
-
-    def uploadDictionary(self):
-#         TODO - implement me
-        x=1
 
 
     def merge(self):

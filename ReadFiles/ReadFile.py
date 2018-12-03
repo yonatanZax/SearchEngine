@@ -52,13 +52,18 @@ class ReadFile:
                     docNo = docNo[0].strip(' ')
                     counterWithDocNo += 1
                     onlyText = documentAsString[documentAsString.find('<TEXT>') + len('<TEXT>'):documentAsString.rfind('</TEXT>')]
-                    # onlyText = re.findall(r'<TEXT>(.*?)</TEXT>', documentAsString)
+
+
                     if len(onlyText) > 20:
                         counterOnlyText += 1
                         if "meter" in onlyText:
                             counterMeter += 1
                         if "km" in onlyText:
                             counterKM += 1
+
+                    # findMeArray = re.findall(r'\$[\d]+\-\$[\d]+ [a-z]+', documentAsString)
+                    # if len(findMeArray) > 0:
+                    #     print(docNo)
 
 
                 counterTotal += 1

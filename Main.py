@@ -117,7 +117,7 @@ class MainClass:
             maxSecondMergeTime = max(maxSecondMergeTime, mergingTime)
             if firstManagerToFinish:
                 firstManagerToFinish = False
-                gettingCountryDetails = self.getCitiesDataAndWriteIt(dictionary_city_cityData)
+                # gettingCountryDetails = self.getCitiesDataAndWriteIt(dictionary_city_cityData)
 
 
         finishTime = datetime.now()
@@ -128,7 +128,7 @@ class MainClass:
 
         print("Number of files Processed: " , str(len(listOfFolders)))
 
-
+        # self.config.setBuildDetails(timeItTook.seconds, maxParsingTime, totalMerging, gettingCountryDetails, str(totalNumberOfTerms), totalNumberOfDocuments)
         return timeItTook.seconds, maxParsingTime, totalMerging, gettingCountryDetails, totalNumberOfTerms, totalNumberOfDocuments
 
     @staticmethod
