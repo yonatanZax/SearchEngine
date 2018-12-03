@@ -204,7 +204,7 @@ class IterativeTokenizer:
                     continue
                 numOfDashes = splittedText[textIndex].count('-')
                 if numOfDashes > 0:
-                    tokenDic, LengthReturned = self.splitDashToken(textIndex, splittedText)
+                    tokenDic, LengthReturned = self.splitTokenBySeparator(textIndex, splittedText,'-')
                     i = 0
                     for token, termData in tokenDic.items():
                         if len(token) > 0:
@@ -253,11 +253,10 @@ class IterativeTokenizer:
                         textIndex += 1
                         continue
                     else:
-                        tokenDic, LengthReturned = self.splitDashToken(textIndex, splittedText)
+                        tokenDic, LengthReturned = self.splitTokenBySeparator(textIndex, splittedText,'-')
                         i = 0
                         for token,termData in tokenDic.items():
                             if len(token) > 0:
-                                # TODO (DONE) - check if the term is number
                                 self.addTermToDic(termsDic, token, textIndex + i)
                         textIndex += 1
                         docLength += LengthReturned
@@ -295,8 +294,46 @@ class IterativeTokenizer:
                             if isAllLower:
                                 self.dictionary_term_stemmedTerm[lowerCaseCleanedWord] = self.dictionary_term_stemmedTerm[lowerCaseCleanedWord].lower()
                             cleanedWord = self.dictionary_term_stemmedTerm[lowerCaseCleanedWord]
+
+
+
+
                     if len(cleanedWord) > 0:
-                        self.addTermToDic(termsDic, cleanedWord, textIndex + offset)
+
+                        splitByComma = cleanedWord.split(',')
+                        if len(splitByComma) > 1:
+                            termList = []
+                            for w in splitByComma:
+                                terms , index = self.parseText(w)
+                                termList = termList + list(terms)
+
+                            for term in termList:
+                                self.addTermToDic(termsDic, term, textIndex + offset)
+
+                        elif cleanedWord.count('.') > 0:
+                            splitByDot = cleanedWord.split('.')
+                            if len(splitByDot) > 1:
+                                termList = []
+                                for w in splitByDot:
+                                    terms, index = self.parseText(w)
+                                    termList = termList + list(terms)
+
+                                for term in termList:
+                                    self.addTermToDic(termsDic, term, textIndex + offset)
+
+                        else:
+
+                            if cleanedWord[0].isupper() and cleanedWord[1:].islower():
+                                termList , textIndex = self.ruleNBA(textIndex, splittedText)
+
+                                for term in termList:
+                                    self.addTermToDic(termsDic, term, textIndex + offset)
+
+                                continue
+
+
+                            self.addTermToDic(termsDic, cleanedWord, textIndex + offset)
+
                     else:
                         docLength -= 1
                 else:
@@ -306,6 +343,34 @@ class IterativeTokenizer:
 
         return termsDic, docLength
 
+
+
+
+
+    def ruleNBA(self,index,textList):
+        listOfTerms = [textList[index]]
+        bigLetters = textList[index][0]
+        tempIndex = index + 1
+        while tempIndex < len(textList):
+
+            currWord = textList[tempIndex]
+            currWord = self.cleanToken(currWord)
+            if currWord[0].isupper() and currWord[1:].islower():
+                bigLetters += currWord[0]
+                if len(bigLetters) > 4:
+
+                    break
+            else:
+                if currWord == bigLetters:
+                    listOfTerms = [' '.join(textList[index:tempIndex])]
+                    listOfTerms.append(currWord)
+                    return listOfTerms , tempIndex
+                break
+
+            tempIndex += 1
+
+
+        return listOfTerms , index + 1
 
 
 
@@ -349,22 +414,8 @@ class IterativeTokenizer:
 
         return None, index
 
-    def splitDashToken(self,index, textList):
-        # tokenList = []
-        # token = textList[index]
-        # tokenList = token.split('-')
-        # ansList = []
-        # if len(tokenList) > 0 and len(tokenList[0]) > 0 and tokenList[0][0] == 'S':
-        #     term, returnedIndex = self.startWithDollar(0, tokenList)
-        #
-        # # TODO - finish adding the dollars rules here, what to do with term and what to do with returned index
-        #
-        # for term in tokenList:
-        #     cleanedTerm = self.cleanToken(term)
-        #     if cleanedTerm is not None and len(term) > 1:
-        #         ansList.append(term)
-        # ansList.append(textList[index])
-        splittedText = textList[index].split('-')
+    def splitTokenBySeparator(self, index, textList,sep):
+        splittedText = textList[index].split(sep)
         splittedText = list(filter(self.filterAll, splittedText))
 
         termsDic, docLength = self.parseFromList(splittedText,index)
@@ -643,7 +694,7 @@ class IterativeTokenizer:
             return [term], curIndex
 
         else:
-            term = convert.convertNumToMoneyFormat(term)
+            term = convert.convertNumToKMBformat(term)
             return [term], curIndex
 
 
@@ -664,21 +715,12 @@ from Configuration import ConfigClass
 # bn.Funds
 text = ''' 
 
- $19bnlast
- $29bnof
- $9bnover
- $1200
- $1200300
- $120000
- 23bn
- 25bn
- 38O
- 3O4.1
- 44.80
- 5OO
- 60.3bn
-#  66O'''
+ Abb Baa Cdd ABC
+ 15 
+ Kmm Mkk Rss
+
+'''
 # parser = IterativeTokenizer(ConfigClass())
 # dic, length = parser.parseText(text)
-# print(dic)
+# print(dic.items())
 #

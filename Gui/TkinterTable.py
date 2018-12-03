@@ -16,7 +16,7 @@ class App(Frame):
         self.headLine = headLineAsArray
 
         self.parent = parent
-        self.CreateUI()
+        self.CreateGUI()
         self.LoadTable()
         width = 150 * len(headLineAsArray)
         width = "%sx800" % (width)
@@ -26,10 +26,9 @@ class App(Frame):
 
 
 
-    def CreateUI(self):
+    def CreateGUI(self):
         self.treeview = Treeview(self.parent)
         headers = self.headLine[1:]
-        head = self.headLine[0]
         self.treeview['columns'] = tuple(self.headLine)
         self.treeview.heading("#0", text='Index', anchor='center')
         self.treeview.column("#0", anchor="w",width=70)

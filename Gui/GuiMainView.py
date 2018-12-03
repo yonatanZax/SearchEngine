@@ -83,7 +83,6 @@ class EngineBuilder(Frame):
 
 
 
-
         self.deleteButton = Button(self.master, text='Delete', width=10, bg='red', fg='white',command= self.deleteEngine)
         self.deleteButton.place(x=100, y=250)
         self.buildButton = Button(self.master, text='Build', width=10, bg='green', fg='white',command= self.buildEngine)
@@ -102,8 +101,6 @@ class EngineBuilder(Frame):
 
 
 
-
-
         label_postingPath = Label(self.master, text="Dictionary:", width=20, font=("bold", 10))
         label_postingPath.place(x=30, y=380)
 
@@ -114,12 +111,10 @@ class EngineBuilder(Frame):
         self.showDicButton = Button(self.master, text='Show', width=10, bg='blue', fg='white',command= self.displayDicionary)
         self.showDicButton.place(x=270, y=380)
 
-        # from tkinter import scrolledtext
-        # self.txtbox = scrolledtext.ScrolledText(width= 200)
-        #
-        # self.txtbox.place(x= 100, y = 420)
-        # # self.txtbox.
 
+
+        self.infoLabel = Label(self.master, text="Ready", width=40, font=("bold", 10))
+        self.infoLabel.place(x=60, y=450)
 
 
 
@@ -152,14 +147,14 @@ class EngineBuilder(Frame):
 
 
 
+    def load(self):
 
-    def loadDictionary(self):
-
-        self.disableButtons()
-        print('Load dictionary')
 
         saveMainFolderPath = str(self.entry_postingPath.get())
         self.config.setSaveMainFolderPath(saveMainFolderPath)
+
+        check = self.checked.get()
+        self.config.setToStem(check)
 
         savedFolderPath = self.config.get__savedFilePath()
         lettersList = list(string.ascii_lowercase)
@@ -170,13 +165,25 @@ class EngineBuilder(Frame):
             path = savedFolderPath + '/' + letter + '/' + 'mergedFile_dic'
             if not os.path.exists(path):
                 self.enableButtons()
+                self.infoLabel['text'] = 'Need to build (Check if stem is clicked)'
+                print('Location not found', path)
                 return
             totalList = totalList + get2DArrayFromFile(path)
 
-        self.headline = ['Term', 'df', 'sumTF','# Posting']
+        self.headline = ['Term', 'df', 'sumTF', '# Posting']
         self.data = totalList
 
-        self.enableButtons()
+
+    def loadDictionary(self):
+
+        self.disableButtons()
+        print('Load dictionary')
+
+        t = Thread(target=self.load, args=())
+        displayThread = Thread(target=self.listener, args=(t, self.enableButtons))
+        t.start()
+        displayThread.start()
+
 
 
 
