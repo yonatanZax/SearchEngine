@@ -125,7 +125,7 @@ class MainClass:
 
         totalMerging = maxSecondMergeTime + maxMergingTime
 
-
+        pool.shutdown()
         print("Number of files Processed: " , str(len(listOfFolders)))
 
         # self.config.setBuildDetails(timeItTook.seconds, maxParsingTime, totalMerging, gettingCountryDetails, str(totalNumberOfTerms), totalNumberOfDocuments)
