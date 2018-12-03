@@ -77,13 +77,18 @@ class MainClass:
         dictionary_city_cityData = {}
 
         totalNumberOfDocuments = 0
+        maxParsingTime = 0
+        maxMergingTime = 0
+
 
         future_manager_dic = {pool.submit(self.run, manager): manager for manager in managersList}
         for future_manager in as_completed(future_manager_dic):
             manager = future_manager_dic[future_manager]
             manager.getRun()
-            tempCityData , numberOfDocs = future_manager.result()
+            tempCityData , numberOfDocs , parsingTime, mergingTime  = future_manager.result()
             totalNumberOfDocuments += numberOfDocs
+            maxParsingTime = max(maxParsingTime, parsingTime)
+            maxMergingTime = max(maxMergingTime, mergingTime)
             for city, cityData in tempCityData.items():
                 if dictionary_city_cityData.get(city) is None:
                     if cityData is None:
@@ -100,30 +105,37 @@ class MainClass:
         firstManagerToFinish = True
 
         totalNumberOfTerms = 0
+        maxSecondMergeTime = 0
+        gettingCountryDetails = 0
 
         future_manager_dic = {pool.submit(self.managerMerge, manager): manager for manager in managersList}
         for future_manager in as_completed(future_manager_dic):
             manager = future_manager_dic[future_manager]
             manager.getMerge()
-            totalNumberOfTerms += future_manager.result()
+            numberOfTerms, mergingTime = future_manager.result()
+            totalNumberOfTerms += numberOfTerms
+            maxSecondMergeTime = max(maxSecondMergeTime, mergingTime)
             if firstManagerToFinish:
                 firstManagerToFinish = False
-                self.getCitiesDataAndWriteItWithSession(dictionary_city_cityData)
+                gettingCountryDetails = self.getCitiesDataAndWriteIt(dictionary_city_cityData)
 
 
         finishTime = datetime.now()
         timeItTook = finishTime - startTime
 
+        totalMerging = maxSecondMergeTime + maxMergingTime
+
+
         print("Number of files Processed: " , str(len(listOfFolders)))
-        print("Everything took: " , str(timeItTook.seconds) , " seconds")
-        print("Number of Terms: " , str(totalNumberOfTerms))
-        print("Number of Docs: " , str(totalNumberOfDocuments))
+
+        self.config.setBuildDetails(timeItTook.seconds, maxParsingTime, totalMerging, gettingCountryDetails, str(totalNumberOfTerms), totalNumberOfDocuments)
+        return timeItTook.seconds, maxParsingTime, totalMerging, gettingCountryDetails, totalNumberOfTerms, totalNumberOfDocuments
 
     @staticmethod
     def run( manager):
         # print("in run main")
-        numberOfDocs = manager.run()
-        return manager.indexer.city_dictionary, numberOfDocs
+        numberOfDocs , parsingTime, finishedMerging = manager.run()
+        return manager.indexer.city_dictionary, numberOfDocs , parsingTime, finishedMerging
 
 
 
@@ -132,7 +144,7 @@ class MainClass:
         if manager.ID > 0:
             return manager.merge()
 
-        return 0
+        return 0,0
 
     def getCitiesDataAndWriteIt(self,dictionary_city_cityData):
         """
@@ -149,6 +161,7 @@ class MainClass:
         # print(writeLine)
         writeLine = ''
         listToWrite = []
+        start = datetime.now()
         try:
             for city, cityData in sorted(dictionary_city_cityData.items()):
                 information = self.cityAPI.getInformationAsString(city)
@@ -170,6 +183,11 @@ class MainClass:
                 print (str(ex))
             except UnicodeEncodeError as ex:
                 print('ERROR in writing' , str(ex))
+
+        finish = datetime.now()
+        timeItTook = finish - start
+
+        return timeItTook.seconds
 
 
     def getCitiesDataAndWriteItWithSession(self,dictionary_city_cityData):

@@ -63,7 +63,6 @@ class Indexer:
 
     def flushMemory(self):
         self.fileWriter.cleanIndex(self)
-
         self.fileWriter.cleanDocuments(self.documents_dictionary)
         self.documents_dictionary = {}
 

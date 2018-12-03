@@ -18,7 +18,7 @@ class EngineBuilder(Frame):
         Frame.__init__(self, master)
         self.grid()
         # self.filesDone = 0
-        # self.numOfTotalFiles = numOfTotalFiles
+        self.numOfTotalFiles = numOfTotalFiles
         self.numOfFilesPerIteration = config.get__filesPerIteration()
 
 
@@ -83,6 +83,7 @@ class EngineBuilder(Frame):
 
 
 
+
         self.deleteButton = Button(self.master, text='Delete', width=10, bg='red', fg='white',command= self.deleteEngine)
         self.deleteButton.place(x=100, y=250)
         self.buildButton = Button(self.master, text='Build', width=10, bg='green', fg='white',command= self.buildEngine)
@@ -111,38 +112,57 @@ class EngineBuilder(Frame):
         self.showDicButton = Button(self.master, text='Show', width=10, bg='blue', fg='white',command= self.displayDicionary)
         self.showDicButton.place(x=270, y=380)
 
+        self.label_buildDetails = Label(self.master, text="",width=50 ,font=("bold",10))
+        self.label_buildDetails.place(x=50,y=420)
 
 
-        self.infoLabel = Label(self.master, text="Ready", width=40, font=("bold", 10))
-        self.infoLabel.place(x=60, y=450)
+        Label(self.master, text="Summary:", width=10, font=("bold", 10)).place(x=20, y=420)
+
+
+        from tkinter import scrolledtext
+        self.txtbox = scrolledtext.ScrolledText(width= 45,height=7)
+        self.txtbox.place(x= 60, y = 440)
+
+        self.infoLabel = Label(self.master, text="Status: Ready", width=40, font=("bold", 10))
+        self.infoLabel.place(x=60, y=570)
 
 
 
 
-    def updateFileCounter(self):
+
+
+
+
+    def updatePostingProgress(self):
         flag = True
         label = "Progress:     ["
         import os
         import time
+        counter = 0
 
         while flag:
-            time.sleep(60)
-            path = self.config.get__savedFilePath() + '\\a'
+            time.sleep(10)
+            path = self.config.get__savedFilePath() + '/Progress/Posting'
             if not os.path.exists(path):
-                continue
+                break
             listOfFiles = os.listdir(path)
-            filesPerIteration = self.config.get__filesPerIteration()
-            allFilesCount = self.config.get__listOfFoldersLength()
-            totalFileCount = len(listOfFiles) * filesPerIteration
+            if len(listOfFiles) == 0:
+                continue
+            for file in listOfFiles:
+                splitedFile = file.split('_')
+                counter += int(splitedFile[-1])
 
-            percent = (totalFileCount/allFilesCount)*50
+            if counter == self.numOfTotalFiles:
+                return
+            percent = (counter/self.numOfTotalFiles)*50
+            percent = int(percent)
             linesAsString = ''
             for i in range(0,percent):
                 linesAsString += '|'
             for i in range(percent,50):
                 linesAsString += ' '
 
-            self.label_progress['label'] = label + linesAsString + '] ' + str(percent*2) + '% '
+            self.label_progress['text'] = label + linesAsString + '] ' + str(percent*2) + '% '
 
 
 
@@ -221,7 +241,6 @@ class EngineBuilder(Frame):
         print("Corpus path:     ", self.entry_corpusPath.get())
         corpusPath = str(self.entry_corpusPath.get())
         self.config.setCorpusPath(corpusPath)
-        # self.disableBuildBtn()
 
         check = self.checked.get()
         self.config.setToStem(check)
@@ -243,6 +262,11 @@ class EngineBuilder(Frame):
         threadWaitUntilBuildDone = Thread(target=self.listener, args=(th,self.enableButtons))
         threadWaitUntilBuildDone.start()
 
+        # postingProgressThread = Thread(target=self.updatePostingProgress)
+        # postingProgressThread.start()
+
+        printSummaryThread = Thread(target=self.listener, args=(threadWaitUntilBuildDone, self.buildSummary))
+        printSummaryThread.start()
 
         # threadProgress = Thread(target=updateFileCounter)
         # threadProgress.start()
@@ -253,6 +277,41 @@ class EngineBuilder(Frame):
         print('Gui - waiting to join')
         thread.join()
         action()
+
+
+
+    def buildSummary(self):
+        self.txtbox.insert('end',self.config.buildSummary)
+        # self.label_buildDetails['text'] = self.config.buildSummary
+
+
+
+    def buildListener(self,future):
+        timeItTook, maxParsingTime, totalMerging, gettingCountryDetailsTime, totalNumberOfTerms, totalNumberOfDocuments = future.result()
+        print("Number of Terms: " , str(totalNumberOfTerms))
+        print("Number of Docs: " , str(totalNumberOfDocuments))
+        print("Parsing Time: " , str(maxParsingTime))
+        print("Merging Time: " , str(totalMerging))
+        print("Getting Country Details Time: " , str(gettingCountryDetailsTime))
+        print("Everything took: " , str(timeItTook) , " seconds")
+        self.enableButtons()
+        self.setBuildDetails(timeItTook, maxParsingTime, totalMerging, gettingCountryDetailsTime, totalNumberOfTerms, totalNumberOfDocuments)
+
+
+
+
+    def setBuildDetails(self, timeItTook, maxParsingTime, totalMerging, gettingCountryDetailsTime, totalNumberOfTerms, totalNumberOfDocuments):
+        detailString = 'Details:\n'
+        detailString += "\tNumber of Terms: " , str(totalNumberOfTerms) + "\n"
+        detailString += "\tNumber of Docs: " , str(totalNumberOfDocuments) + "\n"
+        detailString += "\tParsing Time: " , str(maxParsingTime) + "\n"
+        detailString += "\tMerging Time: " , str(totalMerging) + "\n"
+        detailString += "\tGetting Country Details Time: " , str(gettingCountryDetailsTime) + "\n"
+        detailString += "\tEverything took: " , str(timeItTook) , " seconds"
+        self.txtbox.insert(detailString)
+        # self.label_buildDetails['text'] = detailString
+
+
 
     def enableButtons(self):
         self.buildButton.configure(state = NORMAL)

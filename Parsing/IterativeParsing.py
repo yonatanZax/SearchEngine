@@ -323,7 +323,7 @@ class IterativeTokenizer:
 
                         else:
 
-                            if cleanedWord[0].isupper() and cleanedWord[1:].islower():
+                            if cleanedWord[0].isupper():
                                 termList , textIndex = self.ruleNBA(textIndex, splittedText)
 
                                 for term in termList:
@@ -355,14 +355,14 @@ class IterativeTokenizer:
 
             currWord = textList[tempIndex]
             currWord = self.cleanToken(currWord)
-            if currWord[0].isupper() and currWord[1:].islower():
+            if currWord[0].isupper():
                 bigLetters += currWord[0]
                 if len(bigLetters) > 4:
 
                     break
             else:
                 if currWord == bigLetters:
-                    listOfTerms = [' '.join(textList[index:tempIndex])]
+                    listOfTerms = [' '.join(textList[index:tempIndex])] + textList[index:tempIndex]
                     listOfTerms.append(currWord)
                     return listOfTerms , tempIndex
                 break
@@ -426,10 +426,6 @@ class IterativeTokenizer:
         return termsDic, docLength
 
     # TODO - add 2 rules
-
-
-
-
 
 
 
@@ -715,7 +711,7 @@ from Configuration import ConfigClass
 # bn.Funds
 text = ''' 
 
- Abb Baa Cdd ABC
+ Abb BAA Cdd ABC
  15 
  Kmm Mkk Rss
 

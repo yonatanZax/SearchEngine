@@ -2,9 +2,10 @@ from Indexing.Indexer import Indexer
 from ReadFiles.ReadFile import ReadFile
 from Parsing.Parse import Parse
 from Indexing.FileWriter import FileWriter
+from datetime import datetime
+
+
 class MyManager:
-
-
 
     def __init__(self, managerID, filesPerIteration, folderList, lettersList, config):
         self.ID = managerID
@@ -26,6 +27,8 @@ class MyManager:
 
     def run(self):
 
+        start = datetime.now()
+
         counter = 0
         numberOfDocuments = 0
         for folder in self.folderList:
@@ -41,24 +44,41 @@ class MyManager:
 
             if counter == self.filesPerIteration:
                 self.indexer.flushMemory()
+                # path = self.config.savedFilePath() + '/Progress/Posting'
+                # try:
+                #     myFile = open(path+'/' + self.ID + '_' + str(counter),'w')
+                #     myFile.close()
+                #
+                # except:
+                #     x = 1
                 counter = 0
 
 
         if counter != 0:
             self.indexer.flushMemory()
 
-        print("Manager " , str(self.ID) , " Finished parsing all files, Parsed: " , str(numberOfDocuments), " Docs")
+        finishedParsing = datetime.now()
+        parsingTime = finishedParsing - start
+
+
+        print("Manager " , str(self.ID) , " Finished parsing all files, Parsed: " , str(numberOfDocuments), " Docs, Took: ", str(parsingTime.seconds))
 
         self.indexer.merge()
 
-        print("Manager " , str(self.ID) , " Finished merging his files")
+        finishedMerging = datetime.now()
+        mergingTime = finishedMerging - start
 
-        return numberOfDocuments
+
+        print("Manager " , str(self.ID) , " Finished merging his files, Took: " , str(mergingTime.seconds))
+
+        return numberOfDocuments, parsingTime.seconds, mergingTime.seconds
 
 
     def merge(self):
         from Indexing.KWayMerge import Merger
         import os
+
+        start = datetime.now()
 
         merger = Merger(self.config)
 
@@ -69,11 +89,15 @@ class MyManager:
             filesInLetterFolder = os.listdir(self.config.savedFilePath + "\\" + letter)
             mergedList = merger.merge(filesInLetterFolder)
 
-            sumOfTerms += len(mergedList)
+            # sumOfTerms += len(mergedList)
 
-            self.fileWriter.writeMergedFile(mergedList, self.config.savedFilePath + "\\" + letter + "\\")
+            sumOfTerms += self.fileWriter.writeMergedFile(mergedList, self.config.savedFilePath + "\\" + letter + "\\")
 
-        return sumOfTerms
+        finish = datetime.now()
+
+        mergingTime = finish - start
+
+        return sumOfTerms, mergingTime.seconds
 
 
     def getCityDictionary(self):

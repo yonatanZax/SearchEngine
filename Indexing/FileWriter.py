@@ -55,33 +55,55 @@ class FileWriter:
         pathForPosting = outputFile + 'PostingFolder'
         os.mkdir(pathForPosting)
         pathForPosting += '\\'
+
+        termAppearanceThreshold = self.config.minimumTermAppearanceThreshold
+        ListToWriteDic = []
+
         for line in finalList:
+
+            if line[0][2] < termAppearanceThreshold:
+                continue
+
+            currentLineDic = '|'.join((line[0][0],str(line[0][1]),str(line[0][2]),str(index)))
+
             if index < 999:
-                lineToWriteDic += line[0] + '|' + str(index) + '\n'
+                # lineToWriteDic += currentLineDic + '\n'
+                ListToWriteDic.append(currentLineDic)
                 lineToWritePost += line[1] + "\n"
                 index += 1
             else:
-                lineToWriteDic += line[0] + '|' + str(index) + '\n'
+                # lineToWriteDic += currentLineDic + '\n'
+                ListToWriteDic.append(currentLineDic)
+
                 lineToWritePost += line[1] + "\n"
                 index = 0
 
-                endTermIndex = line[0].find('|')
-                lastTerm = line[0][0:endTermIndex]
+                # endTermIndex = line[0].find('|')
+                # lastTerm = line[0][0:endTermIndex]
+                lastTerm = line[0][0]
 
                 self.writeToFile(pathForPosting + lastTerm + '_post', lineToWritePost)
                 lineToWritePost = ''
 
         if index != 0:
-            endTermIndex = finalList[len(finalList) - 1][0].find('|')
-            lastTerm = finalList[len(finalList) - 1][0][0:endTermIndex]
+            # endTermIndex = finalList[len(finalList) - 1][0].find('|')
+            endTermIndex = ListToWriteDic[len(ListToWriteDic) - 1].find('|')
+            # lastTerm = finalList[len(finalList) - 1][0][0:endTermIndex]
+            lastTerm = ListToWriteDic[len(ListToWriteDic) - 1][0:endTermIndex]
             self.writeToFile(pathForPosting + lastTerm + '_post', lineToWritePost)
 
+        lineToWriteDic = '\n'.join(ListToWriteDic)
+
         self.writeToFile(outputFile + "mergedFile_dic", lineToWriteDic)
+
+        return len(ListToWriteDic)
 
     def writeMergedFileTemp(self,finalList, outputFile):
         lineToWrite = ""
         for line in finalList:
-            lineToWrite += line[0] + '|' + line[1] + '\n'
+            currentLineDic = '|'.join((line[0][0],str(line[0][1]),str(line[0][2])))
+
+            lineToWrite += currentLineDic + '|' + line[1] + '\n'
 
         self.writeToFile(outputFile, lineToWrite)
 
