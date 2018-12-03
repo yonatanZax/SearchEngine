@@ -3,6 +3,8 @@ from ReadFiles.ReadFile import ReadFile
 from Parsing.Parse import Parse
 from Indexing.FileWriter import FileWriter
 from datetime import datetime
+from concurrent.futures import as_completed
+
 
 
 class MyManager:
@@ -44,13 +46,6 @@ class MyManager:
 
             if counter == self.filesPerIteration:
                 self.indexer.flushMemory()
-                # path = self.config.savedFilePath() + '/Progress/Posting'
-                # try:
-                #     myFile = open(path+'/' + self.ID + '_' + str(counter),'w')
-                #     myFile.close()
-                #
-                # except:
-                #     x = 1
                 counter = 0
 
 
@@ -66,7 +61,7 @@ class MyManager:
         self.indexer.merge()
 
         finishedMerging = datetime.now()
-        mergingTime = finishedMerging - start
+        mergingTime = finishedMerging - finishedParsing
 
 
         print("Manager " , str(self.ID) , " Finished merging his files, Took: " , str(mergingTime.seconds))
@@ -77,12 +72,16 @@ class MyManager:
     def merge(self):
         from Indexing.KWayMerge import Merger
         import os
+        from concurrent.futures import ThreadPoolExecutor
 
         start = datetime.now()
 
         merger = Merger(self.config)
 
         sumOfTerms = 0
+
+        executor = ThreadPoolExecutor()
+        futureList = []
 
         for letter in self.lettersList:
 
@@ -91,11 +90,18 @@ class MyManager:
 
             # sumOfTerms += len(mergedList)
 
-            sumOfTerms += self.fileWriter.writeMergedFile(mergedList, self.config.savedFilePath + "\\" + letter + "\\")
+
+            future = executor.submit(self.fileWriter.writeMergedFile,mergedList, self.config.savedFilePath + "\\" + letter + "\\",)
+            futureList.append(future)
+
+        for future in as_completed(futureList):
+            sumOfTerms += future.result()
 
         finish = datetime.now()
 
         mergingTime = finish - start
+
+        executor.shutdown()
 
         return sumOfTerms, mergingTime.seconds
 

@@ -71,11 +71,17 @@ class Indexer:
     def merge(self):
         from datetime import datetime
         from Indexing.KWayMerge import Merger
+        from concurrent.futures import ThreadPoolExecutor
+        from concurrent.futures import as_completed
 
         startTime = datetime.now()
 
         merger = Merger(config=self.config)
         savedFilesPathList = os.listdir(self.config.savedFilePath)
+
+        executor = ThreadPoolExecutor()
+        futureList = []
+
 
         savedFilesPathList.remove('docIndex')
         for folder in savedFilesPathList:
@@ -93,15 +99,18 @@ class Indexer:
                         iteration = 0
                         mergedList = merger.merge(fileToMergeList)
 
-                        self.fileWriter.writeMergedFileTemp(mergedList, self.config.savedFilePath + "\\" + folder + "\\" + str(folder[0]) + str(self.ID) + "-" + str(counter))
+                        executor.submit(self.fileWriter.writeMergedFileTemp,mergedList, self.config.savedFilePath + "\\" + folder + "\\" + str(folder[0]) + str(self.ID) + "-" + str(counter))
                         fileToMergeList = []
                         counter += 1
 
             if iteration > filesPerIteration / 2:
                 mergedList = merger.merge(fileToMergeList)
 
-                self.fileWriter.writeMergedFileTemp(mergedList,self.config.savedFilePath + "\\" + folder + "\\" + str(folder[0]) + str(self.ID) + "-" + str(counter))
+                # self.fileWriter.writeMergedFileTemp(mergedList,self.config.savedFilePath + "\\" + folder + "\\" + str(folder[0]) + str(self.ID) + "-" + str(counter))
+                executor.submit(self.fileWriter.writeMergedFileTemp, mergedList,self.config.savedFilePath + "\\" + folder + "\\" + str(folder[0]) + str(self.ID) + "-" + str(counter))
             fileToMergeList = []
+
+            executor.shutdown(True)
 
             letterFilesList = os.listdir(self.config.savedFilePath + "\\" + folder)
             for letterFile in letterFilesList:
@@ -111,6 +120,7 @@ class Indexer:
             mergedList = merger.merge(fileToMergeList)
 
             self.fileWriter.writeMergedFileTemp(mergedList,self.config.savedFilePath + "\\" + folder + "\\" + str(folder[0]) + str(self.ID))
+            # executor.submit(self.fileWriter.writeMergedFileTemp,mergedList,self.config.savedFilePath + "\\" + folder + "\\" + str(folder[0]) + str(self.ID))
 
 
 

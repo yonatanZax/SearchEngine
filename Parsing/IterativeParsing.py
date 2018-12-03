@@ -80,8 +80,6 @@ class IterativeTokenizer:
 
         self.betweenPattern = re.compile(r"[Bb]etween " + "[\d,]+" + " and " + "[\d,]+")
 
-        self.cleanPattern = re.compile(r'[\S\n]+')
-
         self.stopWordsDic = {}
 
         self.dictionary_term_stemmedTerm = {}
@@ -105,9 +103,6 @@ class IterativeTokenizer:
         splitedToken = token.group().split(' ')
         return splitedToken[0] + '-' + splitedToken[2]
 
-    def cleanWithGroup(self,token):
-        token = token.group()
-        return self.cleanToken(token)
 
     def cleanToken(self,token):
         size = len(token)

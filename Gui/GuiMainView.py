@@ -74,7 +74,7 @@ class EngineBuilder(Frame):
         label_4.place(x=50, y=190)
 
 
-        list1 = ['English', 'Spanish', 'Hebrew'];
+        list1 = ['English', 'Spanish', 'Hebrew']
         c = StringVar()
         droplist = OptionMenu(self.master, c, *list1)
         droplist.config(width=15)
@@ -256,17 +256,15 @@ class EngineBuilder(Frame):
         print("\n***    ManagerRun    ***\n")
 
         from threading import Thread
-        th = Thread(target=self.mainManager.managerRun)
-        th.start()
+        from concurrent.futures import ThreadPoolExecutor
 
-        threadWaitUntilBuildDone = Thread(target=self.listener, args=(th,self.enableButtons))
+        executor = ThreadPoolExecutor()
+        future = executor.submit(self.mainManager.managerRun)
+
+
+        threadWaitUntilBuildDone = Thread(target=self.buildListener, args=(future,))
         threadWaitUntilBuildDone.start()
 
-        # postingProgressThread = Thread(target=self.updatePostingProgress)
-        # postingProgressThread.start()
-
-        printSummaryThread = Thread(target=self.listener, args=(threadWaitUntilBuildDone, self.buildSummary))
-        printSummaryThread.start()
 
         # threadProgress = Thread(target=updateFileCounter)
         # threadProgress.start()
@@ -274,15 +272,15 @@ class EngineBuilder(Frame):
 
     @ staticmethod
     def listener(thread,action):
-        print('Gui - waiting to join')
+        # print('Gui - waiting to join')
         thread.join()
         action()
 
 
 
-    def buildSummary(self):
-        self.txtbox.insert('end',self.config.buildSummary)
-        # self.label_buildDetails['text'] = self.config.buildSummary
+    # def buildSummary(self):
+    #     self.txtbox.insert('end',self.config.buildSummary)
+    #     # self.label_buildDetails['text'] = self.config.buildSummary
 
 
 
@@ -302,13 +300,13 @@ class EngineBuilder(Frame):
 
     def setBuildDetails(self, timeItTook, maxParsingTime, totalMerging, gettingCountryDetailsTime, totalNumberOfTerms, totalNumberOfDocuments):
         detailString = 'Details:\n'
-        detailString += "\tNumber of Terms: " , str(totalNumberOfTerms) + "\n"
-        detailString += "\tNumber of Docs: " , str(totalNumberOfDocuments) + "\n"
-        detailString += "\tParsing Time: " , str(maxParsingTime) + "\n"
-        detailString += "\tMerging Time: " , str(totalMerging) + "\n"
-        detailString += "\tGetting Country Details Time: " , str(gettingCountryDetailsTime) + "\n"
-        detailString += "\tEverything took: " , str(timeItTook) , " seconds"
-        self.txtbox.insert(detailString)
+        detailString += "\tNumber of Terms: " + str(totalNumberOfTerms) + "\n"
+        detailString += "\tNumber of Docs: " + str(totalNumberOfDocuments) + "\n"
+        detailString += "\tParsing Time: " + str(maxParsingTime) + "\n"
+        detailString += "\tMerging Time: " + str(totalMerging) + "\n"
+        detailString += "\tGetting Country Details Time: " + str(gettingCountryDetailsTime) + "\n"
+        detailString += "\tEverything took: " + str(timeItTook) + " seconds"
+        self.txtbox.insert('end',detailString)
         # self.label_buildDetails['text'] = detailString
 
 
