@@ -350,17 +350,17 @@ class IterativeTokenizer:
 
             currWord = textList[tempIndex]
             currWord = self.cleanToken(currWord)
+            if currWord == bigLetters:
+                listOfTerms = [' '.join(textList[index:tempIndex])] + textList[index:tempIndex]
+                listOfTerms.append(currWord)
+                return listOfTerms, tempIndex
+
             if currWord[0].isupper():
                 bigLetters += currWord[0]
-                if len(bigLetters) > 4:
+                if len(bigLetters) > 6:
 
                     break
-            else:
-                if currWord == bigLetters:
-                    listOfTerms = [' '.join(textList[index:tempIndex])] + textList[index:tempIndex]
-                    listOfTerms.append(currWord)
-                    return listOfTerms , tempIndex
-                break
+
 
             tempIndex += 1
 

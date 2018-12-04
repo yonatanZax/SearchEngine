@@ -20,6 +20,9 @@ class Parse:
                 # print("#"+docNo+"#")
             else: return None
             onlyText = documentAsString[documentAsString.find('<TEXT>') + len('<TEXT>'):documentAsString.rfind('</TEXT>')]
+            findTextSquared = onlyText.find('[Text]')
+            if findTextSquared > 0:
+                onlyText = onlyText[findTextSquared + len('[Text]'):]
             if len(onlyText) < 20:
                 return None
 
@@ -62,6 +65,64 @@ class Parse:
         return document
 
 
+
+# from Configuration import ConfigClass
+# configClass = ConfigClass()
+# p = Parse(configClass)
+
+text = '''
+<DOC>
+<DOCNO> FBIS3-3366 </DOCNO>
+<HT>    "drchi054_k_94010" </HT>
+
+
+<HEADER>
+<AU>   FBIS-CHI-94-054 </AU>
+Document Type:Daily Report 
+<DATE1>  19 Mar 1994 </DATE1>
+
+</HEADER>
+
+<F P=100> Political &amp; Social </F>
+<H3> <TI>   CPPCC Second Session Adopts Amended Charter </TI></H3>
+<F P=102>  OW1903234794 Beijing XINHUA Domestic Service in Chinese 0921 
+GMT 19 Mar 94 </F>
+
+<F P=103> OW1903234794 </F>
+<F P=104>  Beijing XINHUA Domestic Service </F>
+
+
+<TEXT>
+Language: <F P=105> Chinese </F>
+Article Type:BFN 
+
+  [Text] Beijing, 19 Mar (XINHUA) -- Resolution of the Second 
+Session of the Eighth National Committee of the Chinese People's 
+Political Consultative Conference [CPPCC] on the (amended) 
+"Charter of the Chinese People's Political Consultative 
+Conference" 
+  (Adopted by the Second Session of the Eighth CPPCC National 
+Committee on 19 March 1994) 
+  The Second Session of the Eighth CPPCC National Committee 
+has 
+decided: The (amended) "Charter of the Chinese People's 
+Political Consultative Conference" proposed by the Standing 
+Committee of the CPPCC National Committee is adopted, and the 
+amended "Charter of the Chinese People's Political Consultative 
+Conference" shall take effect as of today. 
+
+</TEXT>
+
+</DOC>
+
+'''
+
+
+# dic = p.parseDoc(text)
+# doc = dic.termDocDictionary_term_termData
+# for term,data in doc.items():
+#     print(term, ', Locations (gaps) : ', data.toString())
+#
 
 
 

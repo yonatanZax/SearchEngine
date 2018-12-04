@@ -14,6 +14,7 @@ class ConfigClass:
     def __init__(self):
         projectMainFolder = os.path.dirname(os.path.abspath(__file__)) + '/'
         self.corpusPath = projectMainFolder + 'corpus'
+        # self.corpusPath = projectMainFolder + 'corpus - full'
         self.savedFileMainFolder = projectMainFolder + 'SavedFiles'
         self.saveFilesWithStem = self.savedFileMainFolder + "/WithStem"
         self.saveFilesWithoutStem = self.savedFileMainFolder + "/WithoutStem"
@@ -165,5 +166,6 @@ class ConfigClass:
 
     def get__toStem(self):
         return self.toStem
+
 
 

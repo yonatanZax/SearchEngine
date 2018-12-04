@@ -36,6 +36,8 @@ class ReadFile:
         counterKM = 0
         cityCount = 0
 
+        cityDic = {}
+
 
         listOfFolders = os.listdir(self.config.get__corpusPath())
         listOfFolders.remove(self.config.get__stopWordFile())
@@ -62,21 +64,43 @@ class ReadFile:
                         if "km" in onlyText:
                             counterKM += 1
 
-                    findMeArray = re.findall(r'<F P=104>', documentAsString)
+                    findMeArray = re.findall(r'<F P=104>(.*?)</F>', documentAsString)
                     if len(findMeArray) > 0:
-                        cityCount += 1
+                        splittedCity = findMeArray[0].strip(' ').split(' ')
+                        city = splittedCity[0]
+                        if city.lower() in ['new', 'san', 'sao', 'la', 'tel', 'santa', 'hong', 'xian', 'cape']:
+                            city = city + ' ' + splittedCity[1].strip(' ')
+
+                        cityDic[city] = 'city'
+
 
 
                 counterTotal += 1
 
 
 
-        print('Total docs:      ',counterTotal)
+        # print('Total docs:      ',counterTotal)
         # print('With docNo:  ', counterWithDocNo)
         # print('OnlyText docs:   ', counterOnlyText)
         # print('meter count:  ', counterMeter)
         # print('km count:  ', counterKM)
-        print('City count: ',cityCount)
+        # print('City count: ',cityCount)
+        for city in cityDic.keys():
+            city = city.replace("\n", '').replace('\t', '').replace('{', '').replace('}', '').replace('[', '').replace(
+                ']',
+                '').replace(
+                '\"', '').replace('\'', '').replace('(', '').replace(')', '').replace('?', '').replace('!', '').replace(
+                '#',
+                '').replace(
+                '@', '').replace('/', '').replace('\\', '').replace('_', '').replace('>', '').replace('<', '').replace(
+                '`',
+                '').replace(
+                '~', '').replace(';', '').replace(':', '').replace('*', '').replace('+', '').replace('|', '').replace(
+                '&',
+                '').replace(
+                '=', '')
+            if len(city) > 1 and city.isalpha():
+                print(city)
 
 
 

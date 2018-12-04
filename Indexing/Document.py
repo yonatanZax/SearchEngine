@@ -34,7 +34,7 @@ class TermData:
         return self._positionStringWithGaps
 
     def toString(self):
-        return '#'.join([self._termFrequency, self._positionStringWithGaps])
+        return '#'.join([str(self._termFrequency), self._positionStringWithGaps])
 
 
 

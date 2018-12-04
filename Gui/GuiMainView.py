@@ -76,10 +76,10 @@ class EngineBuilder(Frame):
 
         list1 = ['English', 'Spanish', 'Hebrew']
         c = StringVar()
-        droplist = OptionMenu(self.master, c, *list1)
-        droplist.config(width=15)
+        self.droplist = OptionMenu(self.master, c, *list1)
+        self.droplist.config(width=15)
         c.set('Select')
-        droplist.place(x=180, y=190)
+        self.droplist.place(x=180, y=190)
 
 
 
@@ -168,6 +168,14 @@ class EngineBuilder(Frame):
 
 
     def load(self):
+
+        self.droplist.destroy()
+        list1 = ['English']
+        c = StringVar()
+        self.droplist = OptionMenu(self.master, c, *list1)
+        self.droplist.config(width=15)
+        c.set('Select')
+        self.droplist.place(x=180, y=190)
 
 
         saveMainFolderPath = str(self.entry_postingPath.get())
