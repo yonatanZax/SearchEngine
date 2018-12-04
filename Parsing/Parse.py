@@ -6,6 +6,10 @@ class Parse:
     def __init__(self,config):
         self.tokenizer = IterativeTokenizer(config=config)
 
+        self.keepGoingCityDic = {'new','san','sao','la','tel','santa','hong','xian','cape','rio','buenos','panama','mexico','guatemala','abu'}
+
+        self.avoidCities = {'bartaman','dokumentation','nezavisimaya','calcutta','the','air'}
+
 
     def parseDoc(self, documentAsString):
         from Indexing.Document import Document
@@ -37,12 +41,12 @@ class Parse:
                 # cityAsArray = re.findall(r"[a-zA-Z]+", cityLine[0].strip(' '))
                 splittedCity =  cityLine[0].strip(' ').split(' ')
                 city = splittedCity[0]
-                if city.lower() in ['new','san','sao','la','tel','santa','hong','xian','cape','rio','buenos','panama','mexico','guatemala','abu'] and len(splittedCity) > 1:
+                if city.lower() in self.keepGoingCityDic and len(splittedCity) > 1:
                     city = city + ' ' + splittedCity[1].strip(' ')
                     if len(splittedCity) > 2 and splittedCity[1].lower() in ['de']:
                         city += splittedCity[2]
 
-                if city.isalpha() and city.lower() not in ['bartaman','dokumentation','nezavisimaya','calcutta']:
+                if city.isalpha() and city.lower() not in self.avoidCities:
                     onlyText = onlyText.replace(city, 'ZAXROY')
                 else:
                     city = ''

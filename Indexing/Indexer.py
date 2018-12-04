@@ -21,7 +21,7 @@ class Indexer:
 
         self.city_dictionary = {}
 
-        self.languagesList = set()
+        self.languagesDic = {}
 
     def addNewDoc(self, document):
         # go over each term in the doc
@@ -60,8 +60,8 @@ class Indexer:
             else:
                 self.city_dictionary[document.city].addDocumentToCity(docNo, positions)
 
-        if len(document.language) > 1:
-            self.languagesList.add(document.language)
+        if len(document.language) > 1 and self.languagesDic.get(document.language) is None:
+            self.languagesDic[document.language] = True
 
 
 
