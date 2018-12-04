@@ -47,7 +47,6 @@ class MainClass:
         import string
         startTime = datetime.now()
         managersNumber = self.config.get__managersNumber()
-        filesPerIteration = self.config.get__filesPerIteration()
         listOfFolders = os.listdir(self.config.get__corpusPath())
         listOfFolders.remove(self.config.get__stopWordFile())
 
@@ -68,8 +67,7 @@ class MainClass:
                 for j in range(i -1,len(lettersList), managersNumber - 1):
                     lettersListPerManager.append(lettersList[j])
 
-            manager = MyManager(managerID=i, filesPerIteration=filesPerIteration,
-                                folderList=folderListPerManager,
+            manager = MyManager(managerID=i, folderList=folderListPerManager,
                                 lettersList=lettersListPerManager, config=self.config)
 
             managersList.append(manager)
@@ -84,14 +82,17 @@ class MainClass:
         threadPoolExecutor = ThreadPoolExecutor()
         citiesFutureDic = {}
 
+        mergedLanguagesSet = set()
+
         future_manager_dic = {pool.submit(self.run, manager): manager for manager in managersList}
         for future_manager in as_completed(future_manager_dic):
             manager = future_manager_dic[future_manager]
             manager.getRun()
-            tempCityData , numberOfDocs , parsingTime, mergingTime  = future_manager.result()
+            tempCityData , languagesList,numberOfDocs , parsingTime, mergingTime  = future_manager.result()
             totalNumberOfDocuments += numberOfDocs
             maxParsingTime = max(maxParsingTime, parsingTime)
             maxMergingTime = max(maxMergingTime, mergingTime)
+            mergedLanguagesSet = mergedLanguagesSet|languagesList
             for city, cityData in tempCityData.items():
                 if dictionary_city_cityData.get(city) is None:
                     if cityData is None:
@@ -138,13 +139,14 @@ class MainClass:
         print("Number of files Processed: " , str(len(listOfFolders)))
 
         # self.config.setBuildDetails(timeItTook.seconds, maxParsingTime, totalMerging, gettingCountryDetails, str(totalNumberOfTerms), totalNumberOfDocuments)
-        return timeItTook.seconds, maxParsingTime, totalMerging, gettingCountryDetails, totalNumberOfTerms, totalNumberOfDocuments
+        return timeItTook.seconds, maxParsingTime, totalMerging, gettingCountryDetails, totalNumberOfTerms, totalNumberOfDocuments, sorted(mergedLanguagesSet)
 
     @staticmethod
     def run( manager):
         # print("in run main")
         numberOfDocs , parsingTime, finishedMerging = manager.run()
-        return manager.indexer.city_dictionary, numberOfDocs , parsingTime, finishedMerging
+        languagesList = manager.indexer.languagesList
+        return manager.indexer.city_dictionary, languagesList, numberOfDocs , parsingTime, finishedMerging
 
 
 

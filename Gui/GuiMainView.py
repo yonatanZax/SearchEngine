@@ -76,10 +76,10 @@ class EngineBuilder(Frame):
 
         list1 = ['English', 'Spanish', 'Hebrew']
         c = StringVar()
-        droplist = OptionMenu(self.master, c, *list1)
-        droplist.config(width=15)
+        self.droplist = OptionMenu(self.master, c, *list1)
+        self.droplist.config(width=15)
         c.set('Select')
-        droplist.place(x=180, y=190)
+        self.droplist.place(x=180, y=190)
 
 
 
@@ -285,7 +285,7 @@ class EngineBuilder(Frame):
 
 
     def buildListener(self,future):
-        timeItTook, maxParsingTime, totalMerging, gettingCountryDetailsTime, totalNumberOfTerms, totalNumberOfDocuments = future.result()
+        timeItTook, maxParsingTime, totalMerging, gettingCountryDetailsTime, totalNumberOfTerms, totalNumberOfDocuments ,mergedLanguagesSet = future.result()
         print("Number of Terms: " , str(totalNumberOfTerms))
         print("Number of Docs: " , str(totalNumberOfDocuments))
         print("Parsing Time: " , str(maxParsingTime))
@@ -293,7 +293,15 @@ class EngineBuilder(Frame):
         print("Getting Country Details Time: " , str(gettingCountryDetailsTime))
         print("Everything took: " , str(timeItTook) , " seconds")
         self.enableButtons()
+
+        self.droplist.destroy()
+        c = StringVar()
+        self.droplist = OptionMenu(self.master, c, *mergedLanguagesSet)
+        self.droplist.config(width=15)
+        c.set('Select')
+        self.droplist.place(x=180, y=190)
         self.setBuildDetails(timeItTook, maxParsingTime, totalMerging, gettingCountryDetailsTime, totalNumberOfTerms, totalNumberOfDocuments)
+
 
 
 

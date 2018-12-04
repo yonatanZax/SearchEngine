@@ -41,23 +41,10 @@ class ConfigClass:
 
 
 
-        # self.buildSummary = ''
 
 
         print('Project was created successfully..')
 
-
-
-
-    # def setBuildDetails(self, timeItTook, maxParsingTime, totalMerging, gettingCountryDetailsTime, totalNumberOfTerms, totalNumberOfDocuments):
-    #     detailString = 'Details:\n'
-    #     detailString += "\tNumber of Terms: " + str(totalNumberOfTerms) + "\n"
-    #     detailString += "\tNumber of Docs: " + str(totalNumberOfDocuments) + "\n"
-    #     detailString += "\tParsing Time: " + str(maxParsingTime) + "\n"
-    #     detailString += "\tMerging Time: " + str(totalMerging) + "\n"
-    #     detailString += "\tGetting Country Details Time: " + str(gettingCountryDetailsTime) + "\n"
-    #     detailString += "\tEverything took: " + str(timeItTook) + " seconds"
-    #     self.buildSummary = detailString
 
 
 

@@ -21,6 +21,8 @@ class Indexer:
 
         self.city_dictionary = {}
 
+        self.languagesList = set()
+
     def addNewDoc(self, document):
         # go over each term in the doc
         documentDictionary = document.termDocDictionary_term_termData
@@ -41,7 +43,7 @@ class Indexer:
                 if len(term) > 0:
                     self.myDictionaryByLetters["#"].addTerm(termString=term, docNo=docNo, termFrequency=termFrequency, termPositions=termData.getPositions())
             maxFrequentWord = max(termFrequency, maxFrequentWord)
-        newDocumentIndexData = DocumentIndexData(max_tf=maxFrequentWord, uniqueTermsCount=len(document.termDocDictionary_term_termData), docLength=document.docLength, city = document.city)
+        newDocumentIndexData = DocumentIndexData(max_tf=maxFrequentWord, uniqueTermsCount=len(document.termDocDictionary_term_termData), docLength=document.docLength, city = document.city, language = document.language)
         self.documents_dictionary[docNo] = newDocumentIndexData
 
         if len(document.city) > 1:
@@ -58,6 +60,9 @@ class Indexer:
             else:
                 self.city_dictionary[document.city].addDocumentToCity(docNo, positions)
 
+        if len(document.language) > 1:
+            self.languagesList.add(document.language)
+
 
 
 
@@ -69,19 +74,14 @@ class Indexer:
 
 
     def merge(self):
-        from datetime import datetime
         from Indexing.KWayMerge import Merger
         from concurrent.futures import ThreadPoolExecutor
-        from concurrent.futures import as_completed
 
-        startTime = datetime.now()
 
         merger = Merger(config=self.config)
         savedFilesPathList = os.listdir(self.config.savedFilePath)
 
         executor = ThreadPoolExecutor()
-        futureList = []
-
 
         savedFilesPathList.remove('docIndex')
         for folder in savedFilesPathList:
@@ -106,7 +106,6 @@ class Indexer:
             if iteration > filesPerIteration / 2:
                 mergedList = merger.merge(fileToMergeList)
 
-                # self.fileWriter.writeMergedFileTemp(mergedList,self.config.savedFilePath + "\\" + folder + "\\" + str(folder[0]) + str(self.ID) + "-" + str(counter))
                 executor.submit(self.fileWriter.writeMergedFileTemp, mergedList,self.config.savedFilePath + "\\" + folder + "\\" + str(folder[0]) + str(self.ID) + "-" + str(counter))
             fileToMergeList = []
 
@@ -120,7 +119,6 @@ class Indexer:
             mergedList = merger.merge(fileToMergeList)
 
             self.fileWriter.writeMergedFileTemp(mergedList,self.config.savedFilePath + "\\" + folder + "\\" + str(folder[0]) + str(self.ID))
-            # executor.submit(self.fileWriter.writeMergedFileTemp,mergedList,self.config.savedFilePath + "\\" + folder + "\\" + str(folder[0]) + str(self.ID))
 
 
 

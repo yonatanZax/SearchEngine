@@ -80,8 +80,6 @@ class IterativeTokenizer:
 
         self.betweenPattern = re.compile(r"[Bb]etween " + "[\d,]+" + " and " + "[\d,]+")
 
-        self.cleanPattern = re.compile(r'[\S\n]+')
-
         self.stopWordsDic = {}
 
         self.dictionary_term_stemmedTerm = {}
@@ -105,9 +103,6 @@ class IterativeTokenizer:
         splitedToken = token.group().split(' ')
         return splitedToken[0] + '-' + splitedToken[2]
 
-    def cleanWithGroup(self,token):
-        token = token.group()
-        return self.cleanToken(token)
 
     def cleanToken(self,token):
         size = len(token)
@@ -355,17 +350,16 @@ class IterativeTokenizer:
 
             currWord = textList[tempIndex]
             currWord = self.cleanToken(currWord)
+            if currWord == bigLetters:
+                listOfTerms = [' '.join(textList[index:tempIndex])] + textList[index:tempIndex]
+                listOfTerms.append(currWord)
+                return listOfTerms, tempIndex
+
             if currWord[0].isupper():
                 bigLetters += currWord[0]
-                if len(bigLetters) > 4:
+                if len(bigLetters) > 6:
 
                     break
-            else:
-                if currWord == bigLetters:
-                    listOfTerms = [' '.join(textList[index:tempIndex])] + textList[index:tempIndex]
-                    listOfTerms.append(currWord)
-                    return listOfTerms , tempIndex
-                break
 
             tempIndex += 1
 

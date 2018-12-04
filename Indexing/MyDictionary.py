@@ -25,16 +25,15 @@ class DictionaryData:
     def __init__(self):
         self.termDF = 0
         self.sumTF = 0
-        self.string_docID_tf = ""
+        self.string_docID_tf_positions = ""
         # self.dictionary_docID_tf = {}
 
 
-    # TODO - (DONE) - something is wrong with the numbers fix it
 
     def addDocument(self, docID, docTF_int, termPositions):
         self.sumTF += docTF_int
         self.termDF += 1
-        self.string_docID_tf += str(docID) + "#" + str(docTF_int) + "#" +  termPositions + ","
+        self.string_docID_tf_positions += str(docID) + "#" + str(docTF_int) + "#" + termPositions + ","
 
 
 
@@ -43,41 +42,39 @@ class DictionaryData:
         posting Format:
         term|DF|sumTF|DOC#TF,*
         '''
-        arr = [str(self.termDF),str(self.sumTF), self.string_docID_tf]
+        arr = [str(self.termDF), str(self.sumTF), self.string_docID_tf_positions]
         ans = "|".join(arr)
 
         return ans
 
     def cleanPostingData(self):
         # with self.lock:
-        self.string_docID_tf = ""
+        self.string_docID_tf_positions = ""
         self.sumTF = 0
         self.termDF = 0
 
 
 class DocumentIndexData:
 
-    def __init__(self, max_tf, uniqueTermsCount, docLength, city = None):
+    def __init__(self, max_tf, uniqueTermsCount, docLength, city = '',language = ''):
         self.max_tf = max_tf
         self.uniqueTermCount = uniqueTermsCount
         self.docLength = docLength
         self.city = city.upper()
+        self.language = language
 
     def toString(self):
         '''
-        max_tf|uniqueTermCount|docLength|city
+        max_tf|uniqueTermCount|docLength|city|language
         :return:
         '''
-        ans = '|'.join([str(self.max_tf) , str(self.uniqueTermCount), str(self.docLength) ,str(self.city)])
+        ans = '|'.join([str(self.max_tf) , str(self.uniqueTermCount), str(self.docLength) ,str(self.city),self.language])
         return ans
 
 
 class CityIndexData:
 
     def __init__(self,doc,locations):
-        # self.country = ''
-        # self.currency = ''
-        # self.population = 0
         self.dictionary_doc_locations = {}
         self.dictionary_doc_locations[doc] = locations
 

@@ -9,12 +9,11 @@ from concurrent.futures import as_completed
 
 class MyManager:
 
-    def __init__(self, managerID, filesPerIteration, folderList, lettersList, config):
+    def __init__(self, managerID, folderList, lettersList, config):
         self.ID = managerID
 
         self.config = config
 
-        self.filesPerIteration = filesPerIteration
         self.folderList = folderList
 
         self.indexer = Indexer(managerID,config=config)
@@ -22,8 +21,6 @@ class MyManager:
         self.fileWriter = FileWriter(self.config)
         self.parser = Parse(config=self.config)
         self.lettersList = lettersList
-        self.toStem = self.config.toStem
-
 
 
 
@@ -33,6 +30,7 @@ class MyManager:
 
         counter = 0
         numberOfDocuments = 0
+        filesPerIteration = self.config.filesPerIteration
         for folder in self.folderList:
 
             counter += 1
@@ -44,7 +42,7 @@ class MyManager:
                 numberOfDocuments += 1
                 self.indexer.addNewDoc(parsedDocument)
 
-            if counter == self.filesPerIteration:
+            if counter == filesPerIteration:
                 self.indexer.flushMemory()
                 counter = 0
 
@@ -87,9 +85,6 @@ class MyManager:
 
             filesInLetterFolder = os.listdir(self.config.savedFilePath + "\\" + letter)
             mergedList = merger.merge(filesInLetterFolder)
-
-            # sumOfTerms += len(mergedList)
-
 
             future = executor.submit(self.fileWriter.writeMergedFile,mergedList, self.config.savedFilePath + "\\" + letter + "\\",)
             futureList.append(future)
