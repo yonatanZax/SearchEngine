@@ -82,6 +82,7 @@ class Indexer:
         savedFilesPathList = os.listdir(self.config.savedFilePath)
 
         executor = ThreadPoolExecutor()
+        futureList = []
 
         savedFilesPathList.remove('docIndex')
         for folder in savedFilesPathList:
@@ -99,17 +100,21 @@ class Indexer:
                         iteration = 0
                         mergedList = merger.merge(fileToMergeList)
 
-                        executor.submit(self.fileWriter.writeMergedFileTemp,mergedList, self.config.savedFilePath + "\\" + folder + "\\" + str(folder[0]) + str(self.ID) + "-" + str(counter))
+                        future = executor.submit(self.fileWriter.writeMergedFileTemp,mergedList, self.config.savedFilePath + "\\" + folder + "\\" + str(folder[0]) + str(self.ID) + "-" + str(counter))
+                        futureList.append(future)
                         fileToMergeList = []
                         counter += 1
 
             if iteration > filesPerIteration / 2:
                 mergedList = merger.merge(fileToMergeList)
 
-                executor.submit(self.fileWriter.writeMergedFileTemp, mergedList,self.config.savedFilePath + "\\" + folder + "\\" + str(folder[0]) + str(self.ID) + "-" + str(counter))
+                future = executor.submit(self.fileWriter.writeMergedFileTemp, mergedList,self.config.savedFilePath + "\\" + folder + "\\" + str(folder[0]) + str(self.ID) + "-" + str(counter))
+                futureList.append(future)
+
             fileToMergeList = []
 
-            executor.shutdown(True)
+            for future in futureList:
+                future.result()
 
             letterFilesList = os.listdir(self.config.savedFilePath + "\\" + folder)
             for letterFile in letterFilesList:
@@ -118,9 +123,8 @@ class Indexer:
 
             mergedList = merger.merge(fileToMergeList)
 
-            self.fileWriter.writeMergedFileTemp(mergedList,self.config.savedFilePath + "\\" + folder + "\\" + str(folder[0]) + str(self.ID))
-
-
+            future = executor.submit(self.fileWriter.writeMergedFileTemp, mergedList, self.config.savedFilePath + "\\" + folder + "\\" + str(folder[0]) + str(self.ID))
+            futureList.append(future)
 
 
 englishLetters = {
