@@ -84,6 +84,7 @@ class CityIndexData:
     def __iadd__(self, other):
         for docID,locations in other.dictionary_doc_locations.items():
             self.dictionary_doc_locations[docID] = locations
+
         return self
 
     def addDocumentToCity(self, docID, locations):
