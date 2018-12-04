@@ -88,13 +88,15 @@ class CityAPI:
                 print (cityName )
                 return None
 
-            return [city.country, str(self.dictionary_country_currencyPopulation[city.country_code][0]), str(self.dictionary_country_currencyPopulation[city.country_code][1])]
+            fixedPopulation = convertNumToKMBformat(str(self.dictionary_country_currencyPopulation[city.country_code][1]))
+
+            return [city.country, str(self.dictionary_country_currencyPopulation[city.country_code][0]), str(fixedPopulation)]
         except Exception as err:
             print(err)
             return None
 
     def getInformationAsString(self, cityName):
-        information = self.getDetailsWithGeobytes(cityName)
+        information = self.getInformation(cityName)
         if information is None:
             return None
         return '|'.join(information)

@@ -57,18 +57,19 @@ class DictionaryData:
 
 class DocumentIndexData:
 
-    def __init__(self, max_tf, uniqueTermsCount, docLength, city = None):
+    def __init__(self, max_tf, uniqueTermsCount, docLength, city = '',language = ''):
         self.max_tf = max_tf
         self.uniqueTermCount = uniqueTermsCount
         self.docLength = docLength
         self.city = city.upper()
+        self.language = language
 
     def toString(self):
         '''
-        max_tf|uniqueTermCount|docLength|city
+        max_tf|uniqueTermCount|docLength|city|language
         :return:
         '''
-        ans = '|'.join([str(self.max_tf) , str(self.uniqueTermCount), str(self.docLength) ,str(self.city)])
+        ans = '|'.join([str(self.max_tf) , str(self.uniqueTermCount), str(self.docLength) ,str(self.city),self.language])
         return ans
 
 
@@ -84,6 +85,7 @@ class CityIndexData:
     def __iadd__(self, other):
         for docID,locations in other.dictionary_doc_locations.items():
             self.dictionary_doc_locations[docID] = locations
+
         return self
 
     def addDocumentToCity(self, docID, locations):

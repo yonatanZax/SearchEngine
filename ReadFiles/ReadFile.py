@@ -34,6 +34,7 @@ class ReadFile:
         counterOnlyText = 0
         counterMeter = 0
         counterKM = 0
+        cityCount = 0
 
 
         listOfFolders = os.listdir(self.config.get__corpusPath())
@@ -61,9 +62,9 @@ class ReadFile:
                         if "km" in onlyText:
                             counterKM += 1
 
-                    # findMeArray = re.findall(r'\$[\d]+\-\$[\d]+ [a-z]+', documentAsString)
-                    # if len(findMeArray) > 0:
-                    #     print(docNo)
+                    findMeArray = re.findall(r'<F P=104>', documentAsString)
+                    if len(findMeArray) > 0:
+                        cityCount += 1
 
 
                 counterTotal += 1
@@ -71,10 +72,11 @@ class ReadFile:
 
 
         print('Total docs:      ',counterTotal)
-        print('With docNo:  ', counterWithDocNo)
-        print('OnlyText docs:   ', counterOnlyText)
-        print('meter count:  ', counterMeter)
-        print('km count:  ', counterKM)
+        # print('With docNo:  ', counterWithDocNo)
+        # print('OnlyText docs:   ', counterOnlyText)
+        # print('meter count:  ', counterMeter)
+        # print('km count:  ', counterKM)
+        print('City count: ',cityCount)
 
 
 

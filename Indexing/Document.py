@@ -3,12 +3,13 @@
 
 class Document:
 
-    def __init__(self, docNo, termDocDictionary = None, docLength=0, city=''):
+    def __init__(self, docNo, termDocDictionary = None, docLength = 0, city = '',language = ''):
         self.docNo = docNo
         self.termDocDictionary_term_termData = termDocDictionary
         self.docLength = docLength
         # self.mostFrequentTermNumber = maxTFDoc
         self.city = city
+        self.language = language
 
 
 

@@ -36,7 +36,7 @@ class FileWriter:
     def cleanDocuments(self,dictionaryToWrite):
         path = self.config.documentsIndexPath
         if not os.path.exists(path):
-            headLineToWrite = 'DOCID|max_tf|uniqueTermCount|docLength|city'
+            headLineToWrite = 'DOCID|max_tf|uniqueTermCount|docLength|City|Language'
             self.createFile(path, headLineToWrite)
 
         lineToWrite = ""
