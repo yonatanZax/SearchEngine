@@ -125,6 +125,7 @@ class Indexer:
 
             future = executor.submit(self.fileWriter.writeMergedFileTemp, mergedList, self.config.savedFilePath + "\\" + folder + "\\" + str(folder[0]) + str(self.ID))
             futureList.append(future)
+        executor.shutdown()
 
 
 englishLetters = {
