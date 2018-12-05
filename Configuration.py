@@ -13,8 +13,13 @@ class ConfigClass:
 
     def __init__(self):
         projectMainFolder = os.path.dirname(os.path.abspath(__file__)) + '/'
-        self.corpusPath = projectMainFolder + 'corpus'
-        self.savedFileMainFolder = projectMainFolder + 'SavedFiles'
+        # self.corpusPath = projectMainFolder + 'corpus'
+        # self.corpusPath = projectMainFolder + 'corpus - full'
+        self.corpusPath = '../corpus'
+        # self.corpusPath = 'D:\SearchEngine-backup\corpus - full'
+        self.savedFileMainFolder = '..'
+        if not os.path.exists(self.savedFileMainFolder):
+            os.mkdir(self.savedFileMainFolder)
         self.saveFilesWithStem = self.savedFileMainFolder + "/WithStem"
         self.saveFilesWithoutStem = self.savedFileMainFolder + "/WithoutStem"
 
@@ -26,9 +31,8 @@ class ConfigClass:
         if self.managersNumber == 1:
             self.managersNumber = 4
         # self.managersNumber = 1
-        # self.filesPerIteration = 1
         self.filesPerIteration = 10
-        self.minimumTermAppearanceThreshold = 3
+        self.minimumTermAppearanceThreshold = 2
         self.listOfFoldersLength = len(os.listdir(self.corpusPath))
 
         self.toStem = False

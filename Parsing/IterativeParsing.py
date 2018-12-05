@@ -167,11 +167,12 @@ class IterativeTokenizer:
             '=', '')
         text = re.sub(r'[-]+','-',text)
         text = re.sub(r'[.]+', '.', text)
+        text = re.sub(r'[,]+', ',', text)
         splittedText = text.split(' ')
         splittedText = list(filter(self.filterAll, splittedText))
         return self.parseFromList(splittedText, 0)
 
-    def parseFromList(self,splittedText, offset = 0):
+    def parseFromList(self, splittedText, offset = 0):
 
 
         docLength = 0
@@ -181,7 +182,10 @@ class IterativeTokenizer:
         while textIndex < size:
             cleanedWord = splittedText[textIndex]
             docLength += 1
-
+            if len(cleanedWord) == 0:
+                docLength -= 1
+                textIndex += 1
+                continue
             if cleanedWord[0] == '.':
                 cleanedWord = '0' + cleanedWord
 
@@ -275,62 +279,74 @@ class IterativeTokenizer:
                     textIndex = returnedIndex
 
                     continue
+
+
+                if len(cleanedWord) > 0:
+                    splitByComma = cleanedWord.strip(',').split(',')
+                    if len(splitByComma) > 1:
+                        tokenDic, LengthReturned = self.parseFromList(splitByComma, textIndex)
+                        i = 0
+                        for token, termData in tokenDic.items():
+                            if len(token) > 0:
+                                self.addTermToDic(termsDic, token, textIndex + i)
+                        textIndex += 1
+                        docLength += LengthReturned
+                        continue
+                        # termList = []
+                        # for w in splitByComma:
+                        #     terms , index = self.parseText(w)
+                        #     termList = termList + list(terms)
+                        # for term in termList:
+                        #     self.addTermToDic(termsDic, term, textIndex + offset)
+                    elif cleanedWord.count('.') > 0:
+                        splitByDot = cleanedWord.strip('.').split('.')
+                        tokenDic, LengthReturned = self.parseFromList(splitByDot, textIndex)
+                        i = 0
+                        for token, termData in tokenDic.items():
+                            if len(token) > 0:
+                                self.addTermToDic(termsDic, token, textIndex + i)
+                        textIndex += 1
+                        docLength += LengthReturned
+                        continue
+                        # if len(splitByDot) > 1:
+                        #     termList = []
+                        #     for w in splitByDot:
+                        #         terms, index = self.parseText(w)
+                        #         termList = termList + list(terms)
+                        #
+                        #     for term in termList:
+                        #         self.addTermToDic(termsDic, term, textIndex + offset)
+                    else:
+                        if cleanedWord[0].isupper():
+                            termList , returnedIndex = self.ruleNBA(textIndex, splittedText)
+                            if len(termList) > 1:
+                                tempOffSet = 0
+                                for term in termList:
+                                    self.addTermToDic(termsDic, term, textIndex + tempOffSet + offset)
+                                    tempOffSet += 1
+                                    docLength += 1
+                                docLength -= 1
+                                textIndex = returnedIndex
+                                continue
+
+                    # else:
+                    #     docLength -= 1
+
                 if cleanedWord.lower() not in ['may']:
                     if self.config.toStem:
                         isAllLower = cleanedWord.islower()
                         lowerCaseCleanedWord = cleanedWord.lower()
-
                         if self.dictionary_term_stemmedTerm.get(lowerCaseCleanedWord) is None:
-
                             afterStem = Stemmer.Stemmer.stemTerm(lowerCaseCleanedWord)
                             self.dictionary_term_stemmedTerm[lowerCaseCleanedWord] = afterStem
                             cleanedWord = afterStem
                         else:
                             if isAllLower:
-                                self.dictionary_term_stemmedTerm[lowerCaseCleanedWord] = self.dictionary_term_stemmedTerm[lowerCaseCleanedWord].lower()
+                                self.dictionary_term_stemmedTerm[lowerCaseCleanedWord] = \
+                                self.dictionary_term_stemmedTerm[lowerCaseCleanedWord].lower()
                             cleanedWord = self.dictionary_term_stemmedTerm[lowerCaseCleanedWord]
 
-
-
-
-                    if len(cleanedWord) > 0:
-
-                        splitByComma = cleanedWord.split(',')
-                        if len(splitByComma) > 1:
-                            termList = []
-                            for w in splitByComma:
-                                terms , index = self.parseText(w)
-                                termList = termList + list(terms)
-
-                            for term in termList:
-                                self.addTermToDic(termsDic, term, textIndex + offset)
-
-                        elif cleanedWord.count('.') > 0:
-                            splitByDot = cleanedWord.split('.')
-                            if len(splitByDot) > 1:
-                                termList = []
-                                for w in splitByDot:
-                                    terms, index = self.parseText(w)
-                                    termList = termList + list(terms)
-
-                                for term in termList:
-                                    self.addTermToDic(termsDic, term, textIndex + offset)
-
-                        else:
-
-                            if cleanedWord[0].isupper():
-                                termList , textIndex = self.ruleNBA(textIndex, splittedText)
-
-                                for term in termList:
-                                    self.addTermToDic(termsDic, term, textIndex + offset)
-
-                                continue
-
-
-                            self.addTermToDic(termsDic, cleanedWord, textIndex + offset)
-
-                    else:
-                        docLength -= 1
+                    self.addTermToDic(termsDic, cleanedWord, textIndex + offset)
                 else:
                     docLength -= 1
 
@@ -350,6 +366,9 @@ class IterativeTokenizer:
 
             currWord = textList[tempIndex]
             currWord = self.cleanToken(currWord)
+            if currWord is None:
+                tempIndex += 1
+                continue
             if currWord == bigLetters:
                 listOfTerms = [' '.join(textList[index:tempIndex])] + textList[index:tempIndex]
                 listOfTerms.append(currWord)
@@ -360,6 +379,8 @@ class IterativeTokenizer:
                 if len(bigLetters) > 6:
 
                     break
+            else:
+                break
 
             tempIndex += 1
 
@@ -705,21 +726,50 @@ from Configuration import ConfigClass
 # bn.Funds
 text = ''' 
 
- $19bnlast
- $29bnof
- $9bnover
- $1200
- $1200300
- $120000
- 23bn
- 25bn
- 38O
- 3O4.1
- 44.80
- 5OO
- 60.3bn
-#  66O'''
+ <DOC>
+<DOCNO> FBIS3-3366 </DOCNO>
+<HT>    "drchi054_k_94010" </HT>
+
+
+<HEADER>
+<AU>   FBIS-CHI-94-054 </AU>
+Document Type:Daily Report 
+<DATE1>  19 Mar 1994 </DATE1>
+
+</HEADER>
+
+<F P=100> Political &amp; Social </F>
+<H3> <TI>   CPPCC Second Session Adopts Amended Charter </TI></H3>
+<F P=102>  OW1903234794 Beijing XINHUA Domestic Service in Chinese 0921 
+GMT 19 Mar 94 </F>
+
+<F P=103> OW1903234794 </F>
+<F P=104>  Beijing XINHUA Domestic Service </F>
+
+
+<TEXT>
+Language: <F P=105> Chinese </F>
+Article Type:BFN 
+
+  [Text] Beijing, 19 Mar (XINHUA) -- Resolution of the Second 
+Session of the Eighth National Committee of the Chinese People's 
+Political Consultative Conference [CPPCC] on the (amended) 
+"Charter of the Chinese People's Political Consultative 
+Conference" 
+  (Adopted by the Second Session of the Eighth CPPCC National 
+Committee on 19 March 1994) 
+  The Second Session of the Eighth CPPCC National Committee 
+has 
+decided: The (amended) "Charter of the Chinese People's 
+Political Consultative Conference" proposed by the Standing 
+Committee of the CPPCC National Committee is adopted, and the 
+amended "Charter of the Chinese People's Political Consultative 
+Conference" shall take effect as of today. 
+
+</TEXT>
+
+</DOC>'''
 # parser = IterativeTokenizer(ConfigClass())
 # dic, length = parser.parseText(text)
-# print(dic)
+# print(dic.keys())
 #
