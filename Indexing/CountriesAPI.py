@@ -104,3 +104,5 @@ class CityAPI:
             return None
         return '|'.join(information)
 
+
+

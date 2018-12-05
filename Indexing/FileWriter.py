@@ -49,14 +49,18 @@ class FileWriter:
 
 
     def writeMergedFile(self,finalList, outputFile):
+        from BasicMethods import getStringSizeInBytes
+
         lineToWritePost = ""
         lineToWriteDic = ""
         index = 0
         pathForPosting = outputFile + 'PostingFolder'
         os.mkdir(pathForPosting)
         pathForPosting += '\\'
+        currentTerm = ''
 
         termAppearanceThreshold = self.config.minimumTermAppearanceThreshold
+        postingMaxSize = pow(2,20)
         ListToWriteDic = []
 
         for line in finalList:
@@ -64,33 +68,36 @@ class FileWriter:
             if line[0][2] < termAppearanceThreshold:
                 continue
 
-            currentLineDic = '|'.join((line[0][0],str(line[0][1]),str(line[0][2]),str(index)))
+            lastTerm = currentTerm
+            currentTerm = line[0][0]
 
-            if index < 999:
-                # lineToWriteDic += currentLineDic + '\n'
-                ListToWriteDic.append(currentLineDic)
-                lineToWritePost += line[1] + "\n"
+            if getStringSizeInBytes(lineToWritePost) + getStringSizeInBytes(line[1]) < postingMaxSize:
+
                 index += 1
-            else:
-                # lineToWriteDic += currentLineDic + '\n'
+
+                currentLineDic = '|'.join((line[0][0], str(line[0][1]), str(line[0][2]), str(index)))
+
                 ListToWriteDic.append(currentLineDic)
-
                 lineToWritePost += line[1] + "\n"
+
+            else:
+                if len(lineToWritePost) > 0:
+                    self.writeToFile(pathForPosting + lastTerm + '_post', lineToWritePost.rstrip('\n'))
+
                 index = 0
-
-                # endTermIndex = line[0].find('|')
-                # lastTerm = line[0][0:endTermIndex]
-                lastTerm = line[0][0]
-
-                self.writeToFile(pathForPosting + lastTerm + '_post', lineToWritePost)
+                currentLineDic = '|'.join((line[0][0], str(line[0][1]), str(line[0][2]), str(index)))
+                ListToWriteDic.append(currentLineDic)
                 lineToWritePost = ''
+                lineToWritePost += line[1] + "\n"
 
-        if index != 0:
+
+
+        if len(lineToWritePost) > 0:
             # endTermIndex = finalList[len(finalList) - 1][0].find('|')
             endTermIndex = ListToWriteDic[len(ListToWriteDic) - 1].find('|')
             # lastTerm = finalList[len(finalList) - 1][0][0:endTermIndex]
-            lastTerm = ListToWriteDic[len(ListToWriteDic) - 1][0:endTermIndex]
-            self.writeToFile(pathForPosting + lastTerm + '_post', lineToWritePost)
+            currentTerm = ListToWriteDic[len(ListToWriteDic) - 1][0:endTermIndex]
+            self.writeToFile(pathForPosting + currentTerm + '_post', lineToWritePost.rstrip('\n'))
 
         lineToWriteDic = '\n'.join(ListToWriteDic)
 

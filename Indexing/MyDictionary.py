@@ -26,7 +26,6 @@ class DictionaryData:
         self.termDF = 0
         self.sumTF = 0
         self.string_docID_tf_positions = ""
-        # self.dictionary_docID_tf = {}
 
 
 
@@ -48,7 +47,6 @@ class DictionaryData:
         return ans
 
     def cleanPostingData(self):
-        # with self.lock:
         self.string_docID_tf_positions = ""
         self.sumTF = 0
         self.termDF = 0

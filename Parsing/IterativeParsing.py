@@ -98,7 +98,6 @@ class IterativeTokenizer:
         return self.parseText(text)
 
 
-
     def replaceBetween(self,token):
         splitedToken = token.group().split(' ')
         return splitedToken[0] + '-' + splitedToken[2]
@@ -157,7 +156,7 @@ class IterativeTokenizer:
 
         self.betweenPattern.sub(self.replaceBetween, text)
 
-        text = text.replace("<P>", '').replace("</P>", '').replace("\n", '').replace('\t', '').replace('{', '').replace('}', '').replace('[', '').replace(']',
+        text = text.replace("<P>", '').replace("</P>", '').replace("\n", ' ').replace('\t', ' ').replace('{', '').replace('}', '').replace('[', '').replace(']',
                                                                                                                    '').replace(
             '\"', '').replace('\'', '').replace('(', '').replace(')', '').replace('?', '').replace('!', '').replace('#',
                                                                                                                     '').replace(
@@ -207,15 +206,11 @@ class IterativeTokenizer:
                     tokenDic, LengthReturned = self.splitTokenBySeparator(textIndex, splittedText,'-')
                     i = 0
                     for token, termData in tokenDic.items():
-                        if len(token) > 0:
-                            # TODO (DONE) - check if the term is number
+                        if len(token) > 0 and self.stopWordsDic.get(token.lower()) is None:
                             self.addTermToDic(termsDic, token, textIndex + i)
                     textIndex += 1
                     docLength += LengthReturned
                     continue
-
-
-
 
 
                 termList, returnedIndex = self.numTMBT_tokenToTerm(textIndex, splittedText)
@@ -256,7 +251,7 @@ class IterativeTokenizer:
                         tokenDic, LengthReturned = self.splitTokenBySeparator(textIndex, splittedText,'-')
                         i = 0
                         for token,termData in tokenDic.items():
-                            if len(token) > 0:
+                            if len(token) > 0 and self.stopWordsDic.get(token.lower()) is None:
                                 self.addTermToDic(termsDic, token, textIndex + i)
                         textIndex += 1
                         docLength += LengthReturned
@@ -288,7 +283,7 @@ class IterativeTokenizer:
                         tokenDic, LengthReturned = self.parseFromList(splitByComma, textIndex)
                         i = 0
                         for token, termData in tokenDic.items():
-                            if len(token) > 0:
+                            if len(token) > 0 and self.stopWordsDic.get(token.lower()) is None:
                                 self.addTermToDic(termsDic, token, textIndex + i)
                         textIndex += 1
                         docLength += LengthReturned
@@ -304,7 +299,7 @@ class IterativeTokenizer:
                         tokenDic, LengthReturned = self.parseFromList(splitByDot, textIndex)
                         i = 0
                         for token, termData in tokenDic.items():
-                            if len(token) > 0:
+                            if len(token) > 0 and self.stopWordsDic.get(token.lower()) is None:
                                 self.addTermToDic(termsDic, token, textIndex + i)
                         textIndex += 1
                         docLength += LengthReturned
@@ -351,15 +346,14 @@ class IterativeTokenizer:
                                 self.dictionary_term_stemmedTerm[lowerCaseCleanedWord].lower()
                             cleanedWord = self.dictionary_term_stemmedTerm[lowerCaseCleanedWord]
 
-                    self.addTermToDic(termsDic, cleanedWord, textIndex + offset)
+                    if self.stopWordsDic.get(cleanedWord.lower()) is None:
+                        self.addTermToDic(termsDic, cleanedWord, textIndex + offset)
                 else:
                     docLength -= 1
 
             textIndex += 1
 
         return termsDic, docLength
-
-
 
 
 
@@ -391,7 +385,6 @@ class IterativeTokenizer:
 
 
         return listOfTerms , index + 1
-
 
 
 
@@ -436,7 +429,7 @@ class IterativeTokenizer:
 
     def splitTokenBySeparator(self, index, textList,sep):
         splittedText = textList[index].split(sep)
-        splittedText = list(filter(self.filterAll, splittedText))
+        # splittedText = list(filter(self.filterAll, splittedText))
 
         termsDic, docLength = self.parseFromList(splittedText,index)
         if '$' in textList[index] or 'illion' in textList[index]:
@@ -444,10 +437,6 @@ class IterativeTokenizer:
         self.addTermToDic(termsDic, textList[index], index)
 
         return termsDic, docLength
-
-    # TODO - add 2 rules
-
-
 
 
 
@@ -553,10 +542,6 @@ class IterativeTokenizer:
 
 
 
-
-
-
-
     def numTMBT_tokenToTerm(self,curIndex, listOfTokens):
         import Parsing.ConvertMethods  as convert
         token = listOfTokens[curIndex]
@@ -607,7 +592,6 @@ class IterativeTokenizer:
 
             else:
 
-                # Todo - return list
                 term = convert.convertNumToKMBformat(term)
                 return [term, token[p:]], curIndex + 1
 

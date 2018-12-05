@@ -21,26 +21,29 @@ class EngineBuilder(Frame):
         self.numOfTotalFiles = numOfTotalFiles
         self.numOfFilesPerIteration = config.get__filesPerIteration()
 
+        self.XstartPixel = 60
+        self.YstartPixel = 10
 
-        label_0 = Label(self.master, text="Search Engine", width=20, font=("bold", 20))
-        label_0.place(x=90, y=60)
+
+        label_0 = Label(self.master, text="Search Engine", width=20, font=("bold", 30))
+        label_0.place( x = self.XstartPixel + 20, y = self.YstartPixel + 40)
 
 
 
         label_corpusPath = Label(self.master, text="Corpus path:", width=10, font=("bold", 10))
-        label_corpusPath.place(x=50, y=130)
+        label_corpusPath.place( x = self.XstartPixel + 50, y = self.YstartPixel + 130)
         self.entry_corpusPath_text = StringVar()
         self.entry_corpusPath_text.set(config.get__corpusPath())
         self.entry_corpusPath = Entry(self.master,textvariable=self.entry_corpusPath_text,width=30)
-        self.entry_corpusPath.place(x=180, y=130)
+        self.entry_corpusPath.place( x = self.XstartPixel + 180, y = self.YstartPixel + 130)
 
 
         label_postingPath = Label(self.master, text="Posting path:", width=10, font=("bold", 10))
-        label_postingPath.place(x=50, y=160)
+        label_postingPath.place( x = self.XstartPixel + 50,  y = self.YstartPixel + 160)
         self.entry_postingPath_text = StringVar()
         self.entry_postingPath_text.set(config.get__savedFileMainFolder())
         self.entry_postingPath = Entry(self.master,textvariable=self.entry_postingPath_text,width=30)
-        self.entry_postingPath.place(x=180, y=160)
+        self.entry_postingPath.place( x = self.XstartPixel + 180, y = self.YstartPixel + 160)
 
 
         def corpusPath():
@@ -58,9 +61,9 @@ class EngineBuilder(Frame):
 
 
         self.corpusPathButton = Button(self.master, text='Find', width=5, fg='black',command= corpusPath)
-        self.corpusPathButton.place(x=380, y=125)
+        self.corpusPathButton.place( x = self.XstartPixel + 380, y = self.YstartPixel + 125)
         self.postingPathButton = Button(self.master, text='Find', width=5, fg='black',command= postingPath)
-        self.postingPathButton.place(x=380, y=155)
+        self.postingPathButton.place( x = self.XstartPixel + 380, y = self.YstartPixel + 155)
 
 
 
@@ -70,8 +73,8 @@ class EngineBuilder(Frame):
 
 
 
-        label_4 = Label(self.master, text="Language", width=10, font=("bold", 10))
-        label_4.place(x=50, y=190)
+        label_4 = Label(self.master, text="Language:", width=10, font=("bold", 10))
+        label_4.place( x = self.XstartPixel + 50, y = self.YstartPixel + 190)
 
 
         list1 = ['English', 'Spanish', 'Hebrew']
@@ -79,53 +82,61 @@ class EngineBuilder(Frame):
         self.droplist = OptionMenu(self.master, c, *list1)
         self.droplist.config(width=15)
         c.set('Select')
-        self.droplist.place(x=180, y=190)
+        self.droplist.place( x = self.XstartPixel + 180, y = self.YstartPixel + 190)
 
 
 
 
         self.deleteButton = Button(self.master, text='Delete', width=10, bg='red', fg='white',command= self.deleteEngine)
-        self.deleteButton.place(x=100, y=250)
+        self.deleteButton.place( x = self.XstartPixel + 100, y = self.YstartPixel + 250)
         self.buildButton = Button(self.master, text='Build', width=10, bg='green', fg='white',command= self.buildEngine)
-        self.buildButton.place(x=200, y=250)
+        self.buildButton.place( x = self.XstartPixel + 200, y = self.YstartPixel + 250)
 
 
         label_stemming = Label(self.master, text="Stemming", width=10, font=("bold", 10))
-        label_stemming.place(x=320, y=250)
+        label_stemming.place( x = self.XstartPixel + 320, y = self.YstartPixel + 250)
         self.checked = BooleanVar()
         self.stemmingCheckBox = Checkbutton(self.master, variable = self.checked)
-        self.stemmingCheckBox.place(x=300, y=250)
+        self.stemmingCheckBox.place( x = self.XstartPixel + 300, y = self.YstartPixel + 250)
 
 
-        self.label_progress = Label(self.master, text="Progress:     [                                                   ]  00% ", width=50, font=("bold", 10))
-        # self.label_progress = Label(self.master, text="Progress:     [||||||||||||||||||||||||||||||||||||||||          ] 80% ", width=50, font=("bold", 10))
-        self.label_progress.place(x=50, y=320)
+        # Create progress bar
+
+        self.label_progress = Label(self.master, text=" ", width=50, font=("bold", 10))
+        self.label_progress.place( x = self.XstartPixel + 40, y = self.YstartPixel + 320)
+
+        # Set Progress bar
+        linesAsString = ''
+        for i in range(0, 51):
+            linesAsString += ' '
+        label = "Progress:     ["
+        self.label_progress['text'] = label + linesAsString + '] 00%'
 
 
 
         label_postingPath = Label(self.master, text="Dictionary:", width=20, font=("bold", 10))
-        label_postingPath.place(x=30, y=380)
+        label_postingPath.place( x = self.XstartPixel + 30, y = self.YstartPixel + 380)
 
 
 
         self.uploadDicButton = Button(self.master, text='Upload', width=10, bg='blue', fg='white',command= self.loadDictionary)
-        self.uploadDicButton.place(x=170, y=380)
+        self.uploadDicButton.place( x = self.XstartPixel + 170, y = self.YstartPixel + 380)
         self.showDicButton = Button(self.master, text='Show', width=10, bg='blue', fg='white',command= self.displayDicionary)
-        self.showDicButton.place(x=270, y=380)
+        self.showDicButton.place(x = self.XstartPixel + 270, y = self.YstartPixel + 380)
 
         self.label_buildDetails = Label(self.master, text="",width=50 ,font=("bold",10))
-        self.label_buildDetails.place(x=50,y=420)
+        self.label_buildDetails.place( x = self.XstartPixel + 50, y = self.YstartPixel + 420)
 
 
-        Label(self.master, text="Summary:", width=10, font=("bold", 10)).place(x=20, y=420)
+        Label(self.master, text="Summary:", width=10, font=("bold", 10)).place( x = self.XstartPixel + 20, y = self.YstartPixel + 420)
 
 
         from tkinter import scrolledtext
-        self.txtbox = scrolledtext.ScrolledText(width= 45,height=7)
-        self.txtbox.place(x= 60, y = 440)
+        self.txtbox = scrolledtext.ScrolledText( width = 45, height = 10)
+        self.txtbox.place( x = self.XstartPixel + 60, y = self.YstartPixel + 450)
 
-        self.statusLabel = Label(self.master, text="Status: Ready to Build\Shut down", width=40, font=("bold", 10))
-        self.statusLabel.place(x=60, y=570)
+        self.statusLabel = Label(self.master, text="Status: Ready to Build\Shut down", width = 40, font = ("bold", 10))
+        self.statusLabel.place( x = self.XstartPixel + 60, y = self.YstartPixel + 650)
 
 
 
@@ -143,7 +154,7 @@ class EngineBuilder(Frame):
 
         while flag:
 
-            time.sleep(1.2)
+            time.sleep(0.5)
             counter+=1
 
 
@@ -163,12 +174,12 @@ class EngineBuilder(Frame):
 
             percent = (counter/self.numOfTotalFiles)*50
             percent = int(percent)
-            if percent == 51:
+            if percent >= 51:
                 break
             linesAsString = ''
-            for i in range(0,percent):
+            for i in range(0,percent+1):
                 linesAsString += '|'
-            for i in range(percent,50):
+            for i in range(percent - 1,50):
                 linesAsString += ' '
 
             percentString = str(percent*2)
@@ -256,16 +267,18 @@ class EngineBuilder(Frame):
 
     def displayDicionary(self):
 
-        self.disableButtons()
-        print('Display dictionary')
 
         if self.data is None or self.headline is None:
-            self.enableButtons()
+            self.statusLabel['text'] = 'Status: need to upload before clicking on Show'
             return
 
 
-        self.displayClass = TableView(self.data, self.headline)
+        self.disableButtons()
+        print('Display dictionary')
 
+
+
+        self.displayClass = TableView(self.data, self.headline)
 
 
 
@@ -277,12 +290,21 @@ class EngineBuilder(Frame):
 
     def deleteEngine(self):
         import shutil
+        saveMainFolderPath = str(self.entry_postingPath.get())
+        if not os.path.exists(saveMainFolderPath + '/SavedFiles'):
+            self.statusLabel['text'] = 'Status: %s invalid path to delete' % (saveMainFolderPath,)
+            return
+
+
         shutil.rmtree(self.config.get__savedFileMainFolder())
         print("Folder was deleted successfully..")
         self.buildButton.configure(state=NORMAL)
         self.deleteButton.configure(state=DISABLED)
         self.showDicButton.configure(state = DISABLED)
         self.uploadDicButton.configure(state = DISABLED)
+
+        self.statusLabel['text'] = 'Status: Folder %s was deleted' % (self.config.get__savedFileMainFolder())
+
 
 
 
@@ -321,7 +343,9 @@ class EngineBuilder(Frame):
 
         print("\n***    ManagerRun    ***\n")
 
-        self.statusLabel['text'] = 'Building.. might take a while'
+        from datetime import datetime
+        time = datetime.now().strftime('%H:%M:%S')
+        self.statusLabel['text'] = '%s - Started building.. might take a while' % (time)
 
         from threading import Thread
         from concurrent.futures import ThreadPoolExecutor
@@ -360,7 +384,7 @@ class EngineBuilder(Frame):
         self.droplist = OptionMenu(self.master, c, *mergedLanguagesSet)
         self.droplist.config(width=15)
         c.set('Select')
-        self.droplist.place(x=180, y=190)
+        self.droplist.place( x = self.XstartPixel + 180, y = self.YstartPixel + 190)
         self.setBuildDetails(timeItTook, maxParsingTime, totalMerging, totalNumberOfTerms, totalNumberOfDocuments)
 
 

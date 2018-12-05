@@ -16,17 +16,13 @@ def main():
     mainManager = MainClass()
     mainManager.GUIRun()
 
-    # mainManager.managerRun()
-
 
 class MainClass:
 
     def __init__(self):
 
         self.config = ConfigClass()
-        # from ReadFiles.ReadFile import ReadFile
-        #
-        # readClass = ReadFile(self.config)
+
 
         self.cityAPI = CityAPI()
 
@@ -35,12 +31,11 @@ class MainClass:
 
         print("***   Main Start   ***")
         root = GuiMainView.Tk()
-        root.geometry('500x600')
+        root.geometry('600x700')
         # root.geometry('800x1000')
         root.title("SearchEngine")
 
         guiFrame = GuiMainView.EngineBuilder(root, mainManager=self, config=self.config, numOfTotalFiles=self.config.get__listOfFoldersLength())
-        # self.GuiManager = guiFrame
         guiFrame.mainloop()
 
     def managerRun(self):
@@ -126,7 +121,6 @@ class MainClass:
             maxSecondMergeTime = max(maxSecondMergeTime, mergingTime)
             if firstManagerToFinish:
                 firstManagerToFinish = False
-                # gettingCountryDetails = self.getCitiesDataAndWriteIt(dictionary_city_cityData)
                 self.getCitiesDataAndWriteItASync(dictionary_city_cityData, citiesFutureDic)
 
 
@@ -140,7 +134,6 @@ class MainClass:
         pool.shutdown()
         print("Number of files Processed: " , str(len(listOfFolders)))
 
-        # self.config.setBuildDetails(timeItTook.seconds, maxParsingTime, totalMerging, gettingCountryDetails, str(totalNumberOfTerms), totalNumberOfDocuments)
         return timeItTook.seconds, maxParsingTime, totalMerging, totalNumberOfTerms, totalNumberOfDocuments, sorted(mergedLanguagesSet)
 
     @staticmethod
@@ -154,10 +147,7 @@ class MainClass:
 
     @staticmethod
     def managerMerge(manager):
-        # if manager.ID > 0:
-        #     return manager.merge()
-        #
-        # return 0,0
+
         return manager.merge()
 
 
