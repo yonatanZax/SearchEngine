@@ -97,7 +97,8 @@ class EngineBuilder(Frame):
         self.stemmingCheckBox.place(x=300, y=250)
 
 
-        self.label_progress = Label(self.master, text="Progress:     [||||||||||||||||||||||||||||||||||||||||          ] 80% ", width=50, font=("bold", 10))
+        self.label_progress = Label(self.master, text="Progress:     [                                                   ]  00% ", width=50, font=("bold", 10))
+        # self.label_progress = Label(self.master, text="Progress:     [||||||||||||||||||||||||||||||||||||||||          ] 80% ", width=50, font=("bold", 10))
         self.label_progress.place(x=50, y=320)
 
 
@@ -141,28 +142,39 @@ class EngineBuilder(Frame):
         counter = 0
 
         while flag:
-            time.sleep(10)
-            path = self.config.get__savedFilePath() + '/Progress/Posting'
-            if not os.path.exists(path):
-                break
-            listOfFiles = os.listdir(path)
-            if len(listOfFiles) == 0:
-                continue
-            for file in listOfFiles:
-                splitedFile = file.split('_')
-                counter += int(splitedFile[-1])
 
-            if counter == self.numOfTotalFiles:
-                return
+            time.sleep(1.2)
+            counter+=1
+
+
+            # path = self.config.get__savedFilePath() + '/Progress/Posting'
+            # if not os.path.exists(path):
+            #     break
+            # listOfFiles = os.listdir(path)
+            # if len(listOfFiles) == 0:
+            #     continue
+            # for file in listOfFiles:
+            #     splitedFile = file.split('_')
+            #     counter += int(splitedFile[-1])
+            #
+            # if counter == self.numOfTotalFiles:
+            #     return
+
+
             percent = (counter/self.numOfTotalFiles)*50
             percent = int(percent)
+            if percent == 51:
+                break
             linesAsString = ''
             for i in range(0,percent):
                 linesAsString += '|'
             for i in range(percent,50):
                 linesAsString += ' '
 
-            self.label_progress['text'] = label + linesAsString + '] ' + str(percent*2) + '% '
+            percentString = str(percent*2)
+            if len(percentString) == 1:
+                percentString = '0' + percentString
+            self.label_progress['text'] = label + linesAsString + '] ' + percentString + '% '
 
 
 
@@ -244,10 +256,6 @@ class EngineBuilder(Frame):
 
     def displayDicionary(self):
 
-
-
-
-
         self.disableButtons()
         print('Display dictionary')
 
@@ -326,7 +334,7 @@ class EngineBuilder(Frame):
         threadWaitUntilBuildDone.start()
 
 
-        # threadProgress = Thread(target=updateFileCounter)
+        # threadProgress = Thread(target=self.updatePostingProgress)
         # threadProgress.start()
 
 
@@ -339,12 +347,11 @@ class EngineBuilder(Frame):
 
 
     def buildListener(self,future):
-        timeItTook, maxParsingTime, totalMerging, gettingCountryDetailsTime, totalNumberOfTerms, totalNumberOfDocuments ,mergedLanguagesSet = future.result()
+        timeItTook, maxParsingTime, totalMerging, totalNumberOfTerms, totalNumberOfDocuments ,mergedLanguagesSet = future.result()
         print("Number of Terms: " , str(totalNumberOfTerms))
         print("Number of Docs: " , str(totalNumberOfDocuments))
         print("Parsing Time: " , str(maxParsingTime))
         print("Merging Time: " , str(totalMerging))
-        print("Getting Country Details Time: " , str(gettingCountryDetailsTime))
         print("Everything took: " , str(timeItTook) , " seconds")
         self.enableButtons()
 
@@ -354,25 +361,24 @@ class EngineBuilder(Frame):
         self.droplist.config(width=15)
         c.set('Select')
         self.droplist.place(x=180, y=190)
-        self.setBuildDetails(timeItTook, maxParsingTime, totalMerging, gettingCountryDetailsTime, totalNumberOfTerms, totalNumberOfDocuments)
+        self.setBuildDetails(timeItTook, maxParsingTime, totalMerging, totalNumberOfTerms, totalNumberOfDocuments)
 
 
 
 
 
-    def setBuildDetails(self, timeItTook, maxParsingTime, totalMerging, gettingCountryDetailsTime, totalNumberOfTerms, totalNumberOfDocuments):
+    def setBuildDetails(self, timeItTook, maxParsingTime, totalMerging, totalNumberOfTerms, totalNumberOfDocuments):
         stem = ''
         if self.config.toStem:
             stem = '\n** Run with stemming - Details **\n'
         else:
             stem = '\n** Run without stemming - Details **\n'
         detailString = stem
-        detailString += "\tNumber of Terms: " + str(totalNumberOfTerms) + "\n"
-        detailString += "\tNumber of Docs: " + str(totalNumberOfDocuments) + "\n"
-        detailString += "\tParsing Time: " + str(maxParsingTime) + "\n"
-        detailString += "\tMerging Time: " + str(totalMerging) + "\n"
-        # detailString += "\tGetting Country Details Time: " + str(gettingCountryDetailsTime) + "\n"
-        detailString += "\tEverything took: " + str(timeItTook) + " seconds\n"
+        detailString += "\tNumber of Terms:  " + str(totalNumberOfTerms) + "\n"
+        detailString += "\tNumber of Docs:   " + str(totalNumberOfDocuments) + "\n"
+        detailString += "\tParsing Time:     " + str(maxParsingTime) + "\n"
+        detailString += "\tMerging Time:     " + str(totalMerging) + "\n"
+        detailString += "\tEverything took:  " + str(timeItTook) + " seconds\n"
         self.txtbox.insert('end',detailString)
         # self.label_buildDetails['text'] = detailString
 

@@ -92,8 +92,10 @@ class CityAPI:
             fixedPopulation = convertNumToKMBformat(str(self.dictionary_country_currencyPopulation[city.country_code][1]))
 
             return [city.country, str(self.dictionary_country_currencyPopulation[city.country_code][0]), str(fixedPopulation)]
+        except TimeoutError as timeoutError:
+            print ('timeoutError',timeoutError)
         except Exception as err:
-            print(err)
+            print(cityName)
             return None
 
     def getInformationAsString(self, cityName):
@@ -101,13 +103,4 @@ class CityAPI:
         if information is None:
             return None
         return '|'.join(information)
-
-
-# cityAPI = CityAPI()
-# print(cityAPI.getDetailsWithGeobytesWithSession(['new york','san fransisco']))
-
-# g = geocoder.geonames('New York', key='myengine', featureClass='A')
-# g = geocoder.google('New York', key='AIzaSyCG6LwcdSUeuHsTOB_lCRlzRqvcOTiqC5I',method='places')
-# d = geocoder.get('New York', key='AIzaSyCG6LwcdSUeuHsTOB_lCRlzRqvcOTiqC5I')
-# print(g.country)
 

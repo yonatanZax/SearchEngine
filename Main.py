@@ -63,9 +63,9 @@ class MainClass:
                 folderListPerManager.append(listOfFolders[j])
 
             lettersListPerManager = []
-            if i > 0:
-                for j in range(i -1,len(lettersList), managersNumber - 1):
-                    lettersListPerManager.append(lettersList[j])
+
+            for j in range(i,len(lettersList), managersNumber):
+                lettersListPerManager.append(lettersList[j])
 
             manager = MyManager(managerID=i, folderList=folderListPerManager,
                                 lettersList=lettersListPerManager, config=self.config)
@@ -116,7 +116,6 @@ class MainClass:
 
         totalNumberOfTerms = 0
         maxSecondMergeTime = 0
-        gettingCountryDetails = 0
 
         future_manager_dic = {pool.submit(self.managerMerge, manager): manager for manager in managersList}
         for future_manager in as_completed(future_manager_dic):
@@ -128,7 +127,7 @@ class MainClass:
             if firstManagerToFinish:
                 firstManagerToFinish = False
                 # gettingCountryDetails = self.getCitiesDataAndWriteIt(dictionary_city_cityData)
-                gettingCountryDetails = self.getCitiesDataAndWriteItASync(dictionary_city_cityData, citiesFutureDic)
+                self.getCitiesDataAndWriteItASync(dictionary_city_cityData, citiesFutureDic)
 
 
 
@@ -142,7 +141,7 @@ class MainClass:
         print("Number of files Processed: " , str(len(listOfFolders)))
 
         # self.config.setBuildDetails(timeItTook.seconds, maxParsingTime, totalMerging, gettingCountryDetails, str(totalNumberOfTerms), totalNumberOfDocuments)
-        return timeItTook.seconds, maxParsingTime, totalMerging, gettingCountryDetails, totalNumberOfTerms, totalNumberOfDocuments, sorted(mergedLanguagesSet)
+        return timeItTook.seconds, maxParsingTime, totalMerging, totalNumberOfTerms, totalNumberOfDocuments, sorted(mergedLanguagesSet)
 
     @staticmethod
     def run( manager):
@@ -155,16 +154,16 @@ class MainClass:
 
     @staticmethod
     def managerMerge(manager):
-        if manager.ID > 0:
-            return manager.merge()
-
-        return 0,0
+        # if manager.ID > 0:
+        #     return manager.merge()
+        #
+        # return 0,0
+        return manager.merge()
 
 
     def getCitiesDataAndWriteItASync(self, dictionary_city_cityData, citiesFutureDic):
         writeLine = ''
         listToWrite = []
-        start = datetime.now()
 
         for city, future in citiesFutureDic.items():
             try:
@@ -189,10 +188,9 @@ class MainClass:
             except UnicodeEncodeError as ex:
                 print('ERROR in writing', str(ex))
 
-        finish = datetime.now()
-        timeItTook = finish - start
 
-        return timeItTook.seconds
+
+
 
 
 

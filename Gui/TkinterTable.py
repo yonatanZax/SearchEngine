@@ -58,8 +58,6 @@ class App(Frame):
 
 
 
-
-
 class TableView:
 
     def __init__(self,dataArray,headLineAsArray):
@@ -71,11 +69,3 @@ class TableView:
         App(root,self.data, self.headLine)
         root.mainloop()
 
-
-# def main():
-#     root = Tk()
-#     App(root)
-#     root.mainloop()
-#
-# if __name__ == '__main__':
-#     main()
