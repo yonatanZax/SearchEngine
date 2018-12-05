@@ -98,7 +98,6 @@ class IterativeTokenizer:
         return self.parseText(text)
 
 
-
     def replaceBetween(self,token):
         splitedToken = token.group().split(' ')
         return splitedToken[0] + '-' + splitedToken[2]
@@ -208,14 +207,10 @@ class IterativeTokenizer:
                     i = 0
                     for token, termData in tokenDic.items():
                         if len(token) > 0:
-                            # TODO (DONE) - check if the term is number
                             self.addTermToDic(termsDic, token, textIndex + i)
                     textIndex += 1
                     docLength += LengthReturned
                     continue
-
-
-
 
 
                 termList, returnedIndex = self.numTMBT_tokenToTerm(textIndex, splittedText)
@@ -361,8 +356,6 @@ class IterativeTokenizer:
 
 
 
-
-
     def ruleNBA(self,index,textList):
         listOfTerms = [textList[index]]
         bigLetters = textList[index][0]
@@ -391,7 +384,6 @@ class IterativeTokenizer:
 
 
         return listOfTerms , index + 1
-
 
 
 
@@ -444,10 +436,6 @@ class IterativeTokenizer:
         self.addTermToDic(termsDic, textList[index], index)
 
         return termsDic, docLength
-
-    # TODO - add 2 rules
-
-
 
 
 
@@ -553,10 +541,6 @@ class IterativeTokenizer:
 
 
 
-
-
-
-
     def numTMBT_tokenToTerm(self,curIndex, listOfTokens):
         import Parsing.ConvertMethods  as convert
         token = listOfTokens[curIndex]
@@ -607,7 +591,6 @@ class IterativeTokenizer:
 
             else:
 
-                # Todo - return list
                 term = convert.convertNumToKMBformat(term)
                 return [term, token[p:]], curIndex + 1
 
@@ -714,87 +697,3 @@ class IterativeTokenizer:
             return [term], curIndex
 
 
-
-from Configuration import ConfigClass
-
-# .08
-# 1.10
-# 12O
-# 15.5
-# 1
-# Y124
-# $49
-# bn.China
-# $59
-# bn.Combined
-# $69
-# bn.Funds
-text = ''' 
-
-<P>
-The father-son banquet honoring the football team at Mohawk Trail Regional High 
-in Buckland, Mass., an annual event since 1968, has been canceled. Quarterback 
-Owa Brandstein said he wouldn't go if his mother couldn't. 
-</P>
-<P>
-"A lot of people supporting us through hard times were mothers, but they 
-couldn't come to our banquet," Brandstein said. "It's blatant discrimination. 
-It's just wrong." 
-</P>
-<P>
-Howard Binder, a co-founder of the group that sponsors the banquet, said Monday 
-that the banquet was canceled after the guest list became an issue. He said the 
-father-son format was used because the hall that his group used for the banquet 
-wouldn't hold a bigger crowd. 
-</P>
-<P>
-Brandstein's parents, Marcine and Stewart Eisenberg, said they supported their 
-son. 
-</P>
-<P>
-"We said to Owa, 'Look, this is your only senior year. You don't have to do 
-this for us,' " Marcine Eisenberg said. "He just said, 'But it's wrong.' " 
-</P>
-<P>
-Trivia time: On Dec. 5, 1971, what player set an NFL record with 247 yards 
-rushing? 
-</P>
-<P>
-Roam and board: Would you like to have a 1,000-pound buffalo as a house guest? 
-Then contact the University of Colorado. 
-</P>
-<P>
-Ralphie III, the school's mascot who is actually a female, will be traveling 
-from Boulder, Colo., to Miami for the Orange Bowl. And she needs accommodations 
-en route. 
-</P>
-<P>
-Her needs are simple; about five pounds of grass will do for dinner. And if you 
-would like to give her stay an old-home-week touch, have a horse on hand. An 
-orphan, Ralphie III was raised on a baby bottle. She grew up thinking a horse 
-was her mother. 
-</P>
-<P>
-A shot at J.R.: J.R. Richard, whose career with the Houston Astros was ended by 
-a stroke, was cut by the West Palm Beach Tropics of the Senior League because 
-he weighed more than 300 pounds. Said Bill Lee, player-manager of the Winter 
-Haven Super Sox: "I see where Richard claims he throws 90 miles an hour. Maybe 
-he does, providing he's throwing out of a car going 60." 
-</P>
-<P>
-The present tense: New York Giant nose tackle Erik Howard, after the club had 
-committed five turnovers in a 24-17 loss to the Eagles Sunday: "We gave it to 
-them. It was ridiculous. It's tough when the defense gives up three points and 
-they end up getting 27. Merry Christmas, Philadelphia." 
-</P>
-<P>
-A day at the office: University of Maryland forward Jerrod Mustaf, on the hype 
-surrounding the ACC-Big East Challenge this week: "People who sit on 
-committees, who run the ACC and the Big East, build these things up because it 
-puts money in their pockets. To me it's just another game." 
-</P>
-<P>'''
-parser = IterativeTokenizer(ConfigClass())
-dic, length = parser.parseText(text)
-print(dic.keys())
-#

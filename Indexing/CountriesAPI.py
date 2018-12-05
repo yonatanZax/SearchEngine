@@ -1,6 +1,4 @@
-import pycountry
 from restcountries.api import RestCountries
-from restcountries.api import Country
 import geocoder
 from Parsing.ConvertMethods import convertNumToKMBformat
 import requests
@@ -26,7 +24,6 @@ class CityAPI:
 
             self.dictionary_country_currencyPopulation[countryCode] = (countryCurrencyName,countryPopulation)
             self.dictionary_CapitalCity_country[capitalCity] = (countryCode, country.name)
-
 
     # def getDetailsWithGeobytes(self, cityName):
     #     from io import StringIO
@@ -124,11 +121,4 @@ class CityAPI:
         return '|'.join(information)
 
 
-# cityAPI = CityAPI()
-# print(cityAPI.getDetailsWithGeobytesWithSession(['new york','san fransisco']))
-
-# g = geocoder.geonames('New York', key='myengine', featureClass='A')
-# g = geocoder.google('New York', key='AIzaSyCG6LwcdSUeuHsTOB_lCRlzRqvcOTiqC5I',method='places')
-# d = geocoder.get('New York', key='AIzaSyCG6LwcdSUeuHsTOB_lCRlzRqvcOTiqC5I')
-# print(g.country)
 

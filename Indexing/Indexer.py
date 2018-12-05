@@ -5,8 +5,6 @@ from Indexing.FileWriter import FileWriter
 
 class Indexer:
 
-    # TODO - add 2 information on terms or documents - added locations
-
     def __init__(self, indexerID,config):
         self.config = config
         self.fileWriter = FileWriter(self.config)
@@ -66,8 +64,6 @@ class Indexer:
             self.languagesDic[document.language] = True
 
 
-
-
     def flushMemory(self):
         self.fileWriter.cleanIndex(self)
         self.fileWriter.cleanDocuments(self.documents_dictionary)
@@ -81,12 +77,9 @@ class Indexer:
             self.myDictionaryByLetters["#"] = MyDictionary()
 
 
-
-
     def merge(self):
         from Indexing.KWayMerge import Merger
         from concurrent.futures import ThreadPoolExecutor
-
 
         merger = Merger(config=self.config)
         savedFilesPathList = os.listdir(self.config.savedFilePath)

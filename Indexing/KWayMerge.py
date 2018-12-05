@@ -192,8 +192,7 @@ class Merger:
 
     @staticmethod
     def sortDicKey(item):
-        # endTerm = item[0].find('|')
-        # returnedTerm = item[0][0:endTerm]
+
         returnedTerm = item[0][0]
         return returnedTerm
 
@@ -204,13 +203,9 @@ class Merger:
         if termTuple is None:
             dictionary[item[0]] = ([str(item[1]) , int(item[2]) , int(item[3])], item[4])
         else:
-            # meaning the term is in the dictionary
-            # termDictionaryPartSplitted = termTuple[0].split('|')
-            # termInDic = termDictionaryPartSplitted[0]
+
             termInDic = termTuple[0][0]
-            # termDF = int(termDictionaryPartSplitted[1]) + int(item[2])
             termDF = int(termTuple[0][1]) + int(item[2])
-            # termSUMTF = int(termDictionaryPartSplitted[2]) + int(item[3])
             termSUMTF = int(termTuple[0][2]) + int(item[3])
 
             # they don't look the same need to change how it appear
