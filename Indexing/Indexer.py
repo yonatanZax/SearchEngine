@@ -23,6 +23,8 @@ class Indexer:
 
         self.languagesDic = {}
 
+        self.flushIndicator = 0
+
     def addNewDoc(self, document):
         # go over each term in the doc
         documentDictionary = document.termDocDictionary_term_termData
@@ -70,6 +72,14 @@ class Indexer:
         self.fileWriter.cleanIndex(self)
         self.fileWriter.cleanDocuments(self.documents_dictionary)
         self.documents_dictionary = {}
+
+        self.flushIndicator += 1
+        if self.flushIndicator == 10:
+            self.flushIndicator = 0
+            for letter in string.ascii_lowercase[:26]:
+                self.myDictionaryByLetters[letter] = MyDictionary()
+            self.myDictionaryByLetters["#"] = MyDictionary()
+
 
 
 
