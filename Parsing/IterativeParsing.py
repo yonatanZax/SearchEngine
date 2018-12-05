@@ -156,7 +156,8 @@ class IterativeTokenizer:
     def parseText(self,text):
 
         self.betweenPattern.sub(self.replaceBetween, text)
-        text = text.replace("\n", '').replace('\t', '').replace('{', '').replace('}', '').replace('[', '').replace(']',
+
+        text = text.replace("<P>", '').replace("</P>", '').replace("\n", '').replace('\t', '').replace('{', '').replace('}', '').replace('[', '').replace(']',
                                                                                                                    '').replace(
             '\"', '').replace('\'', '').replace('(', '').replace(')', '').replace('?', '').replace('!', '').replace('#',
                                                                                                                     '').replace(
@@ -333,6 +334,10 @@ class IterativeTokenizer:
                     #     docLength -= 1
 
                 if cleanedWord.lower() not in ['may']:
+                    if len(cleanedWord) >= 15 and cleanedWord.lower().find('table') != -1 :
+                        docLength -= 1
+                        textIndex += 1
+                        continue
                     if self.config.toStem:
                         isAllLower = cleanedWord.islower()
                         lowerCaseCleanedWord = cleanedWord.lower()
@@ -726,50 +731,70 @@ from Configuration import ConfigClass
 # bn.Funds
 text = ''' 
 
- <DOC>
-<DOCNO> FBIS3-3366 </DOCNO>
-<HT>    "drchi054_k_94010" </HT>
-
-
-<HEADER>
-<AU>   FBIS-CHI-94-054 </AU>
-Document Type:Daily Report 
-<DATE1>  19 Mar 1994 </DATE1>
-
-</HEADER>
-
-<F P=100> Political &amp; Social </F>
-<H3> <TI>   CPPCC Second Session Adopts Amended Charter </TI></H3>
-<F P=102>  OW1903234794 Beijing XINHUA Domestic Service in Chinese 0921 
-GMT 19 Mar 94 </F>
-
-<F P=103> OW1903234794 </F>
-<F P=104>  Beijing XINHUA Domestic Service </F>
-
-
-<TEXT>
-Language: <F P=105> Chinese </F>
-Article Type:BFN 
-
-  [Text] Beijing, 19 Mar (XINHUA) -- Resolution of the Second 
-Session of the Eighth National Committee of the Chinese People's 
-Political Consultative Conference [CPPCC] on the (amended) 
-"Charter of the Chinese People's Political Consultative 
-Conference" 
-  (Adopted by the Second Session of the Eighth CPPCC National 
-Committee on 19 March 1994) 
-  The Second Session of the Eighth CPPCC National Committee 
-has 
-decided: The (amended) "Charter of the Chinese People's 
-Political Consultative Conference" proposed by the Standing 
-Committee of the CPPCC National Committee is adopted, and the 
-amended "Charter of the Chinese People's Political Consultative 
-Conference" shall take effect as of today. 
-
-</TEXT>
-
-</DOC>'''
-# parser = IterativeTokenizer(ConfigClass())
-# dic, length = parser.parseText(text)
-# print(dic.keys())
+<P>
+The father-son banquet honoring the football team at Mohawk Trail Regional High 
+in Buckland, Mass., an annual event since 1968, has been canceled. Quarterback 
+Owa Brandstein said he wouldn't go if his mother couldn't. 
+</P>
+<P>
+"A lot of people supporting us through hard times were mothers, but they 
+couldn't come to our banquet," Brandstein said. "It's blatant discrimination. 
+It's just wrong." 
+</P>
+<P>
+Howard Binder, a co-founder of the group that sponsors the banquet, said Monday 
+that the banquet was canceled after the guest list became an issue. He said the 
+father-son format was used because the hall that his group used for the banquet 
+wouldn't hold a bigger crowd. 
+</P>
+<P>
+Brandstein's parents, Marcine and Stewart Eisenberg, said they supported their 
+son. 
+</P>
+<P>
+"We said to Owa, 'Look, this is your only senior year. You don't have to do 
+this for us,' " Marcine Eisenberg said. "He just said, 'But it's wrong.' " 
+</P>
+<P>
+Trivia time: On Dec. 5, 1971, what player set an NFL record with 247 yards 
+rushing? 
+</P>
+<P>
+Roam and board: Would you like to have a 1,000-pound buffalo as a house guest? 
+Then contact the University of Colorado. 
+</P>
+<P>
+Ralphie III, the school's mascot who is actually a female, will be traveling 
+from Boulder, Colo., to Miami for the Orange Bowl. And she needs accommodations 
+en route. 
+</P>
+<P>
+Her needs are simple; about five pounds of grass will do for dinner. And if you 
+would like to give her stay an old-home-week touch, have a horse on hand. An 
+orphan, Ralphie III was raised on a baby bottle. She grew up thinking a horse 
+was her mother. 
+</P>
+<P>
+A shot at J.R.: J.R. Richard, whose career with the Houston Astros was ended by 
+a stroke, was cut by the West Palm Beach Tropics of the Senior League because 
+he weighed more than 300 pounds. Said Bill Lee, player-manager of the Winter 
+Haven Super Sox: "I see where Richard claims he throws 90 miles an hour. Maybe 
+he does, providing he's throwing out of a car going 60." 
+</P>
+<P>
+The present tense: New York Giant nose tackle Erik Howard, after the club had 
+committed five turnovers in a 24-17 loss to the Eagles Sunday: "We gave it to 
+them. It was ridiculous. It's tough when the defense gives up three points and 
+they end up getting 27. Merry Christmas, Philadelphia." 
+</P>
+<P>
+A day at the office: University of Maryland forward Jerrod Mustaf, on the hype 
+surrounding the ACC-Big East Challenge this week: "People who sit on 
+committees, who run the ACC and the Big East, build these things up because it 
+puts money in their pockets. To me it's just another game." 
+</P>
+<P>'''
+parser = IterativeTokenizer(ConfigClass())
+dic, length = parser.parseText(text)
+print(dic.keys())
 #
