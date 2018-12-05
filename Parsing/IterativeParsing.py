@@ -361,7 +361,6 @@ class IterativeTokenizer:
 
                     break
 
-
             tempIndex += 1
 
 

@@ -86,9 +86,6 @@ class MyManager:
             filesInLetterFolder = os.listdir(self.config.savedFilePath + "\\" + letter)
             mergedList = merger.merge(filesInLetterFolder)
 
-            # sumOfTerms += len(mergedList)
-
-
             future = executor.submit(self.fileWriter.writeMergedFile,mergedList, self.config.savedFilePath + "\\" + letter + "\\",)
             futureList.append(future)
 

@@ -47,7 +47,6 @@ class MyHeap(object):
        heapq.heappush(self.data, item)
 
    def pop(self):
-       # return heapq.heappop(self.data)[1]
         return heapq.heappop(self.data)
 
 class Merger:

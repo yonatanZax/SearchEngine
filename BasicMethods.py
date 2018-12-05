@@ -139,6 +139,7 @@ def getStringSizeInBytes(string):
 
 
 def get2DArrayFromFile(path, sep = '|'):
+    # Todo - remove textByLines
 
     try:
         myFile = open(path,'r')
@@ -147,13 +148,15 @@ def get2DArrayFromFile(path, sep = '|'):
             lines = myFile.readlines()
             myFile.close()
             twoDArray = []
+            textBylines = []
 
             for line in lines:
                 lineAsArray = line.split(sep)
+                textBylines.append(line)
                 lineAsArray[len(lineAsArray)-1] = lineAsArray[len(lineAsArray)-1][:-1]
                 twoDArray.append(lineAsArray)
 
-            return twoDArray
+            return twoDArray, ''.join(textBylines)
 
 
 

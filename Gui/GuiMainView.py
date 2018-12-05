@@ -123,8 +123,8 @@ class EngineBuilder(Frame):
         self.txtbox = scrolledtext.ScrolledText(width= 45,height=7)
         self.txtbox.place(x= 60, y = 440)
 
-        self.infoLabel = Label(self.master, text="Status: Ready", width=40, font=("bold", 10))
-        self.infoLabel.place(x=60, y=570)
+        self.statusLabel = Label(self.master, text="Status: Ready to Build\Shut down", width=40, font=("bold", 10))
+        self.statusLabel.place(x=60, y=570)
 
 
 
@@ -169,40 +169,67 @@ class EngineBuilder(Frame):
 
     def load(self):
 
-        self.droplist.destroy()
-        list1 = ['English']
-        c = StringVar()
-        self.droplist = OptionMenu(self.master, c, *list1)
-        self.droplist.config(width=15)
-        c.set('Select')
-        self.droplist.place(x=180, y=190)
-
-
-        saveMainFolderPath = str(self.entry_postingPath.get())
-        self.config.setSaveMainFolderPath(saveMainFolderPath)
-
-        check = self.checked.get()
-        self.config.setToStem(check)
 
         savedFolderPath = self.config.get__savedFilePath()
         lettersList = list(string.ascii_lowercase)
         lettersList.append('#')
+
+        fileToSave = []
 
         totalList = []
         for letter in lettersList:
             path = savedFolderPath + '/' + letter + '/' + 'mergedFile_dic'
             if not os.path.exists(path):
                 self.enableButtons()
-                self.infoLabel['text'] = 'Need to build (Check if stem is clicked)'
+                self.statusLabel['text'] = 'Need to build (Check if stem is clicked)'
                 print('Location not found', path)
                 return
-            totalList = totalList + get2DArrayFromFile(path)
+            arrayFromFile, textBylines = get2DArrayFromFile(path)
+            totalList = totalList + arrayFromFile
+            fileToSave.append(textBylines)
+
 
         self.headline = ['Term', 'df', 'sumTF', '# Posting']
         self.data = totalList
 
+        try:
+            myFile = open('Dictionary.txt','w')
+            for line in fileToSave:
+                myFile.write(str(line))
+            myFile.close()
+
+        except Exception as e:
+            print(e)
+
+
+
+
+
+
+
 
     def loadDictionary(self):
+
+
+        if self.entry_postingPath.get() == '':
+            self.statusLabel['text'] = 'Status: Enter a path to posting'
+            return
+
+        if not os.path.exists(self.entry_postingPath.get()):
+            self.statusLabel['text'] = 'Status: Enter a valid path to posting'
+            return
+
+        self.config.setSaveMainFolderPath(self.entry_postingPath.get() + '/SavedFiles')
+
+        check = self.checked.get()
+        self.config.setToStem(check)
+
+        if not os.path.exists(self.config.savedFilePath + '/a'):
+            self.statusLabel['text'] = 'Status: Please build before trying to load'
+            return
+
+
+
 
         self.disableButtons()
         print('Load dictionary')
@@ -216,6 +243,10 @@ class EngineBuilder(Frame):
 
 
     def displayDicionary(self):
+
+
+
+
 
         self.disableButtons()
         print('Display dictionary')
@@ -242,19 +273,38 @@ class EngineBuilder(Frame):
         print("Folder was deleted successfully..")
         self.buildButton.configure(state=NORMAL)
         self.deleteButton.configure(state=DISABLED)
+        self.showDicButton.configure(state = DISABLED)
+        self.uploadDicButton.configure(state = DISABLED)
 
 
 
     def buildEngine(self):
+
+        if self.entry_postingPath.get() == '' or self.entry_corpusPath.get() == '':
+            self.statusLabel['text'] = 'Status: Enter a path to corpus and posting fields'
+            return
+
         print("Corpus path:     ", self.entry_corpusPath.get())
         corpusPath = str(self.entry_corpusPath.get())
+        if not os.path.exists(corpusPath):
+            self.statusLabel['text'] = 'Status: Corpus path not exists'
+            return
+        if not os.path.exists(corpusPath + '/stop_words.txt'):
+            self.statusLabel['text'] = 'Status: stop_words.txt doesnt exists in corpus path'
+            return
+
+
         self.config.setCorpusPath(corpusPath)
 
         check = self.checked.get()
         self.config.setToStem(check)
 
         saveMainFolderPath = str(self.entry_postingPath.get())
-        self.config.setSaveMainFolderPath(saveMainFolderPath,True)
+        if not os.path.exists(saveMainFolderPath):
+            self.statusLabel['text'] = 'Status: %s path not exists' % (saveMainFolderPath,)
+            return
+
+        self.config.setSaveMainFolderPath(saveMainFolderPath + '/SavedFiles',True)
 
         print("Posting path:     ", saveMainFolderPath)
 
@@ -262,6 +312,8 @@ class EngineBuilder(Frame):
         self.disableButtons()
 
         print("\n***    ManagerRun    ***\n")
+
+        self.statusLabel['text'] = 'Building.. might take a while'
 
         from threading import Thread
         from concurrent.futures import ThreadPoolExecutor
@@ -286,14 +338,8 @@ class EngineBuilder(Frame):
 
 
 
-    # def buildSummary(self):
-    #     self.txtbox.insert('end',self.config.buildSummary)
-    #     # self.label_buildDetails['text'] = self.config.buildSummary
-
-
-
     def buildListener(self,future):
-        timeItTook, maxParsingTime, totalMerging, gettingCountryDetailsTime, totalNumberOfTerms, totalNumberOfDocuments = future.result()
+        timeItTook, maxParsingTime, totalMerging, gettingCountryDetailsTime, totalNumberOfTerms, totalNumberOfDocuments ,mergedLanguagesSet = future.result()
         print("Number of Terms: " , str(totalNumberOfTerms))
         print("Number of Docs: " , str(totalNumberOfDocuments))
         print("Parsing Time: " , str(maxParsingTime))
@@ -301,19 +347,32 @@ class EngineBuilder(Frame):
         print("Getting Country Details Time: " , str(gettingCountryDetailsTime))
         print("Everything took: " , str(timeItTook) , " seconds")
         self.enableButtons()
+
+        self.droplist.destroy()
+        c = StringVar()
+        self.droplist = OptionMenu(self.master, c, *mergedLanguagesSet)
+        self.droplist.config(width=15)
+        c.set('Select')
+        self.droplist.place(x=180, y=190)
         self.setBuildDetails(timeItTook, maxParsingTime, totalMerging, gettingCountryDetailsTime, totalNumberOfTerms, totalNumberOfDocuments)
 
 
 
 
+
     def setBuildDetails(self, timeItTook, maxParsingTime, totalMerging, gettingCountryDetailsTime, totalNumberOfTerms, totalNumberOfDocuments):
-        detailString = 'Details:\n'
+        stem = ''
+        if self.config.toStem:
+            stem = '\n** Run with stemming - Details **\n'
+        else:
+            stem = '\n** Run without stemming - Details **\n'
+        detailString = stem
         detailString += "\tNumber of Terms: " + str(totalNumberOfTerms) + "\n"
         detailString += "\tNumber of Docs: " + str(totalNumberOfDocuments) + "\n"
         detailString += "\tParsing Time: " + str(maxParsingTime) + "\n"
         detailString += "\tMerging Time: " + str(totalMerging) + "\n"
-        detailString += "\tGetting Country Details Time: " + str(gettingCountryDetailsTime) + "\n"
-        detailString += "\tEverything took: " + str(timeItTook) + " seconds"
+        # detailString += "\tGetting Country Details Time: " + str(gettingCountryDetailsTime) + "\n"
+        detailString += "\tEverything took: " + str(timeItTook) + " seconds\n"
         self.txtbox.insert('end',detailString)
         # self.label_buildDetails['text'] = detailString
 
@@ -324,6 +383,8 @@ class EngineBuilder(Frame):
         self.deleteButton.configure(state = NORMAL)
         self.showDicButton.configure(state = NORMAL)
         self.uploadDicButton.configure(state = NORMAL)
+
+        self.statusLabel['text'] = 'Status: Ready to Build\Shut down'
 
     def disableButtons(self):
         self.buildButton.configure(state = DISABLED)

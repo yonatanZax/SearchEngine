@@ -24,7 +24,7 @@ class FileWriter:
         lineToWrite = ""
         # Iter over all the terms in the dictionary and create a string to write
         for term, termData in sorted(dictionaryToWrite.dictionary_term_dicData.items()):
-            if len(termData.string_docID_tf) > 0:
+            if len(termData.string_docID_tf_positions) > 0:
                 lineToWrite += term + "|" + termData.toString() + "\n"
                 # cleans the posting dictionary
                 termData.cleanPostingData()

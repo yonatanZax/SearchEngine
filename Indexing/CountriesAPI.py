@@ -14,63 +14,47 @@ class CityAPI:
         self.usename = 'myengine'
         self.geoCoder = geocoder
         self.dictionary_country_currencyPopulation = {}
+        self.dictionary_CapitalCity_country = {}
 
-        restCountries = RestCountries()
-        countryList = restCountries.all()
+        self.restCountries = RestCountries()
+        countryList = self.restCountries.all()
         for country in countryList:
-            countryName = country.alpha2Code
+            countryCode = country.alpha2Code
             countryCurrencyName = country.currencies[0].name
             countryPopulation = country.population
+            capitalCity = country.capital
 
-            self.dictionary_country_currencyPopulation[countryName] = (countryCurrencyName,countryPopulation)
-
-
-    def getDetailsWithGeobytes(self, cityName):
-        from io import StringIO
-        import os
-        try:
-            session = requests.Session()
-            js_stream = requests.get('http://gd.geobytes.com/GetCityDetails?callback=&fqcn=' + cityName.replace(' ','&'))
-            content = js_stream.text
-            dictionary = json.loads(content)
-            country = dictionary['geobytescountry']
-            currency = dictionary['geobytescurrency']
-            population = dictionary['geobytespopulation']
-
-            if len(country) < 2:
-                return None
-
-            return [country, currency, population]
-        except Exception as ex:
-            print("City wasn't found: " , cityName)
-            return None
+            self.dictionary_country_currencyPopulation[countryCode] = (countryCurrencyName,countryPopulation)
+            self.dictionary_CapitalCity_country[capitalCity] = (countryCode, country.name)
 
 
-    def getDetailsWithGeobytesWithSession(self, cityNameList):
-        from io import StringIO
-        import os
-        citiesDictionary = {}
-        with requests.Session() as session:
-            for cityName in cityNameList:
-                try:
-                    result = session.get('http://gd.geobytes.com/GetCityDetails?callback=&fqcn=' + cityName.replace(' ','&'))
 
-                except Exception as ex:
-                    print("City wasn't found: " , cityName)
-                    print(str(ex))
-                    continue
-                content = result.text
-                dictionary = json.loads(content)
-                country = dictionary['geobytescountry']
-                if len(country) < 2:
-                    print("City wasn't found: " , cityName)
 
-                    continue
-                currency = dictionary['geobytescurrency']
-                population = dictionary['geobytespopulation']
-                fixedPopulation = convertNumToKMBformat(population)
-                citiesDictionary[cityName] = '|'.join([country, currency, fixedPopulation])
-        return citiesDictionary
+    # def getDetailsWithGeobytesWithSession(self, cityNameList):
+    #     from io import StringIO
+    #     import os
+    #     citiesDictionary = {}
+    #     with requests.Session() as session:
+    #         for cityName in cityNameList:
+    #             try:
+    #                 result = session.get('http://gd.geobytes.com/GetCityDetails?callback=&fqcn=' + cityName.replace(' ','&'))
+    #
+    #             except Exception as ex:
+    #                 print("City wasn't found: " , cityName)
+    #                 print(str(ex))
+    #                 continue
+    #             content = result.text
+    #             dictionary = json.loads(content)
+    #             country = dictionary['geobytescountry']
+    #             if len(country) < 2:
+    #                 print("City wasn't found: " , cityName)
+    #
+    #                 continue
+    #             currency = dictionary['geobytescurrency']
+    #             population = dictionary['geobytespopulation']
+    #             fixedPopulation = convertNumToKMBformat(population)
+    #             citiesDictionary[cityName] = '|'.join([country, currency, fixedPopulation])
+    #     return citiesDictionary
 
 
 
@@ -81,11 +65,28 @@ class CityAPI:
         :return: the information as a format: Country, currency, population
         """
         try:
-            city = self.geoCoder.geonames(cityName, key = self.usename)
+            city = self.geoCoder.geonames(location=cityName, fuzzy=0.8, key = self.usename, timeout=8)
 
-            # city = self.geoCoder.get(cityName,key = self.usename)
-            if city is None or self.dictionary_country_currencyPopulation.get(city.country_code) is None:
-                print (cityName )
+            if city is None:
+                if self.dictionary_country_currencyPopulation.get(city.country_code) is None:
+                    city = self.restCountries.capital(capital=cityName)
+                    if city is None:
+                        if self.dictionary_CapitalCity_country.get(cityName) is None:
+
+                            print (cityName)
+                            return None
+                        else:
+                            countryCode = self.dictionary_CapitalCity_country[cityName][0]
+                            countryName = self.dictionary_CapitalCity_country[cityName][1]
+                            fixedPopulation = convertNumToKMBformat( str(self.dictionary_country_currencyPopulation[countryCode][1]))
+                            return [countryName, str(self.dictionary_country_currencyPopulation[countryCode][0]),str(fixedPopulation)]
+
+                    fixedPopulation = convertNumToKMBformat(
+                        str(self.dictionary_country_currencyPopulation[city.country_code][1]))
+
+                    return [city.country, str(self.dictionary_country_currencyPopulation[city.country_code][0]),
+                            str(fixedPopulation)]
+                print(cityName)
                 return None
 
             fixedPopulation = convertNumToKMBformat(str(self.dictionary_country_currencyPopulation[city.country_code][1]))

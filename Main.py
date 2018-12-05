@@ -82,14 +82,17 @@ class MainClass:
         threadPoolExecutor = ThreadPoolExecutor()
         citiesFutureDic = {}
 
+        mergedLanguagesSet = set()
+
         future_manager_dic = {pool.submit(self.run, manager): manager for manager in managersList}
         for future_manager in as_completed(future_manager_dic):
             manager = future_manager_dic[future_manager]
             manager.getRun()
-            tempCityData , numberOfDocs , parsingTime, mergingTime  = future_manager.result()
+            tempCityData , languagesList, numberOfDocs , parsingTime, mergingTime  = future_manager.result()
             totalNumberOfDocuments += numberOfDocs
             maxParsingTime = max(maxParsingTime, parsingTime)
             maxMergingTime = max(maxMergingTime, mergingTime)
+
             for city, cityData in tempCityData.items():
                 if dictionary_city_cityData.get(city) is None:
                     if cityData is None:
@@ -101,6 +104,9 @@ class MainClass:
                 else:
                     dictionary_city_cityData[city] += cityData
 
+            for language in languagesList:
+                if language not in mergedLanguagesSet:
+                    mergedLanguagesSet.add(language)
         finishTime = datetime.now()
         timeItTook = finishTime - startTime
 
@@ -136,13 +142,14 @@ class MainClass:
         print("Number of files Processed: " , str(len(listOfFolders)))
 
         # self.config.setBuildDetails(timeItTook.seconds, maxParsingTime, totalMerging, gettingCountryDetails, str(totalNumberOfTerms), totalNumberOfDocuments)
-        return timeItTook.seconds, maxParsingTime, totalMerging, gettingCountryDetails, totalNumberOfTerms, totalNumberOfDocuments
+        return timeItTook.seconds, maxParsingTime, totalMerging, gettingCountryDetails, totalNumberOfTerms, totalNumberOfDocuments, sorted(mergedLanguagesSet)
 
     @staticmethod
     def run( manager):
         # print("in run main")
         numberOfDocs , parsingTime, finishedMerging = manager.run()
-        return manager.indexer.city_dictionary, numberOfDocs , parsingTime, finishedMerging
+        languagesDic = list(manager.indexer.languagesDic.keys())
+        return manager.indexer.city_dictionary, languagesDic, numberOfDocs , parsingTime, finishedMerging
 
 
 
@@ -189,80 +196,80 @@ class MainClass:
 
 
 
-
-    def getCitiesDataAndWriteIt(self,dictionary_city_cityData):
-        """
-        writing format: City|Country|Currency|Population|Doc:#loc:loc*,Doc:loc:loc**
-        :param dictionary_city_cityData:
-        :return:
-        """
-        # writeLine = ''
-        # for city, cityData in sorted(dictionary_city_cityData.items()):
-        #     info1 = city
-        #     info2 = self.cityAPI.getInformationAsString(city)
-        #     info3 = cityData.getDocLocationsAsString()
-        #     writeLine += '|'.join([info1,info2,info3,'\n'])
-        # print(writeLine)
-        writeLine = ''
-        listToWrite = []
-        start = datetime.now()
-        try:
-            for city, cityData in sorted(dictionary_city_cityData.items()):
-                information = self.cityAPI.getInformationAsString(city)
-                if information is None:
-                    continue
-                locations =  cityData.getDocLocationsAsString()
-                listToWrite.append('|'.join([city, information, locations]))
-            writeLine = '\n'.join(listToWrite)
-        except Exception as ex:
-            print('ERROR in API' , str(ex) )
-
-        if len(writeLine) > 0:
-            try:
-                path = self.config.savedFilePath + '/cityIndex'
-                myFile = open(path, 'a', encoding='utf-8')
-                myFile.write(writeLine)
-                myFile.close()
-            except IOError as ex:
-                print (str(ex))
-            except UnicodeEncodeError as ex:
-                print('ERROR in writing' , str(ex))
-
-        finish = datetime.now()
-        timeItTook = finish - start
-
-        return timeItTook.seconds
-
-
-    def getCitiesDataAndWriteItWithSession(self,dictionary_city_cityData):
-        """
-        writing format: City|Country|Currency|Population|Doc:#loc:loc*,Doc:loc:loc**
-        :param dictionary_city_cityData:
-        :return:
-        """
-        writeLine = ''
-        listToWrite = []
-        try:
-            dictionaryFromAPI = self.cityAPI.getDetailsWithGeobytesWithSession(dictionary_city_cityData.keys())
-
-            for cityName in dictionaryFromAPI.keys():
-                listToWrite.append('|'.join([cityName, dictionaryFromAPI[cityName], dictionary_city_cityData[cityName].getDocLocationsAsString()]))
-            writeLine = '\n'.join(listToWrite)
-
-        except Exception as ex:
-            print('ERROR in API' , str(ex) )
-
-        if len(writeLine) > 0:
-            try:
-                path = self.config.savedFilePath + '/cityIndex'
-                myFile = open(path, 'a', encoding='utf-8')
-                myFile.write(writeLine)
-                myFile.close()
-            except IOError as ex:
-                print (str(ex))
-            except UnicodeEncodeError as ex:
-                print('ERROR in writing' , str(ex))
-
+    #
+    # def getCitiesDataAndWriteIt(self,dictionary_city_cityData):
+    #     """
+    #     writing format: City|Country|Currency|Population|Doc:#loc:loc*,Doc:loc:loc**
+    #     :param dictionary_city_cityData:
+    #     :return:
+    #     """
+    #     # writeLine = ''
+    #     # for city, cityData in sorted(dictionary_city_cityData.items()):
+    #     #     info1 = city
+    #     #     info2 = self.cityAPI.getInformationAsString(city)
+    #     #     info3 = cityData.getDocLocationsAsString()
+    #     #     writeLine += '|'.join([info1,info2,info3,'\n'])
+    #     # print(writeLine)
+    #     writeLine = ''
+    #     listToWrite = []
+    #     start = datetime.now()
+    #     try:
+    #         for city, cityData in sorted(dictionary_city_cityData.items()):
+    #             information = self.cityAPI.getInformationAsString(city)
+    #             if information is None:
+    #                 continue
+    #             locations =  cityData.getDocLocationsAsString()
+    #             listToWrite.append('|'.join([city, information, locations]))
+    #         writeLine = '\n'.join(listToWrite)
+    #     except Exception as ex:
+    #         print('ERROR in API' , str(ex) )
+    #
+    #     if len(writeLine) > 0:
+    #         try:
+    #             path = self.config.savedFilePath + '/cityIndex'
+    #             myFile = open(path, 'a', encoding='utf-8')
+    #             myFile.write(writeLine)
+    #             myFile.close()
+    #         except IOError as ex:
+    #             print (str(ex))
+    #         except UnicodeEncodeError as ex:
+    #             print('ERROR in writing' , str(ex))
+    #
+    #     finish = datetime.now()
+    #     timeItTook = finish - start
+    #
+    #     return timeItTook.seconds
+    #
+    #
+    # def getCitiesDataAndWriteItWithSession(self,dictionary_city_cityData):
+    #     """
+    #     writing format: City|Country|Currency|Population|Doc:#loc:loc*,Doc:loc:loc**
+    #     :param dictionary_city_cityData:
+    #     :return:
+    #     """
+    #     writeLine = ''
+    #     listToWrite = []
+    #     try:
+    #         dictionaryFromAPI = self.cityAPI.getDetailsWithGeobytesWithSession(dictionary_city_cityData.keys())
+    #
+    #         for cityName in dictionaryFromAPI.keys():
+    #             listToWrite.append('|'.join([cityName, dictionaryFromAPI[cityName], dictionary_city_cityData[cityName].getDocLocationsAsString()]))
+    #         writeLine = '\n'.join(listToWrite)
+    #
+    #     except Exception as ex:
+    #         print('ERROR in API' , str(ex) )
+    #
+    #     if len(writeLine) > 0:
+    #         try:
+    #             path = self.config.savedFilePath + '/cityIndex'
+    #             myFile = open(path, 'a', encoding='utf-8')
+    #             myFile.write(writeLine)
+    #             myFile.close()
+    #         except IOError as ex:
+    #             print (str(ex))
+    #         except UnicodeEncodeError as ex:
+    #             print('ERROR in writing' , str(ex))
+    #
 
 
 if __name__ == "__main__":
