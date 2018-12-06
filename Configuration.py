@@ -15,7 +15,7 @@ class ConfigClass:
         projectMainFolder = os.path.dirname(os.path.abspath(__file__)) + '/'
         # self.corpusPath = projectMainFolder + 'corpus'
         # self.corpusPath = projectMainFolder + 'corpus - full'
-        self.corpusPath = '../corpus'
+        self.corpusPath = 'D:\corpus'
         # self.corpusPath = 'D:\SearchEngine-backup\corpus - full'
         self.savedFileMainFolder = '..'
         if not os.path.exists(self.savedFileMainFolder):
@@ -170,4 +170,8 @@ class ConfigClass:
     def get__toStem(self):
         return self.toStem
 
+    def get_numOfFiles(self):
+        import os
+        if os.path.exists(self.corpusPath):
+            return len(os.listdir(self.corpusPath)) - 1
 

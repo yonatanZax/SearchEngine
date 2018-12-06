@@ -4,6 +4,7 @@ from Parsing.Parse import Parse
 from Indexing.FileWriter import FileWriter
 from datetime import datetime
 from concurrent.futures import as_completed
+import os
 
 
 
@@ -24,12 +25,26 @@ class MyManager:
 
 
 
+
+
+
+    def updatePostingProgressBar(self,totalCount):
+        path = self.config.get__savedFilePath() + '/Progress/Posting'
+        fileName = str(self.ID) + '_' + str(totalCount)
+
+        if os.path.exists(path):
+            myFile = open(path + '/' + fileName, 'w')
+            myFile.close()
+
     def run(self):
 
         start = datetime.now()
 
         counter = 0
         numberOfDocuments = 0
+
+        totalCount = 0
+
         filesPerIteration = self.config.filesPerIteration
         for folder in self.folderList:
 
@@ -43,11 +58,17 @@ class MyManager:
                 self.indexer.addNewDoc(parsedDocument)
 
             if counter == filesPerIteration:
+                totalCount += counter
+                self.updatePostingProgressBar(totalCount)
                 self.indexer.flushMemory()
                 counter = 0
 
 
+
+
         if counter != 0:
+            totalCount += counter
+            self.updatePostingProgressBar(totalCount)
             self.indexer.flushMemory()
 
         finishedParsing = datetime.now()

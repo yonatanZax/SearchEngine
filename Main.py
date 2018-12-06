@@ -22,8 +22,6 @@ class MainClass:
     def __init__(self):
 
         self.config = ConfigClass()
-
-
         self.cityAPI = CityAPI()
 
     def GUIRun(self):
@@ -35,7 +33,7 @@ class MainClass:
         # root.geometry('800x1000')
         root.title("SearchEngine")
 
-        guiFrame = GuiMainView.EngineBuilder(root, mainManager=self, config=self.config, numOfTotalFiles=self.config.get__listOfFoldersLength())
+        guiFrame = GuiMainView.EngineBuilder(root, mainManager=self, config=self.config)
         guiFrame.mainloop()
 
     def managerRun(self):

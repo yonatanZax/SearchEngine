@@ -12,13 +12,12 @@ from Gui.TkinterTable import TableView
 
 class EngineBuilder(Frame):
 
-    def __init__(self, master, mainManager, config, numOfTotalFiles):
+    def __init__(self, master, mainManager, config):
         self.config = config
         self.mainManager = mainManager
         Frame.__init__(self, master)
         self.grid()
         # self.filesDone = 0
-        self.numOfTotalFiles = numOfTotalFiles
         self.numOfFilesPerIteration = config.get__filesPerIteration()
 
         self.XstartPixel = 60
@@ -109,8 +108,8 @@ class EngineBuilder(Frame):
         linesAsString = ''
         for i in range(0, 51):
             linesAsString += ' '
-        label = "Progress:     ["
-        self.label_progress['text'] = label + linesAsString + '] 00%'
+        self.progressLabel = "Posting Progress:     ["
+        self.label_progress['text'] = self.progressLabel + linesAsString + '] 00%'
 
 
 
@@ -147,45 +146,57 @@ class EngineBuilder(Frame):
 
     def updatePostingProgress(self):
         flag = True
-        label = "Progress:     ["
         import os
         import time
-        counter = 0
 
         while flag:
 
-            time.sleep(0.5)
-            counter+=1
+            time.sleep(30)
+            counter = 0
 
-
-            # path = self.config.get__savedFilePath() + '/Progress/Posting'
-            # if not os.path.exists(path):
-            #     break
-            # listOfFiles = os.listdir(path)
-            # if len(listOfFiles) == 0:
-            #     continue
-            # for file in listOfFiles:
-            #     splitedFile = file.split('_')
-            #     counter += int(splitedFile[-1])
-            #
-            # if counter == self.numOfTotalFiles:
-            #     return
-
-
-            percent = (counter/self.numOfTotalFiles)*50
-            percent = int(percent)
-            if percent >= 51:
+            path = self.config.get__savedFilePath() + '/Progress/Posting'
+            if not os.path.exists(path):
                 break
+            listOfFiles = os.listdir(path)
+            if len(listOfFiles) == 0:
+                continue
+
+            dicByManagerID = {}
+            for file in listOfFiles:
+                splitedFile = file.split('_')
+                managerID = splitedFile[0]
+                managerFileCount = int(splitedFile[1])
+                if dicByManagerID.get(managerID) is None:
+                    dicByManagerID[managerID] = managerFileCount
+                else:
+                    if managerFileCount > dicByManagerID[managerID]:
+                        dicByManagerID[managerID] = managerFileCount
+
+            for value in dicByManagerID.values():
+                counter += value
+
+
+
+
+            percent = (counter/self.config.get_numOfFiles())*50
+            percent = int(percent)
+            if percent >= 49:
+                linesAsString = ''
+                for i in range(0, 51):
+                    linesAsString += '|'
+                self.label_progress['text'] = self.progressLabel + linesAsString + '] 100%'
+                return
+
             linesAsString = ''
-            for i in range(0,percent+1):
+            for i in range(0,percent + 1):
                 linesAsString += '|'
-            for i in range(percent - 1,50):
+            for i in range(percent + 1,51):
                 linesAsString += ' '
 
             percentString = str(percent*2)
             if len(percentString) == 1:
                 percentString = '0' + percentString
-            self.label_progress['text'] = label + linesAsString + '] ' + percentString + '% '
+            self.label_progress['text'] = self.progressLabel + linesAsString + '] ' + percentString + '% '
 
 
 
@@ -276,7 +287,7 @@ class EngineBuilder(Frame):
         self.disableButtons()
         print('Display dictionary')
 
-
+        self.statusLabel['text'] = 'Status: preparing a nice table to view terms'
 
         self.displayClass = TableView(self.data, self.headline)
 
@@ -358,8 +369,8 @@ class EngineBuilder(Frame):
         threadWaitUntilBuildDone.start()
 
 
-        # threadProgress = Thread(target=self.updatePostingProgress)
-        # threadProgress.start()
+        threadProgress = Thread(target=self.updatePostingProgress)
+        threadProgress.start()
 
 
     @ staticmethod
@@ -371,13 +382,16 @@ class EngineBuilder(Frame):
 
 
     def buildListener(self,future):
+        from Parsing.ConvertMethods import converSecondsToTime
+
         timeItTook, maxParsingTime, totalMerging, totalNumberOfTerms, totalNumberOfDocuments ,mergedLanguagesSet = future.result()
         print("Number of Terms: " , str(totalNumberOfTerms))
         print("Number of Docs: " , str(totalNumberOfDocuments))
-        print("Parsing Time: " , str(maxParsingTime))
-        print("Merging Time: " , str(totalMerging))
-        print("Everything took: " , str(timeItTook) , " seconds")
+        print("Parsing Time: " , str(converSecondsToTime(maxParsingTime)))
+        print("Merging Time: " , str(converSecondsToTime(totalMerging)))
+        print("Everything took: " , str(converSecondsToTime(timeItTook)))
         self.enableButtons()
+
 
         self.droplist.destroy()
         c = StringVar()
@@ -392,6 +406,7 @@ class EngineBuilder(Frame):
 
 
     def setBuildDetails(self, timeItTook, maxParsingTime, totalMerging, totalNumberOfTerms, totalNumberOfDocuments):
+        from Parsing.ConvertMethods import converSecondsToTime
         stem = ''
         if self.config.toStem:
             stem = '\n** Run with stemming - Details **\n'
@@ -400,9 +415,15 @@ class EngineBuilder(Frame):
         detailString = stem
         detailString += "\tNumber of Terms:  " + str(totalNumberOfTerms) + "\n"
         detailString += "\tNumber of Docs:   " + str(totalNumberOfDocuments) + "\n"
-        detailString += "\tParsing Time:     " + str(maxParsingTime) + "\n"
-        detailString += "\tMerging Time:     " + str(totalMerging) + "\n"
-        detailString += "\tEverything took:  " + str(timeItTook) + " seconds\n"
+        detailString += "\tParsing Time:     " + str(converSecondsToTime(maxParsingTime)) + "\n"
+        detailString += "\tMerging Time:     " + str(converSecondsToTime(totalMerging)) + "\n"
+        detailString += "\tEverything took:  " + str(converSecondsToTime(timeItTook)) + "\n"
+
+        linesAsString = ''
+        for i in range(0, 51):
+            linesAsString += '|'
+        self.label_progress['text'] = self.progressLabel + linesAsString + '] 100%'
+
         self.txtbox.insert('end',detailString)
         # self.label_buildDetails['text'] = detailString
 

@@ -80,10 +80,13 @@ class IterativeTokenizer:
 
         self.betweenPattern = re.compile(r"[Bb]etween " + "[\d,]+" + " and " + "[\d,]+")
 
+        self.filterFlagsPattern = re.compile(r"<([\w]+)>")
+
         self.stopWordsDic = {}
 
         self.dictionary_term_stemmedTerm = {}
         try:
+            import os
             path = self.config.stopWordPath
             with open(path) as f:
                 for word in f.read().splitlines():
@@ -101,6 +104,9 @@ class IterativeTokenizer:
     def replaceBetween(self,token):
         splitedToken = token.group().split(' ')
         return splitedToken[0] + '-' + splitedToken[2]
+
+    def replaceFlags(self,token):
+        return ' '
 
 
     def cleanToken(self,token):
@@ -155,8 +161,11 @@ class IterativeTokenizer:
     def parseText(self,text):
 
         self.betweenPattern.sub(self.replaceBetween, text)
+        import lxml.html
+        t = lxml.html.fromstring(text)
+        text = t.text_content()
 
-        text = text.replace("<P>", '').replace("</P>", '').replace("\n", ' ').replace('\t', ' ').replace('{', '').replace('}', '').replace('[', '').replace(']',
+        text = text.replace("\n", ' ').replace('\t', ' ').replace('{', '').replace('}', '').replace('[', '').replace(']',
                                                                                                                    '').replace(
             '\"', '').replace('\'', '').replace('(', '').replace(')', '').replace('?', '').replace('!', '').replace('#',
                                                                                                                     '').replace(
@@ -168,6 +177,7 @@ class IterativeTokenizer:
         text = re.sub(r'[-]+','-',text)
         text = re.sub(r'[.]+', '.', text)
         text = re.sub(r'[,]+', ',', text)
+        text = re.sub(r'[ ]+', ' ', text)
         splittedText = text.split(' ')
         return self.parseFromList(splittedText, 0)
 
@@ -545,6 +555,7 @@ class IterativeTokenizer:
     def numTMBT_tokenToTerm(self,curIndex, listOfTokens):
         import Parsing.ConvertMethods  as convert
         token = listOfTokens[curIndex]
+
         if token[0] == '.':
             token = '0' + token
         term = token[0]
@@ -596,6 +607,8 @@ class IterativeTokenizer:
                 return [term, token[p:]], curIndex + 1
 
             p += 1
+
+
 
         # locking for 1/2
         curIndex += 1
@@ -703,51 +716,51 @@ from Configuration import ConfigClass
 
 
 
-text = ''' 
-
- <DOC>
-<DOCNO> FBIS3-3366 </DOCNO>
-<HT>    "drchi054_k_94010" </HT>
-
-
-<HEADER>
-<AU>   FBIS-CHI-94-054 </AU>
-Document Type:Daily Report 
-<DATE1>  19 Mar 1994 </DATE1>
-
-</HEADER>
-
-<F P=100> Political &amp; Social </F>
-<H3> <TI>   CPPCC Second Session Adopts Amended Charter </TI></H3>
-<F P=102>  OW1903234794 Beijing XINHUA Domestic Service in Chinese 0921 
-GMT 19 Mar 94 </F>
-
-<F P=103> OW1903234794 </F>
-<F P=104>  Beijing XINHUA Domestic Service </F>
-
-
-<TEXT>
-Language: <F P=105> Chinese </F>
-Article Type:BFN 
-
-  [Text] Beijing, 19 Mar (XINHUA) -- Resolution of the Second 
-Session of the Eighth National Committee of the Chinese People's 
-Political Consultative Conference [CPPCC] on the (amended) 
-"Charter of the Chinese People's Political Consultative 
-Conference" 
-  (Adopted by the Second Session of the Eighth CPPCC National 
-Committee on 19 March 1994) 
-  The Second Session of the Eighth CPPCC National Committee 
-has 
-decided: The (amended) "Charter of the Chinese People's 
-Political Consultative Conference" proposed by the Standing 
-Committee of the CPPCC National Committee is adopted, and the 
-amended "Charter of the Chinese People's Political Consultative 
-Conference" shall take effect as of today. 
-
-</TEXT>
-
-</DOC>'''
+# text = '''
+#
+#  <DOC>
+# <DOCNO> FBIS3-3366 </DOCNO>
+# <HT>    "drchi054_k_94010" </HT>
+#
+#
+# <HEADER>
+# <AU>   FBIS-CHI-94-054 </AU>
+# Document Type:Daily Report
+# <DATE1>  19 Mar 1994 </DATE1>
+#
+# </HEADER>
+#
+# <F P=100> Political &amp; Social </F>
+# <H3> <TI>   CPPCC Second Session Adopts Amended Charter </TI></H3>
+# <F P=102>  OW1903234794 Beijing XINHUA Domestic Service in Chinese 0921
+# GMT 19 Mar 94 </F>
+#
+# <F P=103> OW1903234794 </F>
+# <F P=104>  Beijing XINHUA Domestic Service </F>
+#
+#
+# <TEXT>
+# Language: <F P=105> Chinese </F>
+# Article Type:BFN
+#
+#   [Text] Beijing, 19 Mar (XINHUA) -- Resolution of the Second
+# Session of the Eighth National Committee of the Chinese People's
+# Political Consultative Conference [CPPCC] on the (amended)
+# "Charter of the Chinese People's Political Consultative
+# Conference"
+#   (Adopted by the Second Session of the Eighth CPPCC National
+# Committee on 19 March 1994)
+#   The Second Session of the Eighth CPPCC National Committee
+# has
+# decided: The (amended) "Charter of the Chinese People's
+# Political Consultative Conference" proposed by the Standing
+# Committee of the CPPCC National Committee is adopted, and the
+# amended "Charter of the Chinese People's Political Consultative
+# Conference" shall take effect as of today.
+#
+# </TEXT>
+#
+# </DOC>'''
 # parser = IterativeTokenizer(ConfigClass())
 # dic, length = parser.parseText(text)
 # print(dic.keys())

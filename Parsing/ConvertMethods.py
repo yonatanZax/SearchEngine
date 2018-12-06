@@ -60,5 +60,9 @@ def removeCommasFromNumber(numAsString):
 
 
 
+def converSecondsToTime(numInSeconds):
+    import datetime
+    return str(datetime.timedelta(seconds=numInSeconds))
+
 
 

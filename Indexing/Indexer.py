@@ -36,8 +36,8 @@ class Indexer:
                 continue
             termFrequency = termData.getTermFrequency()
             if englishLetters.get(term[0]):
-                if term == 'ZAXROY':
-                    term = document.city
+                if 'ZAXROY' in term and len(document.city) > 1:
+                    term = term.replace('ZAXROY',document.city)
                 self.myDictionaryByLetters[term[0].lower()].addTerm(termString=term, docNo=docNo, termFrequency=termFrequency, termPositions=termData.getPositions())
             else:
                 if len(term) > 0:
