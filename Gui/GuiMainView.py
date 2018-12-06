@@ -1,3 +1,4 @@
+import shutil
 import string
 from tkinter import *
 from tkinter import filedialog
@@ -5,6 +6,8 @@ from tkinter import filedialog
 from threading import Thread
 
 import os
+
+import math
 
 from BasicMethods import get2DArrayFromFile
 from Gui.TkinterTable import TableView
@@ -66,7 +69,8 @@ class EngineBuilder(Frame):
 
 
 
-        self.data = None
+        self.dataStem = None
+        self.dataNoStem = None
         self.headline = None
 
 
@@ -101,15 +105,24 @@ class EngineBuilder(Frame):
 
         # Create progress bar
 
-        self.label_progress = Label(self.master, text=" ", width=50, font=("bold", 10))
-        self.label_progress.place( x = self.XstartPixel + 40, y = self.YstartPixel + 320)
+        self.label_postingProgress = Label(self.master, text=" ", width=50, font=("bold", 10))
+        self.label_postingProgress.place(x =self.XstartPixel + 40, y =self.YstartPixel + 300)
+
+        self.label_mergeProgress = Label(self.master, text=" ", width=50, font=("bold", 10))
+        self.label_mergeProgress.place(x =self.XstartPixel + 40, y =self.YstartPixel + 320)
+
+
 
         # Set Progress bar
         linesAsString = ''
         for i in range(0, 51):
+            if i % 4 == 0:
+                continue
             linesAsString += ' '
-        self.progressLabel = "Posting Progress:     ["
-        self.label_progress['text'] = self.progressLabel + linesAsString + '] 00%'
+        self.posting_progressLabel = "Posting Progress:     ["
+        self.merge_progressLabel = "Merge Progress:     ["
+        self.label_postingProgress['text'] = self.posting_progressLabel + linesAsString + '] 00%'
+        self.label_mergeProgress['text'] = self.merge_progressLabel + linesAsString + '] 00%'
 
 
 
@@ -144,17 +157,20 @@ class EngineBuilder(Frame):
 
 
 
-    def updatePostingProgress(self):
+    def updateProgress(self, posting_merge):
         flag = True
         import os
         import time
 
+
+        sleepTime = 2
+
         while flag:
 
-            time.sleep(30)
+            time.sleep(sleepTime)
             counter = 0
 
-            path = self.config.get__savedFilePath() + '/Progress/Posting'
+            path = self.config.get__savedFilePath() + '/Progress/%s' % (posting_merge)
             if not os.path.exists(path):
                 break
             listOfFiles = os.listdir(path)
@@ -162,42 +178,74 @@ class EngineBuilder(Frame):
                 continue
 
             dicByManagerID = {}
-            for file in listOfFiles:
+            lastCount = ''
+            for file in sorted(listOfFiles):
                 splitedFile = file.split('_')
                 managerID = splitedFile[0]
                 managerFileCount = int(splitedFile[1])
+
+                if managerID == '-1':
+                    # sleepTime = 10
+                    shutil.rmtree(path)
+                    os.mkdir(path)
+                    dicByManagerID = {}
+                    dicByManagerID['-1'] = managerFileCount
+                    break
                 if dicByManagerID.get(managerID) is None:
                     dicByManagerID[managerID] = managerFileCount
                 else:
                     if managerFileCount > dicByManagerID[managerID]:
                         dicByManagerID[managerID] = managerFileCount
 
+                lastCount = str(managerFileCount)
+
             for value in dicByManagerID.values():
                 counter += value
 
 
 
+            if posting_merge == 'Posting':
+                percent = (counter / self.config.get_numOfFiles()) * 50
+                percent = int(percent)
 
-            percent = (counter/self.config.get_numOfFiles())*50
-            percent = int(percent)
+            elif posting_merge == 'Merge':
+                # print(dicByManagerID)
+                numOfFiles = counter
+                filesPerIteration = 10
+                filesPerIterationMerge = 10
+                numOfManagers = self.config.managersNumber
+
+                # F + [F/N] + [(F/N)/I] + [(F/N)(I/M)] + 27*10
+                # percent = numOfFiles + math.ceil(numOfFiles/numOfManagers) + math.ceil((numOfFiles/numOfManagers)/filesPerIteration) + math.ceil((numOfFiles/numOfManagers)/(filesPerIteration/filesPerIterationMerge)) + 27*10
+
+                percent = (counter / (self.config.get_numOfFiles() + 27*50)) * 50
+                percent = int(percent)
+
+
+
             if percent >= 49:
                 linesAsString = ''
                 for i in range(0, 51):
                     linesAsString += '|'
-                self.label_progress['text'] = self.progressLabel + linesAsString + '] 100%'
+                self.label_postingProgress['text'] = self.posting_progressLabel + linesAsString + '] 100%'
                 return
 
             linesAsString = ''
             for i in range(0,percent + 1):
                 linesAsString += '|'
             for i in range(percent + 1,51):
+                if i % 4 == 0:
+                    continue
                 linesAsString += ' '
 
             percentString = str(percent*2)
             if len(percentString) == 1:
                 percentString = '0' + percentString
-            self.label_progress['text'] = self.progressLabel + linesAsString + '] ' + percentString + '% '
 
+            if posting_merge == 'Posting':
+                self.label_postingProgress['text'] = self.posting_progressLabel + linesAsString + '] ' + percentString + '% '
+            elif posting_merge == 'Merge':
+                self.label_mergeProgress['text'] = self.merge_progressLabel + linesAsString + '] ' + percentString + '% '
 
 
 
@@ -224,7 +272,10 @@ class EngineBuilder(Frame):
 
 
         self.headline = ['Term', 'df', 'sumTF', '# Posting']
-        self.data = totalList
+        if self.config.toStem:
+            self.dataStem = totalList
+        else:
+            self.dataNoStem = totalList
 
         try:
             myFile = open('Dictionary.txt','w')
@@ -259,13 +310,19 @@ class EngineBuilder(Frame):
         self.config.setToStem(check)
 
         if not os.path.exists(self.config.savedFilePath + '/a'):
-            self.statusLabel['text'] = 'Status: Please build before trying to load'
+            if check:
+                self.statusLabel['text'] = 'Status (stem is checked): build before load'
+            else:
+                self.statusLabel['text'] = 'Status (stem not checked): build before load'
+
             return
 
 
 
 
         self.disableButtons()
+        self.statusLabel['text'] = 'Status: Loading terms'
+
         print('Load dictionary')
 
         t = Thread(target=self.load, args=())
@@ -278,10 +335,24 @@ class EngineBuilder(Frame):
 
     def displayDicionary(self):
 
+        check = self.checked.get()
+        self.config.setToStem(check)
+        data = None
 
-        if self.data is None or self.headline is None:
-            self.statusLabel['text'] = 'Status: need to upload before clicking on Show'
-            return
+        if self.config.toStem:
+            if self.dataStem is None or self.headline is None:
+                self.statusLabel['text'] = 'Status (stem is checked): upload before Show'
+                return
+            else:
+                data = self.dataStem
+
+        else:
+            if self.dataNoStem is None or self.headline is None:
+                self.statusLabel['text'] = 'Status (stem not checked): upload before Show'
+                return
+            else:
+                data = self.dataNoStem
+
 
 
         self.disableButtons()
@@ -289,7 +360,7 @@ class EngineBuilder(Frame):
 
         self.statusLabel['text'] = 'Status: preparing a nice table to view terms'
 
-        self.displayClass = TableView(self.data, self.headline)
+        self.displayClass = TableView(data, self.headline)
 
 
 
@@ -369,8 +440,12 @@ class EngineBuilder(Frame):
         threadWaitUntilBuildDone.start()
 
 
-        threadProgress = Thread(target=self.updatePostingProgress)
-        threadProgress.start()
+        threadPostingProgress = Thread(target=self.updateProgress , args=('Posting',))
+        threadPostingProgress.start()
+
+
+        threadMergeProgress = Thread(target=self.updateProgress, args=('Merge',))
+        threadMergeProgress.start()
 
 
     @ staticmethod
@@ -422,7 +497,8 @@ class EngineBuilder(Frame):
         linesAsString = ''
         for i in range(0, 51):
             linesAsString += '|'
-        self.label_progress['text'] = self.progressLabel + linesAsString + '] 100%'
+        self.label_postingProgress['text'] = self.posting_progressLabel + linesAsString + '] 100%'
+        self.label_mergeProgress['text'] = self.merge_progressLabel + linesAsString + '] 100%'
 
         self.txtbox.insert('end',detailString)
         # self.label_buildDetails['text'] = detailString

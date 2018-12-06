@@ -28,9 +28,9 @@ class MyManager:
 
 
 
-    def updatePostingProgressBar(self,totalCount):
-        path = self.config.get__savedFilePath() + '/Progress/Posting'
-        fileName = str(self.ID) + '_' + str(totalCount)
+    def updateProgressBar(self, value, posting_merge):
+        path = self.config.get__savedFilePath() + '/Progress/%s' % (posting_merge)
+        fileName = str(self.ID) + '_' + str(value)
 
         if os.path.exists(path):
             myFile = open(path + '/' + fileName, 'w')
@@ -59,7 +59,7 @@ class MyManager:
 
             if counter == filesPerIteration:
                 totalCount += counter
-                self.updatePostingProgressBar(totalCount)
+                self.updateProgressBar(totalCount,'Posting')
                 self.indexer.flushMemory()
                 counter = 0
 
@@ -68,7 +68,7 @@ class MyManager:
 
         if counter != 0:
             totalCount += counter
-            self.updatePostingProgressBar(totalCount)
+            self.updateProgressBar(totalCount,'Posting')
             self.indexer.flushMemory()
 
         finishedParsing = datetime.now()
@@ -102,6 +102,8 @@ class MyManager:
         executor = ThreadPoolExecutor()
         futureList = []
 
+        progressCounter = 0
+
         for letter in self.lettersList:
 
             filesInLetterFolder = os.listdir(self.config.savedFilePath + "\\" + letter)
@@ -109,6 +111,9 @@ class MyManager:
 
             future = executor.submit(self.fileWriter.writeMergedFile,mergedList, self.config.savedFilePath + "\\" + letter + "\\",)
             futureList.append(future)
+
+            progressCounter += 50
+            self.updateProgressBar(progressCounter + int(self.config.get_numOfFiles()/self.config.managersNumber),'Merge')
 
         for future in as_completed(futureList):
             sumOfTerms += future.result()

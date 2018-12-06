@@ -107,6 +107,12 @@ class MainClass:
 
         firstManagerToFinish = True
 
+
+        # UpdateProgress
+        self.updateProgressBar(len(listOfFolders),'Posting')
+
+
+
         totalNumberOfTerms = 0
         maxSecondMergeTime = 0
 
@@ -177,7 +183,13 @@ class MainClass:
                 print('ERROR in writing', str(ex))
 
 
+    def updateProgressBar(self, value, posting_merge):
+        path = self.config.get__savedFilePath() + '/Progress/%s' % (posting_merge)
+        fileName = '-1_' + str(value)
 
+        if os.path.exists(path):
+            myFile = open(path + '/' + fileName, 'w')
+            myFile.close()
 
 
 

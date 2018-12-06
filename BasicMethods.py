@@ -166,3 +166,6 @@ def get2DArrayFromFile(path, sep = '|'):
         print("Error while converting file to 2D array, E: ",ex)
 
 
+
+
+

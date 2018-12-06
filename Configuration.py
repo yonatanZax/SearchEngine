@@ -116,6 +116,7 @@ class ConfigClass:
         if not os.path.exists(self.savedFilePath + '/Progress'):
             os.mkdir(self.savedFilePath + '/Progress')
             os.mkdir(self.savedFilePath + '/Progress/Posting')
+            os.mkdir(self.savedFilePath + '/Progress/Merge')
 
 
 
