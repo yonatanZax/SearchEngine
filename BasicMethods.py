@@ -122,10 +122,34 @@ def getColumnIndexFromHeadLline(headlineAsArray, colName):
 
 
 
+def getStringSizeInBytes(string):
+    return len(string.encode('utf-8'))
+
+
+
+
+def get2DArrayFromFile(path, sep = '|'):
+
+    try:
+        myFile = open(path,'r')
+
+        with myFile:
+            lines = myFile.readlines()
+            myFile.close()
+            twoDArray = []
+
+            for line in lines:
+                lineAsArray = line.split(sep)
+                lineAsArray[len(lineAsArray)-1] = lineAsArray[len(lineAsArray)-1][:-1]
+                twoDArray.append(lineAsArray)
+
+            return twoDArray
 
 
 
 
 
+    except Exception as ex:
+        print("Error while converting file to 2D array, E: ",ex)
 
 
