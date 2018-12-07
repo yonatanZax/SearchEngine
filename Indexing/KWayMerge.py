@@ -81,7 +81,7 @@ class Merger:
             # read all the files to a list and close the files
             for file in input_files:
                 # open the file
-                with open(self.config.savedFilePath + "\\" + file[0] + "\\" + file, 'r') as openFile:
+                with open(self.config.savedFilePath + "\\" + file[0] + "\\" + file, 'r', encoding='utf-8') as openFile:
 
                     # read all lines to a list of lists
                     fileList = openFile.readlines()
@@ -92,7 +92,6 @@ class Merger:
                     # enqueue the first line to the priority  queue
                     firstLine = fileList[0]
                     splittedfirstLine = firstLine.split('|')
-
                     # the format is: termLowerCase=0, term=1, DF=2, sumDF=3, Posting=4,Index=5,file=6
                     self._heap.push(MergeDataClass(splittedfirstLine[0].lower(), splittedfirstLine[0], splittedfirstLine[1], splittedfirstLine[2],splittedfirstLine[3], 0, fileList))
         except PermissionError as err:

@@ -12,6 +12,8 @@ class ConfigClass:
 
         self.corpusPath = ''
         self.savedFileMainFolder = ''
+        self.saveFilesWithStem = self.savedFileMainFolder + "/WithStem"
+        self.saveFilesWithoutStem = self.savedFileMainFolder + "/WithoutStem"
 
         self.stopWordFile = 'stop_words.txt'
 
