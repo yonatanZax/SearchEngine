@@ -93,9 +93,7 @@ class FileWriter:
 
 
         if len(lineToWritePost) > 0:
-            # endTermIndex = finalList[len(finalList) - 1][0].find('|')
             endTermIndex = ListToWriteDic[len(ListToWriteDic) - 1].find('|')
-            # lastTerm = finalList[len(finalList) - 1][0][0:endTermIndex]
             currentTerm = ListToWriteDic[len(ListToWriteDic) - 1][0:endTermIndex]
             self.writeToFile(pathForPosting + currentTerm + '_post', lineToWritePost.rstrip('\n'))
 
@@ -115,12 +113,12 @@ class FileWriter:
         self.writeToFile(outputFile, lineToWrite)
 
     def createFile(self,path, headLineString):
-        myFile = open(path, 'w')
+        myFile = open(path, 'w', encoding='utf-8')
         myFile.write(headLineString + "\n")
         myFile.close()
 
     def writeToFile(self,path, lineToWrite):
-        myFile = open(path, 'a')
+        myFile = open(path, 'a', encoding='utf-8')
         myFile.write(lineToWrite)
         myFile.close()
 

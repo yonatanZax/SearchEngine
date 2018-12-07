@@ -298,12 +298,7 @@ class IterativeTokenizer:
                         textIndex += 1
                         docLength += LengthReturned
                         continue
-                        # termList = []
-                        # for w in splitByComma:
-                        #     terms , index = self.parseText(w)
-                        #     termList = termList + list(terms)
-                        # for term in termList:
-                        #     self.addTermToDic(termsDic, term, textIndex + offset)
+
                     elif cleanedWord.count('.') > 0:
                         splitByDot = cleanedWord.strip('.').split('.')
                         tokenDic, LengthReturned = self.parseFromList(splitByDot, textIndex)
@@ -314,14 +309,7 @@ class IterativeTokenizer:
                         textIndex += 1
                         docLength += LengthReturned
                         continue
-                        # if len(splitByDot) > 1:
-                        #     termList = []
-                        #     for w in splitByDot:
-                        #         terms, index = self.parseText(w)
-                        #         termList = termList + list(terms)
-                        #
-                        #     for term in termList:
-                        #         self.addTermToDic(termsDic, term, textIndex + offset)
+
                     else:
                         if cleanedWord[0].isupper():
                             termList , returnedIndex = self.ruleNBA(textIndex, splittedText)
@@ -335,8 +323,6 @@ class IterativeTokenizer:
                                 textIndex = returnedIndex
                                 continue
 
-                    # else:
-                    #     docLength -= 1
 
                 if cleanedWord.lower() not in ['may']:
                     if len(cleanedWord) >= 15 and cleanedWord.lower().find('table') != -1 :
@@ -393,7 +379,6 @@ class IterativeTokenizer:
 
             tempIndex += 1
 
-
         return listOfTerms , index + 1
 
 
@@ -439,7 +424,6 @@ class IterativeTokenizer:
 
     def splitTokenBySeparator(self, index, textList,sep):
         splittedText = textList[index].split(sep)
-        # splittedText = list(filter(self.filterAll, splittedText))
 
         termsDic, docLength = self.parseFromList(splittedText,index)
         if '$' in textList[index] or 'illion' in textList[index]:
@@ -487,8 +471,6 @@ class IterativeTokenizer:
                 else:
                     term = str(float(term) * convert.convertTMBT_toNum('', token[p].lower()))
 
-                # term = convert.convertNumToKMBformat(term)
-
                 if p < len(token):
                     if token[p] == '.':
                         hasDot = True
@@ -524,7 +506,6 @@ class IterativeTokenizer:
                             if token[p] == '.':
                                 p += 1
                             # if nextToken has more than 1 slash , meaning is not a fraction
-                            # term = convert.convertNumToKMBformat(term)
                             return [term, token[p + 1:]], curIndex - 1
                     else:
                         break
@@ -710,58 +691,3 @@ class IterativeTokenizer:
             term = convert.convertNumToKMBformat(term)
             return [term], curIndex
 
-
-
-from Configuration import ConfigClass
-
-
-
-# text = '''
-#
-#  <DOC>
-# <DOCNO> FBIS3-3366 </DOCNO>
-# <HT>    "drchi054_k_94010" </HT>
-#
-#
-# <HEADER>
-# <AU>   FBIS-CHI-94-054 </AU>
-# Document Type:Daily Report
-# <DATE1>  19 Mar 1994 </DATE1>
-#
-# </HEADER>
-#
-# <F P=100> Political &amp; Social </F>
-# <H3> <TI>   CPPCC Second Session Adopts Amended Charter </TI></H3>
-# <F P=102>  OW1903234794 Beijing XINHUA Domestic Service in Chinese 0921
-# GMT 19 Mar 94 </F>
-#
-# <F P=103> OW1903234794 </F>
-# <F P=104>  Beijing XINHUA Domestic Service </F>
-#
-#
-# <TEXT>
-# Language: <F P=105> Chinese </F>
-# Article Type:BFN
-#
-#   [Text] Beijing, 19 Mar (XINHUA) -- Resolution of the Second
-# Session of the Eighth National Committee of the Chinese People's
-# Political Consultative Conference [CPPCC] on the (amended)
-# "Charter of the Chinese People's Political Consultative
-# Conference"
-#   (Adopted by the Second Session of the Eighth CPPCC National
-# Committee on 19 March 1994)
-#   The Second Session of the Eighth CPPCC National Committee
-# has
-# decided: The (amended) "Charter of the Chinese People's
-# Political Consultative Conference" proposed by the Standing
-# Committee of the CPPCC National Committee is adopted, and the
-# amended "Charter of the Chinese People's Political Consultative
-# Conference" shall take effect as of today.
-#
-# </TEXT>
-#
-# </DOC>'''
-# parser = IterativeTokenizer(ConfigClass())
-# dic, length = parser.parseText(text)
-# print(dic.keys())
-#

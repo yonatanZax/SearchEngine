@@ -1,11 +1,6 @@
-import pycountry
 from restcountries.api import RestCountries
-from restcountries.api import Country
 import geocoder
 from Parsing.ConvertMethods import convertNumToKMBformat
-import requests
-import json
-
 
 
 class CityAPI:
@@ -26,35 +21,6 @@ class CityAPI:
 
             self.dictionary_country_currencyPopulation[countryCode] = (countryCurrencyName,countryPopulation)
             self.dictionary_CapitalCity_country[capitalCity] = (countryCode, country.name)
-
-
-
-
-    # def getDetailsWithGeobytesWithSession(self, cityNameList):
-    #     from io import StringIO
-    #     import os
-    #     citiesDictionary = {}
-    #     with requests.Session() as session:
-    #         for cityName in cityNameList:
-    #             try:
-    #                 result = session.get('http://gd.geobytes.com/GetCityDetails?callback=&fqcn=' + cityName.replace(' ','&'))
-    #
-    #             except Exception as ex:
-    #                 print("City wasn't found: " , cityName)
-    #                 print(str(ex))
-    #                 continue
-    #             content = result.text
-    #             dictionary = json.loads(content)
-    #             country = dictionary['geobytescountry']
-    #             if len(country) < 2:
-    #                 print("City wasn't found: " , cityName)
-    #
-    #                 continue
-    #             currency = dictionary['geobytescurrency']
-    #             population = dictionary['geobytespopulation']
-    #             fixedPopulation = convertNumToKMBformat(population)
-    #             citiesDictionary[cityName] = '|'.join([country, currency, fixedPopulation])
-    #     return citiesDictionary
 
 
 

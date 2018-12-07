@@ -30,7 +30,6 @@ class MainClass:
         print("***   Main Start   ***")
         root = GuiMainView.Tk()
         root.geometry('600x700')
-        # root.geometry('800x1000')
         root.title("SearchEngine")
 
         guiFrame = GuiMainView.EngineBuilder(root, mainManager=self, config=self.config)
@@ -142,7 +141,6 @@ class MainClass:
 
     @staticmethod
     def run( manager):
-        # print("in run main")
         numberOfDocs , parsingTime, finishedMerging = manager.run()
         languagesDic = list(manager.indexer.languagesDic.keys())
         return manager.indexer.city_dictionary, languagesDic, numberOfDocs , parsingTime, finishedMerging
@@ -190,85 +188,6 @@ class MainClass:
         if os.path.exists(path):
             myFile = open(path + '/' + fileName, 'w')
             myFile.close()
-
-
-
-
-    #
-    # def getCitiesDataAndWriteIt(self,dictionary_city_cityData):
-    #     """
-    #     writing format: City|Country|Currency|Population|Doc:#loc:loc*,Doc:loc:loc**
-    #     :param dictionary_city_cityData:
-    #     :return:
-    #     """
-    #     # writeLine = ''
-    #     # for city, cityData in sorted(dictionary_city_cityData.items()):
-    #     #     info1 = city
-    #     #     info2 = self.cityAPI.getInformationAsString(city)
-    #     #     info3 = cityData.getDocLocationsAsString()
-    #     #     writeLine += '|'.join([info1,info2,info3,'\n'])
-    #     # print(writeLine)
-    #     writeLine = ''
-    #     listToWrite = []
-    #     start = datetime.now()
-    #     try:
-    #         for city, cityData in sorted(dictionary_city_cityData.items()):
-    #             information = self.cityAPI.getInformationAsString(city)
-    #             if information is None:
-    #                 continue
-    #             locations =  cityData.getDocLocationsAsString()
-    #             listToWrite.append('|'.join([city, information, locations]))
-    #         writeLine = '\n'.join(listToWrite)
-    #     except Exception as ex:
-    #         print('ERROR in API' , str(ex) )
-    #
-    #     if len(writeLine) > 0:
-    #         try:
-    #             path = self.config.savedFilePath + '/cityIndex'
-    #             myFile = open(path, 'a', encoding='utf-8')
-    #             myFile.write(writeLine)
-    #             myFile.close()
-    #         except IOError as ex:
-    #             print (str(ex))
-    #         except UnicodeEncodeError as ex:
-    #             print('ERROR in writing' , str(ex))
-    #
-    #     finish = datetime.now()
-    #     timeItTook = finish - start
-    #
-    #     return timeItTook.seconds
-    #
-    #
-    # def getCitiesDataAndWriteItWithSession(self,dictionary_city_cityData):
-    #     """
-    #     writing format: City|Country|Currency|Population|Doc:#loc:loc*,Doc:loc:loc**
-    #     :param dictionary_city_cityData:
-    #     :return:
-    #     """
-    #     writeLine = ''
-    #     listToWrite = []
-    #     try:
-    #         dictionaryFromAPI = self.cityAPI.getDetailsWithGeobytesWithSession(dictionary_city_cityData.keys())
-    #
-    #         for cityName in dictionaryFromAPI.keys():
-    #             listToWrite.append('|'.join([cityName, dictionaryFromAPI[cityName], dictionary_city_cityData[cityName].getDocLocationsAsString()]))
-    #         writeLine = '\n'.join(listToWrite)
-    #
-    #     except Exception as ex:
-    #         print('ERROR in API' , str(ex) )
-    #
-    #     if len(writeLine) > 0:
-    #         try:
-    #             path = self.config.savedFilePath + '/cityIndex'
-    #             myFile = open(path, 'a', encoding='utf-8')
-    #             myFile.write(writeLine)
-    #             myFile.close()
-    #         except IOError as ex:
-    #             print (str(ex))
-    #         except UnicodeEncodeError as ex:
-    #             print('ERROR in writing' , str(ex))
-    #
-
 
 if __name__ == "__main__":
     main()

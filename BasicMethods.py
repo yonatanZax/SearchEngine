@@ -121,16 +121,6 @@ def getColumnIndexFromHeadLline(headlineAsArray, colName):
     return colIndex
 
 
-def getDataFrameFromFile(path, sep):
-    import pandas as pd
-    try:
-        df = pd.read_csv(path,sep, index_col=0)
-    except:
-        # print('Error in BasicMethods, getDataFrameFromFile')
-        return None
-
-    return df
-
 
 def getStringSizeInBytes(string):
     return len(string.encode('utf-8'))
@@ -139,7 +129,6 @@ def getStringSizeInBytes(string):
 
 
 def get2DArrayFromFile(path, sep = '|'):
-    # Todo - remove textByLines
 
     try:
         myFile = open(path,'r')
@@ -148,15 +137,13 @@ def get2DArrayFromFile(path, sep = '|'):
             lines = myFile.readlines()
             myFile.close()
             twoDArray = []
-            textBylines = []
 
             for line in lines:
                 lineAsArray = line.split(sep)
-                textBylines.append(line)
                 lineAsArray[len(lineAsArray)-1] = lineAsArray[len(lineAsArray)-1][:-1]
                 twoDArray.append(lineAsArray)
 
-            return twoDArray, ''.join(textBylines)
+            return twoDArray
 
 
 
@@ -164,8 +151,5 @@ def get2DArrayFromFile(path, sep = '|'):
 
     except Exception as ex:
         print("Error while converting file to 2D array, E: ",ex)
-
-
-
 
 

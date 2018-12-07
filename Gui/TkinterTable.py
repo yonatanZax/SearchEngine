@@ -24,8 +24,6 @@ class App(Frame):
 
 
 
-
-
     def CreateGUI(self):
         self.treeview = Treeview(self.parent)
         headers = self.headLine[1:]

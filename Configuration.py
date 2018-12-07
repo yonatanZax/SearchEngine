@@ -4,51 +4,26 @@
 import os
 import shutil
 import string
-import sys
-
 
 
 class ConfigClass:
 
-
     def __init__(self):
-        projectMainFolder = os.path.dirname(os.path.abspath(__file__)) + '/'
-        # self.corpusPath = projectMainFolder + 'corpus'
-        # self.corpusPath = projectMainFolder + 'corpus - full'
-        self.corpusPath = 'D:\corpus'
-        # self.corpusPath = 'D:\SearchEngine-backup\corpus - full'
-        self.savedFileMainFolder = '..'
-        if not os.path.exists(self.savedFileMainFolder):
-            os.mkdir(self.savedFileMainFolder)
-        self.saveFilesWithStem = self.savedFileMainFolder + "/WithStem"
-        self.saveFilesWithoutStem = self.savedFileMainFolder + "/WithoutStem"
 
+        self.corpusPath = ''
+        self.savedFileMainFolder = ''
 
         self.stopWordFile = 'stop_words.txt'
-        self.stopWordPath = self.corpusPath + '/' + self.stopWordFile
 
         self.managersNumber = os.cpu_count()
         if self.managersNumber == 1:
             self.managersNumber = 4
-        # self.managersNumber = 1
         self.filesPerIteration = 10
         self.minimumTermAppearanceThreshold = 2
-        self.listOfFoldersLength = len(os.listdir(self.corpusPath))
 
         self.toStem = False
-        if not self.toStem:
-            self.savedFilePath = self.saveFilesWithoutStem
-        else:
-            self.savedFilePath = self.saveFilesWithStem
-
-        self.documentsIndexPath = self.savedFilePath + '/docIndex'
-
-
-
-
 
         print('Project was created successfully..')
-
 
 
 
