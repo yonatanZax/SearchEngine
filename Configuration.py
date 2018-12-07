@@ -116,6 +116,7 @@ class ConfigClass:
         if not os.path.exists(self.savedFilePath + '/Progress'):
             os.mkdir(self.savedFilePath + '/Progress')
             os.mkdir(self.savedFilePath + '/Progress/Posting')
+            os.mkdir(self.savedFilePath + '/Progress/Merge')
 
 
 
@@ -170,4 +171,8 @@ class ConfigClass:
     def get__toStem(self):
         return self.toStem
 
+    def get_numOfFiles(self):
+        import os
+        if os.path.exists(self.corpusPath):
+            return len(os.listdir(self.corpusPath)) - 1
 

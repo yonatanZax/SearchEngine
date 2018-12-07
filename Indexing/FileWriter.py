@@ -60,7 +60,7 @@ class FileWriter:
         currentTerm = ''
 
         termAppearanceThreshold = self.config.minimumTermAppearanceThreshold
-        postingMaxSize = pow(2,19)
+        postingMaxSize = pow(2,20)
         ListToWriteDic = []
 
         for line in finalList:
@@ -115,12 +115,12 @@ class FileWriter:
         self.writeToFile(outputFile, lineToWrite)
 
     def createFile(self,path, headLineString):
-        myFile = open(path, 'w')
+        myFile = open(path, 'w', encoding='utf-8')
         myFile.write(headLineString + "\n")
         myFile.close()
 
     def writeToFile(self,path, lineToWrite):
-        myFile = open(path, 'a')
+        myFile = open(path, 'a', encoding='utf-8')
         myFile.write(lineToWrite)
         myFile.close()
 

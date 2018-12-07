@@ -80,10 +80,13 @@ class IterativeTokenizer:
 
         self.betweenPattern = re.compile(r"[Bb]etween " + "[\d,]+" + " and " + "[\d,]+")
 
+        self.filterFlagsPattern = re.compile(r"<([\w]+)>")
+
         self.stopWordsDic = {}
 
         self.dictionary_term_stemmedTerm = {}
         try:
+            import os
             path = self.config.stopWordPath
             with open(path) as f:
                 for word in f.read().splitlines():
@@ -101,6 +104,9 @@ class IterativeTokenizer:
     def replaceBetween(self,token):
         splitedToken = token.group().split(' ')
         return splitedToken[0] + '-' + splitedToken[2]
+
+    def replaceFlags(self,token):
+        return ' '
 
 
     def cleanToken(self,token):
@@ -155,8 +161,11 @@ class IterativeTokenizer:
     def parseText(self,text):
 
         self.betweenPattern.sub(self.replaceBetween, text)
+        import lxml.html
+        t = lxml.html.fromstring(text)
+        text = t.text_content()
 
-        text = text.replace("<P>", '').replace("</P>", '').replace("\n", ' ').replace('\t', ' ').replace('{', '').replace('}', '').replace('[', '').replace(']',
+        text = text.replace("\n", ' ').replace('\t', ' ').replace('{', '').replace('}', '').replace('[', '').replace(']',
                                                                                                                    '').replace(
             '\"', '').replace('\'', '').replace('(', '').replace(')', '').replace('?', '').replace('!', '').replace('#',
                                                                                                                     '').replace(
@@ -168,6 +177,7 @@ class IterativeTokenizer:
         text = re.sub(r'[-]+','-',text)
         text = re.sub(r'[.]+', '.', text)
         text = re.sub(r'[,]+', ',', text)
+        text = re.sub(r'[ ]+', ' ', text)
         splittedText = text.split(' ')
         return self.parseFromList(splittedText, 0)
 
@@ -596,6 +606,8 @@ class IterativeTokenizer:
                 return [term, token[p:]], curIndex + 1
 
             p += 1
+
+
 
         # locking for 1/2
         curIndex += 1

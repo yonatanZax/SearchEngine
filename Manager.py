@@ -4,6 +4,7 @@ from Parsing.Parse import Parse
 from Indexing.FileWriter import FileWriter
 from datetime import datetime
 from concurrent.futures import as_completed
+import os
 
 
 
@@ -24,12 +25,26 @@ class MyManager:
 
 
 
+
+
+
+    def updateProgressBar(self, value, posting_merge):
+        path = self.config.get__savedFilePath() + '/Progress/%s' % (posting_merge)
+        fileName = str(self.ID) + '_' + str(value)
+
+        if os.path.exists(path):
+            myFile = open(path + '/' + fileName, 'w')
+            myFile.close()
+
     def run(self):
 
         start = datetime.now()
 
         counter = 0
         numberOfDocuments = 0
+
+        totalCount = 0
+
         filesPerIteration = self.config.filesPerIteration
         for folder in self.folderList:
 
@@ -43,11 +58,17 @@ class MyManager:
                 self.indexer.addNewDoc(parsedDocument)
 
             if counter == filesPerIteration:
+                totalCount += counter
+                self.updateProgressBar(totalCount,'Posting')
                 self.indexer.flushMemory()
                 counter = 0
 
 
+
+
         if counter != 0:
+            totalCount += counter
+            self.updateProgressBar(totalCount,'Posting')
             self.indexer.flushMemory()
 
         finishedParsing = datetime.now()
@@ -81,6 +102,8 @@ class MyManager:
         executor = ThreadPoolExecutor()
         futureList = []
 
+        progressCounter = 0
+
         for letter in self.lettersList:
 
             filesInLetterFolder = os.listdir(self.config.savedFilePath + "\\" + letter)
@@ -88,6 +111,9 @@ class MyManager:
 
             future = executor.submit(self.fileWriter.writeMergedFile,mergedList, self.config.savedFilePath + "\\" + letter + "\\",)
             futureList.append(future)
+
+            progressCounter += 50
+            self.updateProgressBar(progressCounter + int(self.config.get_numOfFiles()/self.config.managersNumber),'Merge')
 
         for future in as_completed(futureList):
             sumOfTerms += future.result()

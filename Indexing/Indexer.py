@@ -36,8 +36,8 @@ class Indexer:
                 continue
             termFrequency = termData.getTermFrequency()
             if englishLetters.get(term[0]):
-                if term == 'ZAXROY':
-                    term = document.city
+                if 'ZAXROY' in term and len(document.city) > 1:
+                    term = term.replace('ZAXROY',document.city)
                 self.myDictionaryByLetters[term[0].lower()].addTerm(termString=term, docNo=docNo, termFrequency=termFrequency, termPositions=termData.getPositions())
             else:
                 if len(term) > 0:
@@ -77,6 +77,16 @@ class Indexer:
             self.myDictionaryByLetters["#"] = MyDictionary()
 
 
+    def updateProgressBar(self, value, posting_merge):
+        path = self.config.get__savedFilePath() + '/Progress/%s' % (posting_merge)
+        fileName = str(self.ID) + '_' + str(value)
+
+        if os.path.exists(path):
+            myFile = open(path + '/' + fileName, 'w')
+            myFile.close()
+
+
+
     def merge(self):
         from Indexing.KWayMerge import Merger
         from concurrent.futures import ThreadPoolExecutor
@@ -94,25 +104,40 @@ class Indexer:
             filesPerIteration = 10
             iteration = 0
             counter = 0
+
+            progressCounter = 0
+
             for letterFile in letterFilesList:
 
                 if letterFile[1] == str(self.ID):
+                    # print('Iteration:', str(iteration))
                     iteration += 1
                     fileToMergeList.append(letterFile)
                     if iteration == filesPerIteration:
+                        progressCounter += 10*iteration
+                        self.updateProgressBar(progressCounter, 'Merge')
+
                         iteration = 0
                         mergedList = merger.merge(fileToMergeList)
-
                         future = executor.submit(self.fileWriter.writeMergedFileTemp,mergedList, self.config.savedFilePath + "\\" + folder + "\\" + str(folder[0]) + str(self.ID) + "-" + str(counter))
+
                         futureList.append(future)
                         fileToMergeList = []
+
                         counter += 1
 
-            if iteration > filesPerIteration / 2:
-                mergedList = merger.merge(fileToMergeList)
 
+            if iteration > filesPerIteration / 2:
+                # print('Iteration:', str(iteration))
+
+                mergedList = merger.merge(fileToMergeList)
                 future = executor.submit(self.fileWriter.writeMergedFileTemp, mergedList,self.config.savedFilePath + "\\" + folder + "\\" + str(folder[0]) + str(self.ID) + "-" + str(counter))
+
                 futureList.append(future)
+
+            progressCounter += 10*iteration
+            if progressCounter > 0:
+                self.updateProgressBar(progressCounter, 'Merge')
 
             fileToMergeList = []
 

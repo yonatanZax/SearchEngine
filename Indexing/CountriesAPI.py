@@ -25,25 +25,7 @@ class CityAPI:
             self.dictionary_country_currencyPopulation[countryCode] = (countryCurrencyName,countryPopulation)
             self.dictionary_CapitalCity_country[capitalCity] = (countryCode, country.name)
 
-    # def getDetailsWithGeobytes(self, cityName):
-    #     from io import StringIO
-    #     import os
-    #     try:
-    #         session = requests.Session()
-    #         js_stream = requests.get('http://gd.geobytes.com/GetCityDetails?callback=&fqcn=' + cityName.replace(' ','&'))
-    #         content = js_stream.text
-    #         dictionary = json.loads(content)
-    #         country = dictionary['geobytescountry']
-    #         currency = dictionary['geobytescurrency']
-    #         population = dictionary['geobytespopulation']
-    #
-    #         if len(country) < 2:
-    #             return None
-    #
-    #         return [country, currency, population]
-    #     except Exception as ex:
-    #         print("City wasn't found: " , cityName)
-    #         return None
+
 
 
     # def getDetailsWithGeobytesWithSession(self, cityNameList):

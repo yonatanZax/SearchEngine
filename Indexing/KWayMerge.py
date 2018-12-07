@@ -83,7 +83,7 @@ class Merger:
             # read all the files to a list and close the files
             for file in input_files:
                 # open the file
-                with open(self.config.savedFilePath + "\\" + file[0] + "\\" + file, 'r') as openFile:
+                with open(self.config.savedFilePath + "\\" + file[0] + "\\" + file, 'r', encoding='utf-8') as openFile:
 
                     # read all lines to a list of lists
                     fileList = openFile.readlines()

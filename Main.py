@@ -22,8 +22,6 @@ class MainClass:
     def __init__(self):
 
         self.config = ConfigClass()
-
-
         self.cityAPI = CityAPI()
 
     def GUIRun(self):
@@ -31,10 +29,11 @@ class MainClass:
 
         print("***   Main Start   ***")
         root = GuiMainView.Tk()
-        root.geometry('500x600')
+        root.geometry('600x700')
+        # root.geometry('800x1000')
         root.title("SearchEngine")
 
-        guiFrame = GuiMainView.EngineBuilder(root, mainManager=self, config=self.config, numOfTotalFiles=self.config.get__listOfFoldersLength())
+        guiFrame = GuiMainView.EngineBuilder(root, mainManager=self, config=self.config)
         guiFrame.mainloop()
 
     def managerRun(self):
@@ -108,6 +107,12 @@ class MainClass:
 
         firstManagerToFinish = True
 
+
+        # UpdateProgress
+        self.updateProgressBar(len(listOfFolders),'Posting')
+
+
+
         totalNumberOfTerms = 0
         maxSecondMergeTime = 0
 
@@ -178,6 +183,13 @@ class MainClass:
                 print('ERROR in writing', str(ex))
 
 
+    def updateProgressBar(self, value, posting_merge):
+        path = self.config.get__savedFilePath() + '/Progress/%s' % (posting_merge)
+        fileName = '-1_' + str(value)
+
+        if os.path.exists(path):
+            myFile = open(path + '/' + fileName, 'w')
+            myFile.close()
 
 if __name__ == "__main__":
     main()

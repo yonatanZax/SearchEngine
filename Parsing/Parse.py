@@ -16,7 +16,9 @@ class Parse:
 
         docNo = 'doc null'
         city = ''
+        cityLine = ''
         language = ''
+        languageLine = ''
         try:
             docNo = documentAsString[documentAsString.find('<DOCNO>') + len('<DOCNO>'):documentAsString.rfind('</DOCNO>')]
             if len(docNo) > 2:
@@ -29,19 +31,26 @@ class Parse:
             if findTextSquared > 0:
                 onlyText = onlyText[findTextSquared + len('[Text]'):]
                 textLabelIndex = findTextSquared
-            if len(onlyText) < 20:
+            if len(onlyText) < 15:
                 return None
 
             # countryLine = documentAsString[documentAsString.find('<F P=101>') + len('<F P=101>'):documentAsString.find('</F>')]
-            countryLine = re.findall(r"<F P=101>(.+?)</F>", documentAsString[:textLabelIndex])
+            # countryLine = re.findall(r"<F [Pp]=101>(.+?)</F>", documentAsString)
+            cityStart = documentAsString.find('<F P=104>')
+            if cityStart > 0:
+                cityEnd = documentAsString[cityStart:].find('</F>')
+                cityLine = documentAsString[cityStart + len('<F P=104>'): cityStart + cityEnd]
             # cityLine = documentAsString[documentAsString.find('<F P=104>') + len('<F P=104>'):documentAsString.find('</F>')]
-            cityLine = re.findall(r"<F P=104>(.+?)</F>", documentAsString[:textLabelIndex])
+            # cityLine = re.findall(r"<F [Pp]=104>(^((?!</F>).)*)", documentAsString)
             # languageLine = documentAsString[documentAsString.find('<F P=105>') + len('<F P=105>'):documentAsString.find('</F>')]
-            languageLine = re.findall(r"<F P=105>(.+?)</F>", documentAsString[:textLabelIndex])
+            languageStart = documentAsString.find('<F P=105>')
+            if languageStart > 0:
+                languageEnd = documentAsString[languageStart:].find('</F>')
+                languageLine = documentAsString[languageStart + len('<F P=105>'): languageStart + languageEnd]
 
-            if len(cityLine) > 0 :
-                # cityAsArray = re.findall(r"[a-zA-Z]+", cityLine[0].strip(' '))
-                splittedCity =  cityLine[0].strip(' ').split(' ')
+
+            if len(cityLine) > 1 :
+                splittedCity =  cityLine.replace('\n',' ').strip(' ').split(' ')
                 city = splittedCity[0]
                 if city.lower() in self.keepGoingCityDic and len(splittedCity) > 1:
                     city = city + ' ' + splittedCity[1].strip(' ')
@@ -52,11 +61,11 @@ class Parse:
                     onlyText = onlyText.replace(city, 'ZAXROY')
                 else:
                     city = ''
-            if len(countryLine) > 0:
-                country = countryLine[0].strip(' ')
+            # if len(countryLine) > 0:
+            #     country = countryLine[0].strip(' ')
 
             if len(languageLine) > 0 :
-                languageLine = languageLine[0].strip(' ').split(' ')[0]
+                languageLine = languageLine.replace('\n',' ').strip(' ').split(' ')[0]
                 if len(languageLine) > 1 and languageLine[0].isupper():
                     tempLanguage = languageLine[0]
                     for l in languageLine[1:]:
