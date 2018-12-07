@@ -8,7 +8,6 @@ class FileWriter:
         self.config = config
 
     def cleanIndex(self,indexer):
-        # currentFileNumber = i.getAndIncrement()
         currentFileNumber = self.counter
         self.counter += 1
         # headLineToWrite = 'term|DF|sumTF|DOC#TF#Position:*,*'
@@ -93,9 +92,7 @@ class FileWriter:
 
 
         if len(lineToWritePost) > 0:
-            # endTermIndex = finalList[len(finalList) - 1][0].find('|')
             endTermIndex = ListToWriteDic[len(ListToWriteDic) - 1].find('|')
-            # lastTerm = finalList[len(finalList) - 1][0][0:endTermIndex]
             currentTerm = ListToWriteDic[len(ListToWriteDic) - 1][0:endTermIndex]
             self.writeToFile(pathForPosting + currentTerm + '_post', lineToWritePost.rstrip('\n'))
 

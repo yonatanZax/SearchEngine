@@ -7,7 +7,6 @@ from threading import Thread
 
 import os
 
-import math
 
 from BasicMethods import get2DArrayFromFile
 from Gui.TkinterTable import TableView
@@ -88,8 +87,6 @@ class EngineBuilder(Frame):
         self.droplist.place( x = self.XstartPixel + 180, y = self.YstartPixel + 190)
 
 
-
-
         self.deleteButton = Button(self.master, text='Delete', width=10, bg='red', fg='white',command= self.deleteEngine)
         self.deleteButton.place( x = self.XstartPixel + 100, y = self.YstartPixel + 250)
         self.buildButton = Button(self.master, text='Build', width=10, bg='green', fg='white',command= self.buildEngine)
@@ -152,16 +149,10 @@ class EngineBuilder(Frame):
 
 
 
-
-
-
-
-
     def updateProgress(self, posting_merge):
         flag = True
         import os
         import time
-
 
         sleepTime = 2
 
@@ -178,7 +169,6 @@ class EngineBuilder(Frame):
                 continue
 
             dicByManagerID = {}
-            lastCount = ''
             for file in sorted(listOfFiles):
                 splitedFile = file.split('_')
                 managerID = splitedFile[0]
@@ -197,7 +187,6 @@ class EngineBuilder(Frame):
                     if managerFileCount > dicByManagerID[managerID]:
                         dicByManagerID[managerID] = managerFileCount
 
-                lastCount = str(managerFileCount)
 
             for value in dicByManagerID.values():
                 counter += value
@@ -209,14 +198,6 @@ class EngineBuilder(Frame):
                 percent = int(percent)
 
             elif posting_merge == 'Merge':
-                # print(dicByManagerID)
-                numOfFiles = counter
-                filesPerIteration = 10
-                filesPerIterationMerge = 10
-                numOfManagers = self.config.managersNumber
-
-                # F + [F/N] + [(F/N)/I] + [(F/N)(I/M)] + 27*10
-                # percent = numOfFiles + math.ceil(numOfFiles/numOfManagers) + math.ceil((numOfFiles/numOfManagers)/filesPerIteration) + math.ceil((numOfFiles/numOfManagers)/(filesPerIteration/filesPerIterationMerge)) + 27*10
 
                 percent = (counter / (self.config.get_numOfFiles() + 27*50)) * 50
                 percent = int(percent)
@@ -306,8 +287,6 @@ class EngineBuilder(Frame):
             return
 
 
-
-
         self.disableButtons()
         self.statusLabel['text'] = 'Status: Loading terms'
 
@@ -322,6 +301,13 @@ class EngineBuilder(Frame):
 
 
     def displayDicionary(self):
+        if self.entry_postingPath.get() == '':
+            self.statusLabel['text'] = 'Status: Enter a path to posting'
+            return
+
+        if not os.path.exists(self.entry_postingPath.get()):
+            self.statusLabel['text'] = 'Status: Enter a valid path to posting'
+            return
 
         check = self.checked.get()
         self.config.setToStem(check)
@@ -361,6 +347,11 @@ class EngineBuilder(Frame):
     def deleteEngine(self):
         import shutil
         saveMainFolderPath = str(self.entry_postingPath.get())
+        self.config.setSaveMainFolderPath(saveMainFolderPath)
+        if self.entry_postingPath.get() == '' or self.entry_corpusPath.get() == '':
+            self.statusLabel['text'] = 'Status: %s invalid path to delete' % (saveMainFolderPath,)
+            return
+
         if not os.path.exists(saveMainFolderPath + '/SavedFiles'):
             self.statusLabel['text'] = 'Status: %s invalid path to delete' % (saveMainFolderPath,)
             return
@@ -438,7 +429,6 @@ class EngineBuilder(Frame):
 
     @ staticmethod
     def listener(thread,action):
-        # print('Gui - waiting to join')
         thread.join()
         action()
 
@@ -489,7 +479,6 @@ class EngineBuilder(Frame):
         self.label_mergeProgress['text'] = self.merge_progressLabel + linesAsString + '] 100%'
 
         self.txtbox.insert('end',detailString)
-        # self.label_buildDetails['text'] = detailString
 
 
 

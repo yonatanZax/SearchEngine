@@ -78,8 +78,6 @@ class Merger:
             return []
 
         try:
-            # print (input_files)
-            # filesByLines = []
             # read all the files to a list and close the files
             for file in input_files:
                 # open the file
@@ -151,7 +149,6 @@ class Merger:
                 # otherwise save the information in FinalList and set the new current value
                 else:
                     # write to output file
-                    # FinalList.append((str(currentValTerm) + '|' + str(currentValDF) + '|' + str(currentValSUMTF) , currentValPosting))
                     self.addToDic(FinalDictionary,MergeDataClass(currentValTermLower,currentValTerm,currentValDF,currentValSUMTF,currentValPosting))
                     currentValTermLower = smallestTermLower
                     currentValTerm = smallestTerm

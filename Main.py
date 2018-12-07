@@ -30,7 +30,6 @@ class MainClass:
         print("***   Main Start   ***")
         root = GuiMainView.Tk()
         root.geometry('600x700')
-        # root.geometry('800x1000')
         root.title("SearchEngine")
 
         guiFrame = GuiMainView.EngineBuilder(root, mainManager=self, config=self.config)
@@ -142,7 +141,6 @@ class MainClass:
 
     @staticmethod
     def run( manager):
-        # print("in run main")
         numberOfDocs , parsingTime, finishedMerging = manager.run()
         languagesDic = list(manager.indexer.languagesDic.keys())
         return manager.indexer.city_dictionary, languagesDic, numberOfDocs , parsingTime, finishedMerging

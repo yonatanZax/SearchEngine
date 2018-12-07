@@ -1,8 +1,8 @@
 from restcountries.api import RestCountries
 import geocoder
 from Parsing.ConvertMethods import convertNumToKMBformat
-import requests
-import json
+# import requests
+# import json
 
 
 

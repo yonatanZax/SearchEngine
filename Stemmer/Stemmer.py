@@ -1,4 +1,4 @@
-from nltk.stem import PorterStemmer
+# from nltk.stem import PorterStemmer
 from nltk.stem import snowball
 
 # ps = PorterStemmer(PorterStemmer.NLTK_EXTENSIONS)

@@ -30,19 +30,14 @@ class Parse:
             findTextSquared = onlyText.find('[Text]')
             if findTextSquared > 0:
                 onlyText = onlyText[findTextSquared + len('[Text]'):]
-                textLabelIndex = findTextSquared
             if len(onlyText) < 15:
                 return None
 
-            # countryLine = documentAsString[documentAsString.find('<F P=101>') + len('<F P=101>'):documentAsString.find('</F>')]
-            # countryLine = re.findall(r"<F [Pp]=101>(.+?)</F>", documentAsString)
             cityStart = documentAsString.find('<F P=104>')
             if cityStart > 0:
                 cityEnd = documentAsString[cityStart:].find('</F>')
                 cityLine = documentAsString[cityStart + len('<F P=104>'): cityStart + cityEnd]
-            # cityLine = documentAsString[documentAsString.find('<F P=104>') + len('<F P=104>'):documentAsString.find('</F>')]
-            # cityLine = re.findall(r"<F [Pp]=104>(^((?!</F>).)*)", documentAsString)
-            # languageLine = documentAsString[documentAsString.find('<F P=105>') + len('<F P=105>'):documentAsString.find('</F>')]
+
             languageStart = documentAsString.find('<F P=105>')
             if languageStart > 0:
                 languageEnd = documentAsString[languageStart:].find('</F>')
@@ -61,8 +56,6 @@ class Parse:
                     onlyText = onlyText.replace(city, 'ZAXROY')
                 else:
                     city = ''
-            # if len(countryLine) > 0:
-            #     country = countryLine[0].strip(' ')
 
             if len(languageLine) > 0 :
                 languageLine = languageLine.replace('\n',' ').strip(' ').split(' ')[0]
@@ -79,8 +72,8 @@ class Parse:
 
 
         except Exception as e:
-            print('DocNo: ',docNo)
-            print('Error spliting docs in parse, e: ',e)
+            # print('DocNo: ',docNo)
+            # print('Error spliting docs in parse, e: ',e)
             # print("Error - Parse - parseText")
             return None
 
