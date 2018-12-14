@@ -25,6 +25,14 @@ class ConfigClass:
 
         self.toStem = False
 
+        # Part B
+        self.BM25_K = 0
+        self.BM25_B = 0
+        self.BM25_avgDLength = 0
+        self.totalNumberOfFiles = 0
+        self.totalNumberOfTerms = 0
+
+
         print('Project was created successfully..')
 
 

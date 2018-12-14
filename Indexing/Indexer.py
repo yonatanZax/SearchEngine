@@ -92,12 +92,12 @@ class Indexer:
         from concurrent.futures import ThreadPoolExecutor
 
         merger = Merger(config=self.config)
-        savedFilesPathList = os.listdir(self.config.savedFilePath)
+        savedFilesPathList = list(string.ascii_lowercase)
+        savedFilesPathList.append('#')
 
         executor = ThreadPoolExecutor()
         futureList = []
 
-        savedFilesPathList.remove('docIndex')
         for folder in savedFilesPathList:
             letterFilesList = os.listdir(self.config.savedFilePath + "\\" + folder)
             fileToMergeList = []
@@ -110,7 +110,6 @@ class Indexer:
             for letterFile in letterFilesList:
 
                 if letterFile[1] == str(self.ID):
-                    # print('Iteration:', str(iteration))
                     iteration += 1
                     fileToMergeList.append(letterFile)
                     if iteration == filesPerIteration:
