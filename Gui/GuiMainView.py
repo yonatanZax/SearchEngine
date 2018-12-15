@@ -111,15 +111,7 @@ class EngineBuilder(Frame):
 
 
         # Set Progress bar
-        linesAsString = ''
-        for i in range(0, 51):
-            if i % 4 == 0:
-                continue
-            linesAsString += ' '
-        self.posting_progressLabel = "Posting Progress:     ["
-        self.merge_progressLabel = "Merge Progress:       ["
-        self.label_postingProgress['text'] = self.posting_progressLabel + linesAsString + '] 00%'
-        self.label_mergeProgress['text'] = self.merge_progressLabel + linesAsString + '] 00%'
+        self.setProgressBar()
 
 
 
@@ -147,6 +139,20 @@ class EngineBuilder(Frame):
         self.statusLabel = Label(self.master, text="Status: Ready to Build\Shut down", width = 40, font = ("bold", 10))
         self.statusLabel.place( x = self.XstartPixel + 60, y = self.YstartPixel + 650)
 
+
+
+    def setProgressBar(self):
+
+        # Set Progress bar
+        linesAsString = ''
+        for i in range(0, 51):
+            if i % 4 == 0:
+                continue
+            linesAsString += ' '
+        self.posting_progressLabel = "Posting Progress:     ["
+        self.merge_progressLabel = "Merge Progress:       ["
+        self.label_postingProgress['text'] = self.posting_progressLabel + linesAsString + '] 00%'
+        self.label_mergeProgress['text'] = self.merge_progressLabel + linesAsString + '] 00%'
 
 
     def updateProgress(self, posting_merge):
@@ -347,6 +353,7 @@ class EngineBuilder(Frame):
     def deleteEngine(self):
         import shutil
         saveMainFolderPath = str(self.entry_postingPath.get())
+        self.config.setSaveMainFolderPath(saveMainFolderPath)
         if self.entry_postingPath.get() == '' or self.entry_corpusPath.get() == '':
             self.statusLabel['text'] = 'Status: %s invalid path to delete' % (saveMainFolderPath,)
             return
@@ -358,6 +365,9 @@ class EngineBuilder(Frame):
 
         shutil.rmtree(self.config.get__savedFileMainFolder())
         print("Folder was deleted successfully..")
+
+        self.setProgressBar()
+
         self.buildButton.configure(state=NORMAL)
         self.deleteButton.configure(state=DISABLED)
         self.showDicButton.configure(state = DISABLED)
@@ -403,6 +413,8 @@ class EngineBuilder(Frame):
 
         print("\n***    ManagerRun    ***\n")
 
+        self.setProgressBar()
+
         from datetime import datetime
         time = datetime.now().strftime('%H:%M:%S')
         self.statusLabel['text'] = '%s - Started building.. might take a while' % (time)
@@ -428,7 +440,6 @@ class EngineBuilder(Frame):
 
     @ staticmethod
     def listener(thread,action):
-        # print('Gui - waiting to join')
         thread.join()
         action()
 
@@ -479,7 +490,6 @@ class EngineBuilder(Frame):
         self.label_mergeProgress['text'] = self.merge_progressLabel + linesAsString + '] 100%'
 
         self.txtbox.insert('end',detailString)
-        # self.label_buildDetails['text'] = detailString
 
 
 

@@ -8,7 +8,6 @@ class FileWriter:
         self.config = config
 
     def cleanIndex(self,indexer):
-        # currentFileNumber = i.getAndIncrement()
         currentFileNumber = self.counter
         self.counter += 1
         # headLineToWrite = 'term|DF|sumTF|DOC#TF#Position:*,*'

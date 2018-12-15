@@ -1,4 +1,5 @@
 from Parsing.IterativeParsing import IterativeTokenizer
+from BasicMethods import getTagFromText
 
 class Parse:
 
@@ -19,6 +20,8 @@ class Parse:
         language = ''
         languageLine = ''
         try:
+            # Todo - change find methods to getTagFromText in basicMethods
+            # docNo = getTagFromText(documentAsString,tag1='<DOCNO>',tag2='</DOCNO>')
             docNo = documentAsString[documentAsString.find('<DOCNO>') + len('<DOCNO>'):documentAsString.rfind('</DOCNO>')]
             if len(docNo) > 2:
                 docNo = docNo.strip(' ')
@@ -71,8 +74,8 @@ class Parse:
 
 
         except Exception as e:
-            print('DocNo: ',docNo)
-            print('Error spliting docs in parse, e: ',e)
+            # print('DocNo: ',docNo)
+            # print('Error spliting docs in parse, e: ',e)
             # print("Error - Parse - parseText")
             return None
 
