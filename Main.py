@@ -7,6 +7,8 @@ from concurrent.futures import ThreadPoolExecutor
 from concurrent.futures import as_completed
 from Configuration import ConfigClass
 from Indexing.CountriesAPI import CityAPI
+from PreRun import createPreRunDics
+from ReadFiles.ReadFile import ReadFile
 
 
 config = None
@@ -42,6 +44,10 @@ class MainClass:
         listOfFolders = os.listdir(self.config.get__corpusPath())
         listOfFolders.remove(self.config.get__stopWordFile())
 
+        # PreRun
+        filesIndexTupleList, cityDic = createPreRunDics(listOfFolders,ReadFile(self.config))
+
+
         lettersList = list(string.ascii_lowercase)
         lettersList.append('#')
 
@@ -50,16 +56,16 @@ class MainClass:
 
         for i in range(0, managersNumber):
 
-            folderListPerManager = []
-            for j in range(i,len(listOfFolders),managersNumber):
-                folderListPerManager.append(listOfFolders[j])
+            filesIndexTupleListPerManager = []
+            for j in range(i,len(filesIndexTupleList),managersNumber):
+                filesIndexTupleListPerManager.append(filesIndexTupleList[j])
 
             lettersListPerManager = []
 
             for j in range(i,len(lettersList), managersNumber):
                 lettersListPerManager.append(lettersList[j])
 
-            manager = MyManager(managerID=i, folderList=folderListPerManager,
+            manager = MyManager(managerID=i, filesIndexTupleList=filesIndexTupleListPerManager,
                                 lettersList=lettersListPerManager, config=self.config)
 
             managersList.append(manager)

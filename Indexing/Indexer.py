@@ -23,7 +23,7 @@ class Indexer:
 
         self.flushIndicator = 0
 
-    def addNewDoc(self, document):
+    def addNewDoc(self, document,docNoAsIndex=0):
         # go over each term in the doc
         documentDictionary = document.termDocDictionary_term_termData
         docNo = document.docNo
@@ -38,10 +38,10 @@ class Indexer:
             if englishLetters.get(term[0]):
                 if 'ZAXROY' in term and len(document.city) > 1:
                     term = term.replace('ZAXROY',document.city)
-                self.myDictionaryByLetters[term[0].lower()].addTerm(termString=term, docNo=docNo, termFrequency=termFrequency, termPositions=termData.getPositions())
+                self.myDictionaryByLetters[term[0].lower()].addTerm(termString=term, docNo=docNo, termFrequency=termFrequency, termPositions=termData.getPositions(),docNoAsIndex=docNoAsIndex)
             else:
                 if len(term) > 0:
-                    self.myDictionaryByLetters["#"].addTerm(termString=term, docNo=docNo, termFrequency=termFrequency, termPositions=termData.getPositions())
+                    self.myDictionaryByLetters["#"].addTerm(termString=term, docNo=docNo, termFrequency=termFrequency, termPositions=termData.getPositions(),docNoAsIndex=docNoAsIndex)
             maxFrequentWord = max(termFrequency, maxFrequentWord)
         newDocumentIndexData = DocumentIndexData(max_tf=maxFrequentWord, uniqueTermsCount=len(document.termDocDictionary_term_termData), docLength=document.docLength, city = document.city, language = document.language)
         self.documents_dictionary[docNo] = newDocumentIndexData

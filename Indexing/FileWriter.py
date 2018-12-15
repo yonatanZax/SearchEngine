@@ -40,7 +40,7 @@ class FileWriter:
 
         lineToWrite = ""
         for docNo, documentData in sorted(dictionaryToWrite.items()):
-            lineToWrite += (docNo + "|" + documentData.toString() + "\n")
+            lineToWrite += (str(docNo) + "|" + documentData.toString() + "\n")
 
         # write to the end of the file at one time on another thread
         self.writeToFile(path, lineToWrite)
