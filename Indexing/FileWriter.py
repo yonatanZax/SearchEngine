@@ -16,8 +16,6 @@ class FileWriter:
 
     def writeDictionaryToFile(self,fileName, dictionaryToWrite):
 
-
-
         path = self.config.savedFilePath + '\\' + fileName[0] + '\\' + fileName
 
         lineToWrite = ""
@@ -69,6 +67,7 @@ class FileWriter:
 
             lastTerm = currentTerm
             currentTerm = line[0][0]
+            sortedPostingLine = self.sortPostingLineAndUseGaps(line[1])
 
             if getStringSizeInBytes(lineToWritePost) + getStringSizeInBytes(line[1]) < postingMaxSize:
 
@@ -77,7 +76,7 @@ class FileWriter:
                 currentLineDic = '|'.join((line[0][0], str(line[0][1]), str(line[0][2]), str(index)))
 
                 ListToWriteDic.append(currentLineDic)
-                lineToWritePost += line[1] + "\n"
+                lineToWritePost += sortedPostingLine + "\n"
 
             else:
                 if len(lineToWritePost) > 0:
@@ -87,7 +86,7 @@ class FileWriter:
                 currentLineDic = '|'.join((line[0][0], str(line[0][1]), str(line[0][2]), str(index)))
                 ListToWriteDic.append(currentLineDic)
                 lineToWritePost = ''
-                lineToWritePost += line[1] + "\n"
+                lineToWritePost += sortedPostingLine + "\n"
 
 
 
@@ -101,6 +100,16 @@ class FileWriter:
         self.writeToFile(outputFile + "mergedFile_dic", lineToWriteDic)
 
         return len(ListToWriteDic)
+
+
+    @staticmethod
+    def sortPostingLineAndUseGaps(lineToSort:str):
+        splitLine = lineToSort.rstrip(',').split(',')
+        # TODO - when we move to using number only user a lambda like this: int(item.split('#')[0])
+        sorted_list = sorted(splitLine, key=lambda item: item.split('#')[0])
+        sortedLine = ','.join(sorted_list)
+        return sortedLine
+
 
     def writeMergedFileTemp(self,finalList, outputFile):
         lineToWrite = ""

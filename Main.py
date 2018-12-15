@@ -28,13 +28,15 @@ class MainClass:
 
     def GUIRun(self):
         from Gui import GuiMainView
+        from Gui.GuiPart2 import QuerySearcher
 
         print("***   Main Start   ***")
         root = GuiMainView.Tk()
         root.geometry('600x700')
         root.title("SearchEngine")
 
-        guiFrame = GuiMainView.EngineBuilder(root, mainManager=self, config=self.config)
+        # guiFrame = GuiMainView.EngineBuilder(root, mainManager=self, config=self.config)
+        guiFrame = QuerySearcher(root, mainManager=self, config=self.config)
         guiFrame.mainloop()
 
     def managerRun(self):

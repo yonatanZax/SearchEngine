@@ -110,7 +110,6 @@ class Indexer:
             for letterFile in letterFilesList:
 
                 if letterFile[1] == str(self.ID):
-                    # print('Iteration:', str(iteration))
                     iteration += 1
                     fileToMergeList.append(letterFile)
                     if iteration == filesPerIteration:
