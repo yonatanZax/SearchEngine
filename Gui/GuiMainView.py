@@ -238,6 +238,7 @@ class EngineBuilder(Frame):
 
     def load(self):
 
+        # TODO - change this function to create a dictionary instead of lists (maybe a dic of the form - term, [df,sumTF,postingLine]
 
         savedFolderPath = self.config.get__savedFilePath()
         lettersList = list(string.ascii_lowercase)
@@ -254,6 +255,7 @@ class EngineBuilder(Frame):
                 return
             arrayFromFile = get2DArrayFromFile(path=path)
             totalList = totalList + arrayFromFile
+
 
 
         self.headline = ['Term', 'df', 'sumTF', '# Posting']

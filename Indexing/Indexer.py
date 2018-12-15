@@ -39,6 +39,7 @@ class Indexer:
                 if 'ZAXROY' in term and len(document.city) > 1:
                     term = term.replace('ZAXROY',document.city)
                 self.myDictionaryByLetters[term[0].lower()].addTerm(termString=term, docNo=docNo, termFrequency=termFrequency, termPositions=termData.getPositions())
+
             else:
                 if len(term) > 0:
                     self.myDictionaryByLetters["#"].addTerm(termString=term, docNo=docNo, termFrequency=termFrequency, termPositions=termData.getPositions())
