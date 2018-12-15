@@ -14,8 +14,25 @@ class ConfigClass:
         self.savedFileMainFolder = ''
         self.saveFilesWithStem = self.savedFileMainFolder + "/WithStem"
         self.saveFilesWithoutStem = self.savedFileMainFolder + "/WithoutStem"
-
         self.stopWordFile = 'stop_words.txt'
+        self.toStem = False
+
+        # Todo - remove before submit
+        self.corpusPath = '../corpus'
+        self.savedFileMainFolder = '../SavedFiles'
+        if not os.path.exists(self.savedFileMainFolder):
+            os.mkdir(self.savedFileMainFolder)
+        self.setSaveMainFolderPath(self.savedFileMainFolder)
+        self.savedFilePath = self.saveFilesWithoutStem + '/SavedFiles'
+
+        self.stopWordPath = self.corpusPath + "/" + self.stopWordFile
+        self.listOfFoldersLength = len(os.listdir(self.corpusPath))
+        self.documentsIndexPath = self.savedFilePath + '/docIndex'
+
+
+
+
+
 
         self.managersNumber = os.cpu_count()
         if self.managersNumber == 1:

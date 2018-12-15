@@ -187,9 +187,9 @@ continental South America are not relevant.
 </top>
 '''
 
-docNo = getTagFromText(textAsString,tag1='<DOCNO>',tag2='</DOCNO>')
-num = getTagFromText(textAsString, tag1='<num>')
-print(num)
-title = getTagFromText(textAsString, tag1='<title>')
-print(title)
+# docNo = getTagFromText(textAsString,tag1='<DOCNO>',tag2='</DOCNO>')
+# num = getTagFromText(textAsString, tag1='<num>')
+# print(num)
+# title = getTagFromText(textAsString, tag1='<title>')
+# print(title)
 
