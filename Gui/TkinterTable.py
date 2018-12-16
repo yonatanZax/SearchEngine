@@ -50,9 +50,10 @@ class App(Frame):
 
     def LoadTable(self):
         counter = 0
-        for line in self.data:
+        for key, value in self.data.items():
             counter += 1
-            self.treeview.insert('', 'end', text=counter, values=tuple(line[:]))
+            tempList = [key] + value
+            self.treeview.insert('', 'end', text=counter, values=tuple(tempList))
 
 
 

@@ -6,7 +6,7 @@ class MyDictionary:
 
 
     # assuming termString gets in all CAP or all LOW letters already from parser
-    def addTerm(self, termString, docNo, termFrequency, termPositions):
+    def addTerm(self, termString, docNo, termFrequency, termPositions,docNoAsIndex=0):
 
         termInDictionary = updateTermToDictionaryByTheRules(self.dictionary_term_dicData, termString)
         termDicData = self.dictionary_term_dicData.get(termInDictionary)
@@ -15,7 +15,7 @@ class MyDictionary:
             termDicData = DictionaryData()
             self.dictionary_term_dicData[termInDictionary] = termDicData
         # add the doc to the term posting line
-        termDicData.addDocument(docID=docNo, docTF_int=termFrequency,termPositions= termPositions)
+        termDicData.addDocument(docID=docNoAsIndex, docTF_int=termFrequency,termPositions= termPositions)
 
 
 

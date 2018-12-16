@@ -38,7 +38,7 @@ class FileWriter:
 
         lineToWrite = ""
         for docNo, documentData in sorted(dictionaryToWrite.items()):
-            lineToWrite += (docNo + "|" + documentData.toString() + "\n")
+            lineToWrite += (str(docNo) + "|" + documentData.toString() + "\n")
 
         # write to the end of the file at one time on another thread
         self.writeToFile(path, lineToWrite)
@@ -106,8 +106,22 @@ class FileWriter:
     def sortPostingLineAndUseGaps(lineToSort:str):
         splitLine = lineToSort.rstrip(',').split(',')
         # TODO - when we move to using number only user a lambda like this: int(item.split('#')[0])
-        sorted_list = sorted(splitLine, key=lambda item: item.split('#')[0])
-        sortedLine = ','.join(sorted_list)
+        # Sorting
+        twoDListOfPosting = []
+        for line in splitLine:
+            twoDListOfPosting.append(line.split('#'))
+        sorted_twoDListOfPosting = sorted(twoDListOfPosting, key=lambda item: int(item[0]))
+
+        # Change to Gaps
+        lastDocumentNumber = 0
+        SortedGapedPostingLineList = []
+        for document in sorted_twoDListOfPosting:
+            gap = int(document[0]) - lastDocumentNumber
+            lastDocumentNumber = int(document[0])
+            document[0] = str(gap)
+            SortedGapedPostingLineList.append('#'.join(document))
+
+        sortedLine = ','.join(SortedGapedPostingLineList)
         return sortedLine
 
 

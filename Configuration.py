@@ -11,11 +11,28 @@ class ConfigClass:
     def __init__(self):
 
         self.corpusPath = ''
-        self.savedFileMainFolder = 'C:/Users/doroy/Documents/סמסטר ה/אחזור מידע/עבודה/SavedFiles'
+        self.savedFileMainFolder = ''
         self.saveFilesWithStem = self.savedFileMainFolder + "/WithStem"
         self.saveFilesWithoutStem = self.savedFileMainFolder + "/WithoutStem"
-
         self.stopWordFile = 'stop_words.txt'
+        self.toStem = False
+
+        # # Todo - remove before submit
+        # self.corpusPath = '../corpus'
+        # self.savedFileMainFolder = '../SavedFiles'
+        # if not os.path.exists(self.savedFileMainFolder):
+        #     os.mkdir(self.savedFileMainFolder)
+        # self.setSaveMainFolderPath(self.savedFileMainFolder)
+        # self.savedFilePath = self.saveFilesWithoutStem + '/SavedFiles'
+        #
+        # self.stopWordPath = self.corpusPath + "/" + self.stopWordFile
+        # self.listOfFoldersLength = len(os.listdir(self.corpusPath))
+        # self.documentsIndexPath = self.savedFilePath + '/docIndex'
+
+
+
+
+
 
         self.managersNumber = os.cpu_count()
         if self.managersNumber == 1:
@@ -29,7 +46,7 @@ class ConfigClass:
         self.BM25_K = 1
         self.BM25_B = 1
         self.BM25_avgDLength = 100
-        self.totalNumberOfFiles = 1000
+        self.totalNumberOfDocs = 1000
         self.totalNumberOfTerms = 1000
 
 
@@ -52,8 +69,12 @@ class ConfigClass:
         self.documentsIndexPath = savedFilePath + '/docIndex'
 
 
-    def setAverageDocLength(self, average:float):
-        self.BM25_avgDLength = average
+    def setAverageDocLength(self, totalLength:float, numberOfDocs:int) :
+        self.BM25_avgDLength = totalLength / numberOfDocs
+        self.totalNumberOfDocs = numberOfDocs
+
+    def setTotalNumberOfTerms(self, numberOfTerms:int):
+        self.totalNumberOfTerms = numberOfTerms
 
     def setSaveMainFolderPath(self,newPath,delete=False):
         if not os.path.exists(newPath):

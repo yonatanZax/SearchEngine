@@ -8,7 +8,7 @@ from threading import Thread
 import os
 
 
-from BasicMethods import get2DArrayFromFile
+from BasicMethods import get2DArrayFromFile , getDicFromFile
 from Gui.TkinterTable import TableView
 
 
@@ -245,7 +245,9 @@ class EngineBuilder(Frame):
         lettersList.append('#')
 
 
-        totalList = []
+        # totalList = []
+        totalDict = dict()
+
         for letter in lettersList:
             path = savedFolderPath + '/' + letter + '/' + 'mergedFile_dic'
             if not os.path.exists(path):
@@ -253,16 +255,22 @@ class EngineBuilder(Frame):
                 self.statusLabel['text'] = 'Need to build (Check if stem is clicked)'
                 print('Location not found', path)
                 return
-            arrayFromFile = get2DArrayFromFile(path=path)
-            totalList = totalList + arrayFromFile
+            # arrayFromFile = get2DArrayFromFile(path=path)
+            letterDicFromFile = getDicFromFile(path=path)
+
+            # totalList = totalList + arrayFromFile
+            if len(totalDict) == 0:
+                totalDict = letterDicFromFile
+            else:
+                totalDict.update(letterDicFromFile)
 
 
 
         self.headline = ['Term', 'df', 'sumTF', '# Posting']
         if self.config.toStem:
-            self.dataStem = totalList
+            self.dataStem = totalDict
         else:
-            self.dataNoStem = totalList
+            self.dataNoStem = totalDict
 
 
 

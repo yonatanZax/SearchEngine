@@ -145,11 +145,66 @@ def get2DArrayFromFile(path, sep = '|'):
 
             return twoDArray
 
+    except Exception as ex:
+        print("Error while converting file to 2D array, E: ",ex)
 
+def getDicFromFile(path, sep = '|'):
 
+    try:
+        myFile = open(path,'r')
 
+        with myFile:
+            lines = myFile.readlines()
+            myFile.close()
+            myDict = {}
+
+            for line in lines:
+                lineAsArray = line.split(sep)
+                myDict[lineAsArray[0]] = lineAsArray[1:]
+
+            return myDict
 
     except Exception as ex:
         print("Error while converting file to 2D array, E: ",ex)
 
+
+def getTagFromText(textAsString,tag1,tag2='\n'):
+    start = textAsString.find(tag1) + len(tag1)
+    end = textAsString[start:].find(tag2)
+    content = textAsString[start:start+end]
+    return content.strip(' ')
+
+
+
+textAsString = '''
+
+<DOC>
+<DOCNO> FBIS3-1 </DOCNO>
+<HT>  "cr00000011094001" </HT>
+
+
+
+<top>
+
+<num> Number: 351 
+<title> Falkland petroleum exploration 
+
+<desc> Description: 
+What information is available on petroleum exploration in 
+the South Atlantic near the Falkland Islands?
+
+<narr> Narrative: 
+Any document discussing petroleum exploration in the
+South Atlantic near the Falkland Islands is considered
+relevant.  Documents discussing petroleum exploration in 
+continental South America are not relevant.
+
+</top>
+'''
+
+# docNo = getTagFromText(textAsString,tag1='<DOCNO>',tag2='</DOCNO>')
+# num = getTagFromText(textAsString, tag1='<num>')
+# print(num)
+# title = getTagFromText(textAsString, tag1='<title>')
+# print(title)
 

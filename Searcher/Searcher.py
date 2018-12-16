@@ -22,6 +22,7 @@ class Searcher:
         self.termDictionary = termDictionary
         self.config = config
         self.ranker = Ranker(config)
+        self.config.setTotalNumberOfTerms(len(termDictionary))
 
 
 
@@ -48,7 +49,7 @@ class Searcher:
         limit = 49
         if len(sorted_dic) < limit:
             limit = len(sorted_dic)
-        return list(sorted_dic)[:limit]
+        return self.ranker.convertDocNoListToDocID(list(sorted_dic)[:limit])
 
 
 
@@ -140,7 +141,7 @@ def test():
     import Configuration
     config = Configuration.ConfigClass()
     config.setCorpusPath('C:/Users/doroy/Documents/סמסטר ה/אחזור מידע/עבודה/corpus')
-    config.setSaveMainFolderPath('C:/Users/doroy/Documents/סמסטר ה/אחזור מידע/עבודה/SavedFiles')
+    config.setSaveMainFolderPath('C:/Users/doroy/Documents/סמסטר ה/אחזור מידע/עבודה/SavedFiles/SavedFiles')
     termDic = load(config)
     searcher = Searcher(config, termDic)
     rankDic = searcher.getDocsForQuery('attracts')

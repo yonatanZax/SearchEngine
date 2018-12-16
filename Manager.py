@@ -10,12 +10,12 @@ import os
 
 class MyManager:
 
-    def __init__(self, managerID, folderList, lettersList, config):
+    def __init__(self, managerID, filesIndexTupleList, lettersList, config):
         self.ID = managerID
 
         self.config = config
 
-        self.folderList = folderList
+        self.filesIndexTupleList = filesIndexTupleList
 
         self.indexer = Indexer(managerID,config=config)
         self.fileReader = ReadFile(config=self.config)
@@ -46,16 +46,17 @@ class MyManager:
         totalCount = 0
 
         filesPerIteration = self.config.filesPerIteration
-        for folder in self.folderList:
-
+        for fileName, index in self.filesIndexTupleList:
+            documentIndex = 0
             counter += 1
-            documentsList = self.fileReader.readTextFile(folder)
+            documentsList = self.fileReader.readTextFile(fileName)
             for document in documentsList:
                 parsedDocument = self.parser.parseDoc(document)
                 if parsedDocument is None:
                     continue
                 numberOfDocuments += 1
-                self.indexer.addNewDoc(parsedDocument)
+                self.indexer.addNewDoc(parsedDocument,docNoAsIndex=index + documentIndex)
+                documentIndex += 1
 
             if counter == filesPerIteration:
                 totalCount += counter
