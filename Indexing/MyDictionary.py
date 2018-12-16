@@ -14,7 +14,6 @@ class MyDictionary:
             # add new term
             termDicData = DictionaryData()
             self.dictionary_term_dicData[termInDictionary] = termDicData
-
         # add the doc to the term posting line
         termDicData.addDocument(docID=docNoAsIndex, docTF_int=termFrequency,termPositions= termPositions)
 

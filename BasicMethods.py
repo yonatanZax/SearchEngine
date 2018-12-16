@@ -145,9 +145,24 @@ def get2DArrayFromFile(path, sep = '|'):
 
             return twoDArray
 
+    except Exception as ex:
+        print("Error while converting file to 2D array, E: ",ex)
 
+def getDicFromFile(path, sep = '|'):
 
+    try:
+        myFile = open(path,'r')
 
+        with myFile:
+            lines = myFile.readlines()
+            myFile.close()
+            myDict = {}
+
+            for line in lines:
+                lineAsArray = line.split(sep)
+                myDict[lineAsArray[0]] = lineAsArray[1:]
+
+            return myDict
 
     except Exception as ex:
         print("Error while converting file to 2D array, E: ",ex)

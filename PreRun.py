@@ -71,9 +71,7 @@ def createPreRunDics(fileList,fileReader):
             if flagDic:
                 if not flagDic.get('text') is None:
                     if len(flagDic.get('text')) > 20:
-                        if firstFileIndex == 0:
-                            firstFileIndex = counter
-                        else: counter += 1
+                        counter += 1
 
                         # Add new city to the cities dictionary
                         if not flagDic.get('city') == '':
@@ -81,6 +79,7 @@ def createPreRunDics(fileList,fileReader):
 
         # After all the documents, add a tuple of <FileName,index>
         filesIndexTupleList.append([fileName,firstFileIndex])
+
 
 
     return filesIndexTupleList, cityDic
@@ -93,11 +92,6 @@ def createPreRunDics(fileList,fileReader):
 #
 # fileList = os.listdir(con.get__corpusPath())
 # createPreRunDics(fileList,reader)
-
-
-
-
-
 
 
 

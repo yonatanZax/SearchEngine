@@ -32,11 +32,12 @@ class MainClass:
 
         print("***   Main Start   ***")
         root = GuiMainView.Tk()
-        root.geometry('600x700')
+        root = GuiMainView.setWindowSizeAndPosition(root)
+        # root.geometry('600x700')
         root.title("SearchEngine")
 
-        # guiFrame = GuiMainView.EngineBuilder(root, mainManager=self, config=self.config)
-        guiFrame = QuerySearcher(root, mainManager=self, config=self.config)
+        guiFrame = GuiMainView.EngineBuilder(root, mainManager=self, config=self.config)
+        # guiFrame = QuerySearcher(root, mainManager=self, config=self.config)
         guiFrame.mainloop()
 
     def managerRun(self):

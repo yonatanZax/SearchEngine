@@ -16,12 +16,15 @@ class SearcherIterativeTokenizer(IterativeTokenizer):
 
 class Searcher:
 
-    def __init__(self, config, termDictionary):
+    def __init__(self, config):
         self.iterativeTokenizer = SearcherIterativeTokenizer(config)
         # form of dictionary: key=term, value=[0-df, 1-sumTF, 2-postingLine]
-        self.termDictionary = termDictionary
         self.config = config
+        self.termDic = self.load()
+
+        self.termDictionary = self.termDic
         self.ranker = Ranker(config)
+        self.config.setTotalNumberOfTerms(len(self.termDic))
 
 
 
@@ -48,7 +51,7 @@ class Searcher:
         limit = 49
         if len(sorted_dic) < limit:
             limit = len(sorted_dic)
-        return list(sorted_dic)[:limit]
+        return self.ranker.convertDocNoListToDocID(list(sorted_dic)[:limit])
 
 
 
@@ -92,7 +95,23 @@ class Searcher:
 
         return document_rank_dictionary
 
-
+    def load(self):
+        # TODO - change this function to create a dictionary instead of lists (maybe a dic of the form - term, [df,sumTF,postingLine]
+        savedFolderPath = self.config.saveFilesWithoutStem
+        lettersList = list(string.ascii_lowercase)
+        lettersList.append('#')
+        totalDict = dict()
+        for letter in lettersList:
+            path = savedFolderPath + '/' + letter + '/' + 'mergedFile_dic'
+            if not os.path.exists(path):
+                print('Location not found', path)
+                return
+            arrayFromFile = getDicFromFile(path=path)
+            if len(totalDict) == 0:
+                totalDict = arrayFromFile
+            else:
+                totalDict.update(arrayFromFile)
+        return totalDict
 
 
 def getDicFromFile(path, sep = '|'):
@@ -140,7 +159,7 @@ def test():
     import Configuration
     config = Configuration.ConfigClass()
     config.setCorpusPath('C:/Users/doroy/Documents/סמסטר ה/אחזור מידע/עבודה/corpus')
-    config.setSaveMainFolderPath('C:/Users/doroy/Documents/סמסטר ה/אחזור מידע/עבודה/SavedFiles')
+    config.setSaveMainFolderPath('C:/Users/doroy/Documents/סמסטר ה/אחזור מידע/עבודה/SavedFiles/SavedFiles')
     termDic = load(config)
     searcher = Searcher(config, termDic)
     rankDic = searcher.getDocsForQuery('attracts')

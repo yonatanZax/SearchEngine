@@ -46,8 +46,8 @@ class MyManager:
         totalCount = 0
 
         filesPerIteration = self.config.filesPerIteration
-        for fileName,index in self.filesIndexTupleList:
-
+        for fileName, index in self.filesIndexTupleList:
+            documentIndex = 0
             counter += 1
             documentsList = self.fileReader.readTextFile(fileName)
             for document in documentsList:
@@ -55,7 +55,8 @@ class MyManager:
                 if parsedDocument is None:
                     continue
                 numberOfDocuments += 1
-                self.indexer.addNewDoc(parsedDocument,docNoAsIndex=index + numberOfDocuments)
+                self.indexer.addNewDoc(parsedDocument,docNoAsIndex=index + documentIndex)
+                documentIndex += 1
 
             if counter == filesPerIteration:
                 totalCount += counter
