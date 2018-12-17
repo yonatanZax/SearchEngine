@@ -15,10 +15,11 @@ from Gui.TkinterTable import TableView
 
 class QuerySearcher(Frame):
 
-    def __init__(self, master, mainManager, config):
+    def __init__(self, master, mainManager, config,data):
         self.config = config
         self.mainManager = mainManager
-        self.searcher = Searcher(config)
+        self.data = data
+        self.searcher = Searcher(config,self.data)
 
 
 
@@ -65,7 +66,7 @@ class QuerySearcher(Frame):
 
         def queryPath():
             print("Choose query file path...")
-            query_path = filedialog.askdirectory()
+            query_path = filedialog.askopenfilename()
             self.entry_queryFilePath_text.set(query_path)
 
 

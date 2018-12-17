@@ -45,18 +45,20 @@ def getFlagDicFromDocument(documentAsString):
 
 
 
-def createPreRunDics(fileList,fileReader):
+def createPreRunData(fileList: list, fileReader: ReadFile) -> (list,list,dict):
     '''
     This method creates two dictionaries:
     1. File_Index list - every file name is connected to it's first doc index
+    2. doc_index list - every docNo is connected to it's index
     2. City dictionary - all the cities from doc tag "<F P=104>"
     :param fileList: List of file names from the corpus
     :param fileReader: FileReader class
-    :return: A tuple: 1. file_index , 2. cityDic
+    :return: A tuple: 1. file_index , 2. doc_index, 3. cityDic
     '''
     cityDic = {}
+    allDocsTuple = []
     filesIndexTupleList = []
-    counter = 1
+    counter = 0
 
 
     for fileName in fileList:
@@ -71,6 +73,11 @@ def createPreRunDics(fileList,fileReader):
             if flagDic:
                 if not flagDic.get('text') is None:
                     if len(flagDic.get('text')) > 20:
+
+                        # Add new doc to 'allDocsDic'
+                        allDocsTuple.append([flagDic['docNo'], str(counter)])
+
+
                         counter += 1
 
                         # Add new city to the cities dictionary
@@ -82,7 +89,7 @@ def createPreRunDics(fileList,fileReader):
 
 
 
-    return filesIndexTupleList, cityDic
+    return filesIndexTupleList,allDocsTuple, cityDic
 
 
 

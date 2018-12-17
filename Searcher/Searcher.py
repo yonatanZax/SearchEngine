@@ -16,11 +16,11 @@ class SearcherIterativeTokenizer(IterativeTokenizer):
 
 class Searcher:
 
-    def __init__(self, config):
+    def __init__(self, config,data):
         self.iterativeTokenizer = SearcherIterativeTokenizer(config)
         # form of dictionary: key=term, value=[0-df, 1-sumTF, 2-postingLine]
         self.config = config
-        self.termDic = self.load()
+        self.termDic = data
 
         self.termDictionary = self.termDic
         self.ranker = Ranker(config)
@@ -56,7 +56,10 @@ class Searcher:
 
 
     def getDocumentsFromPostingFile(self, term:str, line:int) -> dict:
-        savedFilesPath = self.config.getSavedFilesPath() + '/' + term[0] + '/PostingFolder/'
+        folderAsChar = term[0]
+        if not term[0].isalpha():
+            folderAsChar = '#'
+        savedFilesPath = self.config.getSavedFilesPath() + '/' + folderAsChar + '/PostingFolder/'
 
         # get the list of posting files for the relevant term
         postingFilesList = os.listdir(savedFilesPath)
@@ -80,38 +83,20 @@ class Searcher:
         file = open(postingFilePath, 'r', encoding='utf-8')
         fileLine = file.readlines()[line]
         file.close()
-
+        gapAccumulator = 0
         document_rank_dictionary = {}
         TermDocumentsList = fileLine.split(',')
         for documentSegment in TermDocumentsList:
             # docID#DF#positions:
             splitDocumentInfo = documentSegment.split('#')
-            try:
-                termScoreInDoc = self.ranker.getScore(docID=splitDocumentInfo[0], docDF=int(splitDocumentInfo[1]), positionList=splitDocumentInfo[2].split(':'), termDF=int(self.termDictionary[term][0]))
-                document_rank_dictionary[splitDocumentInfo[0]] = termScoreInDoc
-            except IndexError as ie:
-                print(splitDocumentInfo)
-                print(documentSegment)
+            gapAccumulator += int(splitDocumentInfo[0])
+            termScoreInDoc = self.ranker.getScore(docID=str(gapAccumulator), docDF=int(splitDocumentInfo[1]), positionList=splitDocumentInfo[2].split(':'), termDF=int(self.termDictionary[term][0]))
+            document_rank_dictionary[str(gapAccumulator)] = termScoreInDoc
+
 
         return document_rank_dictionary
 
-    def load(self):
-        # TODO - change this function to create a dictionary instead of lists (maybe a dic of the form - term, [df,sumTF,postingLine]
-        savedFolderPath = self.config.saveFilesWithoutStem
-        lettersList = list(string.ascii_lowercase)
-        lettersList.append('#')
-        totalDict = dict()
-        for letter in lettersList:
-            path = savedFolderPath + '/' + letter + '/' + 'mergedFile_dic'
-            if not os.path.exists(path):
-                print('Location not found', path)
-                return
-            arrayFromFile = getDicFromFile(path=path)
-            if len(totalDict) == 0:
-                totalDict = arrayFromFile
-            else:
-                totalDict.update(arrayFromFile)
-        return totalDict
+
 
 
 def getDicFromFile(path, sep = '|'):

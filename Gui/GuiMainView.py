@@ -33,6 +33,7 @@ class EngineBuilder(Frame):
 
         self.part2Button = Button(self.master, text='Part2', width=10, bg='blue', fg='white',command= self.switchPart2)
         self.part2Button.place(x = self.XstartPixel + 450, y = self.YstartPixel + 0)
+        self.part2Button.configure(state = DISABLED)
 
 
 
@@ -189,14 +190,19 @@ class EngineBuilder(Frame):
             return
 
 
-
+        if check and self.dataStem is not None:
+            data = self.dataStem
+        elif not check and self.dataNoStem is not None:
+            data = self.dataNoStem
+        else:
+            return
 
         from Gui.GuiPart2 import QuerySearcher
         self.master.destroy()
         self.master = Tk()
         setWindowSizeAndPosition(self.master)
         self.master.title("SearchEngine")
-        guiFrame = QuerySearcher(self.master, mainManager=self, config=self.config)
+        guiFrame = QuerySearcher(self.master, mainManager=self, config=self.config,data=data)
         guiFrame.mainloop()
 
 
@@ -285,7 +291,7 @@ class EngineBuilder(Frame):
                     continue
                 linesAsString += ' '
 
-            percentString = str(percent*2)
+            percentString = str(percent * 2)
             if len(percentString) == 1:
                 percentString = '0' + percentString
 
@@ -331,6 +337,9 @@ class EngineBuilder(Frame):
             self.dataStem = totalDict
         else:
             self.dataNoStem = totalDict
+
+        self.part2Button.configure(state = NORMAL)
+
 
 
 
@@ -569,6 +578,7 @@ class EngineBuilder(Frame):
         self.showDicButton.configure(state = NORMAL)
         self.uploadDicButton.configure(state = NORMAL)
 
+
         self.statusLabel['text'] = 'Status: Ready to Build\Shut down'
 
     def disableButtons(self):
@@ -576,6 +586,7 @@ class EngineBuilder(Frame):
         self.deleteButton.configure(state = DISABLED)
         self.showDicButton.configure(state = DISABLED)
         self.uploadDicButton.configure(state = DISABLED)
+        self.part2Button.configure(state = DISABLED)
 
 
 
