@@ -4,6 +4,7 @@ from Parsing.IterativeParsing import IterativeTokenizer
 import os
 
 from Ranker.Ranker import Ranker
+from Searcher.WordEmbedding import WordEmbedding
 
 
 class SearcherIterativeTokenizer(IterativeTokenizer):
@@ -23,6 +24,7 @@ class Searcher:
         self.config = config
         self.ranker = Ranker(config)
         self.config.setTotalNumberOfTerms(len(termDictionary))
+        self.wordEmbedding = WordEmbedding()
 
 
 
@@ -34,6 +36,8 @@ class Searcher:
         """
 
         queryTermDictionary, queryLength = self.iterativeTokenizer.parseText(queryString)
+
+        # expandedQueryList = self.expandQuery(queryTermDictionary.items())
 
         document_score_dictionary = {}
         for term in queryTermDictionary.keys():
@@ -50,6 +54,12 @@ class Searcher:
         if len(sorted_dic) < limit:
             limit = len(sorted_dic)
         return self.ranker.convertDocNoListToDocID(list(sorted_dic)[:limit])
+
+
+    # def expandQuery(self, queryWordsList: list) -> list:
+    #
+
+
 
 
 
@@ -78,18 +88,16 @@ class Searcher:
         file = open(postingFilePath, 'r', encoding='utf-8')
         fileLine = file.readlines()[line]
         file.close()
-
+        gapAccumulator = 0
         document_rank_dictionary = {}
         TermDocumentsList = fileLine.split(',')
         for documentSegment in TermDocumentsList:
             # docID#DF#positions:
             splitDocumentInfo = documentSegment.split('#')
-            try:
-                termScoreInDoc = self.ranker.getScore(docID=splitDocumentInfo[0], docDF=int(splitDocumentInfo[1]), positionList=splitDocumentInfo[2].split(':'), termDF=int(self.termDictionary[term][0]))
-                document_rank_dictionary[splitDocumentInfo[0]] = termScoreInDoc
-            except IndexError as ie:
-                print(splitDocumentInfo)
-                print(documentSegment)
+            gapAccumulator += splitDocumentInfo[0]
+            termScoreInDoc = self.ranker.getScore(docID=gapAccumulator, docDF=int(splitDocumentInfo[1]), positionList=splitDocumentInfo[2].split(':'), termDF=int(self.termDictionary[term][0]))
+            document_rank_dictionary[gapAccumulator] = termScoreInDoc
+
 
         return document_rank_dictionary
 
