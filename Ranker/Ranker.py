@@ -27,7 +27,8 @@ class Ranker:
     # TODO - These methods are for when we switch to condensed document names
     def getDocumentIndex(self):
         file = open(self.config.get__documentsIndexPath(),'r',encoding='utf-8')
-        fileLines = file.readlines()[1:]
+        fileLines = file.readlines()
+        # fileLines = file.readlines()[1:]
         file.close()
         totalLength = 0
         for lineNumber in range(0,len(fileLines)):

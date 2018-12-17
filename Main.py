@@ -7,8 +7,9 @@ from concurrent.futures import ThreadPoolExecutor
 from concurrent.futures import as_completed
 from Configuration import ConfigClass
 from Indexing.CountriesAPI import CityAPI
-from PreRun import createPreRunDics
+from PreRun import createPreRunData
 from ReadFiles.ReadFile import ReadFile
+import threading
 
 
 config = None
@@ -32,7 +33,8 @@ class MainClass:
 
         print("***   Main Start   ***")
         root = GuiMainView.Tk()
-        root.geometry('600x700')
+        root = GuiMainView.setWindowSizeAndPosition(root)
+        # root.geometry('600x700')
         root.title("SearchEngine")
 
         guiFrame = GuiMainView.EngineBuilder(root, mainManager=self, config=self.config)
@@ -41,13 +43,16 @@ class MainClass:
 
     def managerRun(self):
         import string
+        from BasicMethods import writeListToFile,getDicFromFile,get2DArrayFromFile
         startTime = datetime.now()
         managersNumber = self.config.get__managersNumber()
         listOfFolders = os.listdir(self.config.get__corpusPath())
         listOfFolders.remove(self.config.get__stopWordFile())
 
         # PreRun
-        filesIndexTupleList, cityDic = createPreRunDics(listOfFolders,ReadFile(self.config))
+        filesIndexTupleList, allDocsTuple, cityDic = createPreRunData(listOfFolders, ReadFile(self.config))
+        writeDocsThread = threading.Thread(target=writeListToFile,args=(self.config.getSavedFilesPath(),'allDocs.txt',allDocsTuple,))
+        writeDocsThread.start()
 
 
         lettersList = list(string.ascii_lowercase)
@@ -112,6 +117,8 @@ class MainClass:
 
         print("Term Posting took: " + str(timeItTook.seconds) + " seconds")
 
+
+
         firstManagerToFinish = True
 
 
@@ -133,9 +140,20 @@ class MainClass:
             if firstManagerToFinish:
                 firstManagerToFinish = False
                 self.getCitiesDataAndWriteItASync(dictionary_city_cityData, citiesFutureDic)
+                # Merge docFiles:
 
+                allDocsTuplePath = self.config.getSavedFilesPath() + '/allDocs.txt'
+                allDocsTuple = get2DArrayFromFile(allDocsTuplePath)
+                unsortedDocsPath = self.config.getSavedFilesPath() + '/docIndex'
+                unsortedDocs = getDicFromFile(unsortedDocsPath)
 
+                for i in range(0, len(allDocsTuple)):
+                    docNo = allDocsTuple[i][0]
+                    allDocsTuple[i] = [docNo] + unsortedDocs[docNo]
 
+                os.remove(unsortedDocsPath)
+                os.remove(allDocsTuplePath)
+                writeListToFile(self.config.getSavedFilesPath(), '/docIndex', allDocsTuple, False)
 
         finishTime = datetime.now()
         timeItTook = finishTime - startTime

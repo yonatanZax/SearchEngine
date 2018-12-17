@@ -127,6 +127,25 @@ def getStringSizeInBytes(string):
 
 
 
+def writeListToFile(path:str,fileName:str,listToWrite:list,useNewLine = True):
+    import os
+
+    if not os.path.exists(path) or len(listToWrite) == 0:
+        return
+
+    try:
+        myFile = open(path + '/' + fileName,'a')
+
+        for line in listToWrite:
+            if useNewLine:
+                myFile.write('|'.join(line) + '\n')
+            else: myFile.write('|'.join(line))
+
+        myFile.close()
+
+    except Exception as ex:
+        print(ex)
+
 
 def get2DArrayFromFile(path, sep = '|'):
 
@@ -147,6 +166,8 @@ def get2DArrayFromFile(path, sep = '|'):
 
     except Exception as ex:
         print("Error while converting file to 2D array, E: ",ex)
+
+
 
 def getDicFromFile(path, sep = '|'):
 

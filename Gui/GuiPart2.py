@@ -6,6 +6,7 @@ from tkinter import filedialog
 from threading import Thread
 
 import os
+from Searching.Searcher import Searcher
 
 
 from BasicMethods import get2DArrayFromFile
@@ -14,9 +15,21 @@ from Gui.TkinterTable import TableView
 
 class QuerySearcher(Frame):
 
-    def __init__(self, master, mainManager, config):
+    def __init__(self, master, mainManager, config,data):
         self.config = config
         self.mainManager = mainManager
+        self.data = data
+        self.searcher = Searcher(config,self.data)
+
+
+
+
+
+
+
+
+
+
         Frame.__init__(self, master)
         self.grid()
         # self.filesDone = 0
@@ -29,14 +42,17 @@ class QuerySearcher(Frame):
         label_0 = Label(self.master, text="Search Engine", width=20, font=("bold", 30))
         label_0.place( x = self.XstartPixel + 20, y = self.YstartPixel + 40)
 
+        self.part1Button = Button(self.master, text='Part1', width=10, bg='blue', fg='white',command= self.switchPart1)
+        self.part1Button.place(x = self.XstartPixel + 450, y = self.YstartPixel + 0)
 
 
-        label_queryPath = Label(self.master, text="Query:", width=10, font=("bold", 10))
-        label_queryPath.place( x = self.XstartPixel + 50, y = self.YstartPixel + 130)
-        self.entry_queryPath_text = StringVar()
-        self.entry_queryPath_text.set("")
-        self.entry_queryPath = Entry(self.master,textvariable=self.entry_queryPath_text,width=30)
-        self.entry_queryPath.place( x = self.XstartPixel + 180, y = self.YstartPixel + 130)
+
+        label_query = Label(self.master, text="Query:", width=10, font=("bold", 10))
+        label_query.place( x = self.XstartPixel + 50, y = self.YstartPixel + 130)
+        self.entry_query_text = StringVar()
+        self.entry_query_text.set("")
+        self.entry_query = Entry(self.master, textvariable=self.entry_query_text, width=30)
+        self.entry_query.place(x =self.XstartPixel + 180, y =self.YstartPixel + 130)
 
 
         label_queryFilePath = Label(self.master, text="Query file:", width=10, font=("bold", 10))
@@ -50,7 +66,7 @@ class QuerySearcher(Frame):
 
         def queryPath():
             print("Choose query file path...")
-            query_path = filedialog.askdirectory()
+            query_path = filedialog.askopenfilename()
             self.entry_queryFilePath_text.set(query_path)
 
 
@@ -114,11 +130,29 @@ class QuerySearcher(Frame):
 
 
 
+
+    def switchPart1(self):
+        import Gui.GuiMainView as Part1
+        self.master.destroy()
+        self.master = Tk()
+        Part1.setWindowSizeAndPosition(self.master)
+        self.master.title("SearchEngine")
+        guiFrame = Part1.EngineBuilder(self.master, mainManager=self, config=self.config)
+        guiFrame.mainloop()
+
+
     def findYishuyot(self):
         pass
 
     def runQuery(self):
-        pass
+        docList = self.searcher.getDocsForQuery(self.entry_query_text.get())
+        docListText = ""
+        for file_score in docList:
+            docListText += '\t' + str(file_score[0]) + ' : ' + str("{0:.2f}".format(round(file_score[1],2))) + '\n'
+
+        self.txtbox.delete('1.0',END)
+        self.txtbox.insert('1.0',docListText)
+
 
     def saveTrec_Eval(self):
         pass

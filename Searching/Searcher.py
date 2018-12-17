@@ -4,7 +4,7 @@ from Parsing.IterativeParsing import IterativeTokenizer
 import os
 
 from Ranker.Ranker import Ranker
-from Searcher.WordEmbedding import WordEmbedding
+from Searching.WordEmbedding import WordEmbedding
 
 
 class SearcherIterativeTokenizer(IterativeTokenizer):
@@ -34,10 +34,7 @@ class Searcher:
         :param queryString:
         :return:
         """
-
         queryTermDictionary, queryLength = self.iterativeTokenizer.parseText(queryString)
-
-        # expandedQueryList = self.expandQuery(queryTermDictionary.items())
 
         document_score_dictionary = {}
         for term in queryTermDictionary.keys():
@@ -56,15 +53,39 @@ class Searcher:
         return self.ranker.convertDocNoListToDocID(list(sorted_dic)[:limit])
 
 
-    # def expandQuery(self, queryWordsList: list) -> list:
-    #
+    def getDocsForQueryWithExpansion(self, queryString: str):
+        """
+        get a query and return the docs in the correct order with expanding of the query using the word embedding
+        :param queryString:
+        :return:
+        """
 
+        queryTermDictionary, queryLength = self.iterativeTokenizer.parseText(queryString)
 
+        expandedQueryList = self.wordEmbedding.expandQuery(list(queryTermDictionary.keys()))
 
+        document_score_dictionary = {}
+        for term in expandedQueryList:
+            if self.termDictionary.get(term) is not None:
+                temp_document_score_dictionary = self.getDocumentsFromPostingFile(term, int(self.termDictionary[term][2]))
+                for document, score in temp_document_score_dictionary.items():
+                    if document_score_dictionary.get(document) is None:
+                        document_score_dictionary[document] = score
+                    else:
+                        document_score_dictionary[document] += score
+
+        sorted_dic = sorted(document_score_dictionary.items(), key=lambda kv: kv[1],reverse=True)
+        limit = 49
+        if len(sorted_dic) < limit:
+            limit = len(sorted_dic)
+        return self.ranker.convertDocNoListToDocID(list(sorted_dic)[:limit])
 
 
     def getDocumentsFromPostingFile(self, term:str, line:int) -> dict:
-        savedFilesPath = self.config.getSavedFilesPath() + '/' + term[0] + '/PostingFolder/'
+        folderAsChar = term[0]
+        if not term[0].isalpha():
+            folderAsChar = '#'
+        savedFilesPath = self.config.getSavedFilesPath() + '/' + folderAsChar + '/PostingFolder/'
 
         # get the list of posting files for the relevant term
         postingFilesList = os.listdir(savedFilesPath)
@@ -94,7 +115,7 @@ class Searcher:
         for documentSegment in TermDocumentsList:
             # docID#DF#positions:
             splitDocumentInfo = documentSegment.split('#')
-            gapAccumulator += splitDocumentInfo[0]
+            gapAccumulator += int(splitDocumentInfo[0])
             termScoreInDoc = self.ranker.getScore(docID=gapAccumulator, docDF=int(splitDocumentInfo[1]), positionList=splitDocumentInfo[2].split(':'), termDF=int(self.termDictionary[term][0]))
             document_rank_dictionary[gapAccumulator] = termScoreInDoc
 
@@ -152,8 +173,8 @@ def test():
     config.setSaveMainFolderPath('C:/Users/doroy/Documents/סמסטר ה/אחזור מידע/עבודה/SavedFiles/SavedFiles')
     termDic = load(config)
     searcher = Searcher(config, termDic)
-    rankDic = searcher.getDocsForQuery('attracts')
+    rankDic = searcher.getDocsForQueryWithExpansion('attracts man walk')
     print(rankDic)
 
 
-test()
+# test()

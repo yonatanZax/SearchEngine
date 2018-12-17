@@ -84,6 +84,7 @@ class FileWriter:
 
                 index = 0
                 currentLineDic = '|'.join((line[0][0], str(line[0][1]), str(line[0][2]), str(index)))
+                index += 1
                 ListToWriteDic.append(currentLineDic)
                 lineToWritePost = ''
                 lineToWritePost += sortedPostingLine + "\n"

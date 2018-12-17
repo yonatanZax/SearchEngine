@@ -1,5 +1,6 @@
 import shutil
 import string
+import tkinter
 from tkinter import *
 from tkinter import filedialog
 
@@ -15,6 +16,7 @@ from Gui.TkinterTable import TableView
 class EngineBuilder(Frame):
 
     def __init__(self, master, mainManager, config):
+        self.master = master
         self.config = config
         self.mainManager = mainManager
         Frame.__init__(self, master)
@@ -28,6 +30,10 @@ class EngineBuilder(Frame):
 
         label_0 = Label(self.master, text="Search Engine", width=20, font=("bold", 30))
         label_0.place( x = self.XstartPixel + 20, y = self.YstartPixel + 40)
+
+        self.part2Button = Button(self.master, text='Part2', width=10, bg='blue', fg='white',command= self.switchPart2)
+        self.part2Button.place(x = self.XstartPixel + 450, y = self.YstartPixel + 0)
+        self.part2Button.configure(state = DISABLED)
 
 
 
@@ -141,6 +147,66 @@ class EngineBuilder(Frame):
 
 
 
+
+
+    def switchPart2(self):
+
+
+        if self.entry_postingPath.get() == '' or self.entry_corpusPath.get() == '':
+            self.statusLabel['text'] = 'Status: Enter a path to corpus and posting fields'
+            return
+
+        print("Corpus path:     ", self.entry_corpusPath.get())
+        corpusPath = str(self.entry_corpusPath.get())
+        if not os.path.exists(corpusPath):
+            self.statusLabel['text'] = 'Status: Corpus path not exists'
+            return
+        if not os.path.exists(corpusPath + '/stop_words.txt'):
+            self.statusLabel['text'] = 'Status: stop_words.txt doesnt exists in corpus path'
+            return
+
+
+        self.config.setCorpusPath(corpusPath)
+
+        check = self.checked.get()
+        self.config.setToStem(check)
+
+        saveMainFolderPath = str(self.entry_postingPath.get())
+        if not os.path.exists(saveMainFolderPath):
+            self.statusLabel['text'] = 'Status: %s path not exists' % (saveMainFolderPath,)
+            return
+
+        if '/SavedFiles' not in saveMainFolderPath :
+            self.config.setSaveMainFolderPath(saveMainFolderPath + '/SavedFiles')
+
+
+
+        if not os.path.exists(self.config.savedFilePath + '/a'):
+            if check:
+                self.statusLabel['text'] = 'Status (stem is checked): build before load'
+            else:
+                self.statusLabel['text'] = 'Status (stem not checked): build before load'
+
+            return
+
+
+        if check and self.dataStem is not None:
+            data = self.dataStem
+        elif not check and self.dataNoStem is not None:
+            data = self.dataNoStem
+        else:
+            return
+
+        from Gui.GuiPart2 import QuerySearcher
+        self.master.destroy()
+        self.master = Tk()
+        setWindowSizeAndPosition(self.master)
+        self.master.title("SearchEngine")
+        guiFrame = QuerySearcher(self.master, mainManager=self, config=self.config,data=data)
+        guiFrame.mainloop()
+
+
+
     def setProgressBar(self):
 
         # Set Progress bar
@@ -225,7 +291,7 @@ class EngineBuilder(Frame):
                     continue
                 linesAsString += ' '
 
-            percentString = str(percent*2)
+            percentString = str(percent * 2)
             if len(percentString) == 1:
                 percentString = '0' + percentString
 
@@ -271,6 +337,9 @@ class EngineBuilder(Frame):
             self.dataStem = totalDict
         else:
             self.dataNoStem = totalDict
+
+        self.part2Button.configure(state = NORMAL)
+
 
 
 
@@ -509,6 +578,7 @@ class EngineBuilder(Frame):
         self.showDicButton.configure(state = NORMAL)
         self.uploadDicButton.configure(state = NORMAL)
 
+
         self.statusLabel['text'] = 'Status: Ready to Build\Shut down'
 
     def disableButtons(self):
@@ -516,6 +586,7 @@ class EngineBuilder(Frame):
         self.deleteButton.configure(state = DISABLED)
         self.showDicButton.configure(state = DISABLED)
         self.uploadDicButton.configure(state = DISABLED)
+        self.part2Button.configure(state = DISABLED)
 
 
 
@@ -523,8 +594,24 @@ class EngineBuilder(Frame):
 
 
 
+def setWindowSizeAndPosition(root):
 
+    w = 600  # width for the Tk root
+    h = 700  # height for the Tk root
 
+    # get screen width and height
+    ws = root.winfo_screenwidth()  # width of the screen
+    hs = root.winfo_screenheight()  # height of the screen
+
+    # calculate x and y coordinates for the Tk root window
+    x = (ws / 2) - (w / 2)
+    y = (hs / 2) - (h / 2)
+
+    # set the dimensions of the screen
+    # and where it is placed
+    root.geometry('%dx%d+%d+%d' % (w, h, x, y))
+
+    return root
 
 
 
