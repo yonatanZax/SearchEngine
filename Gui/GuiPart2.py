@@ -9,7 +9,7 @@ import os
 from Searching.Searcher import Searcher
 
 
-from BasicMethods import get2DArrayFromFile
+from BasicMethods import get2DArrayFromFile, getTagFromText
 from Gui.TkinterTable import TableView
 
 
@@ -20,14 +20,6 @@ class QuerySearcher(Frame):
         self.mainManager = mainManager
         self.data = data
         self.searcher = Searcher(config,self.data)
-
-
-
-
-
-
-
-
 
 
         Frame.__init__(self, master)
@@ -144,6 +136,7 @@ class QuerySearcher(Frame):
     def findYishuyot(self):
         pass
 
+
     def runQuery(self):
         docList = self.searcher.getDocsForQuery(self.entry_query_text.get())
         docListText = ""
@@ -152,6 +145,33 @@ class QuerySearcher(Frame):
 
         self.txtbox.delete('1.0',END)
         self.txtbox.insert('1.0',docListText)
+
+
+    def writeResultsForTREC(self, results, qID:str = '0', runID:str = '0'):
+        resultStr = self.searcher.getResultFormatFromResultList(qID=qID, runID=runID, results=results)
+
+
+    def runMultipleQueries(self, runID:str = '0'):
+        queriesList_ID_query = self.readQueriesFiles()
+        trec_eval_results_str = ''
+        for query_ID_query in queriesList_ID_query:
+            docList = self.searcher.getDocsForQuery(query_ID_query[1])
+            trec_eval_results_str += self.searcher.getResultFormatFromResultList(qID=queriesList_ID_query[0], runID=runID, results=docList)
+
+    #     TODO - write to a file we need to set in config
+        print(trec_eval_results_str)
+
+
+    def readQueriesFiles(self)-> list:
+        queriesFilePath = self.entry_queryFilePath_text.get()
+        queriesFile = open(queriesFilePath, 'r', )
+        queriesFileArr = queriesFile.read().split('</top>')[:-1]
+        queriesList_ID_query = []
+        for queryStr in queriesFileArr:
+            queryID = getTagFromText(queryStr,'<num> Number:')
+            query = getTagFromText(queryStr,'<title>')
+            queriesList_ID_query.append((queryID, query))
+        return queriesList_ID_query
 
 
     def saveTrec_Eval(self):

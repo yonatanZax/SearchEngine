@@ -53,6 +53,7 @@ class Searcher:
         return self.ranker.convertDocNoListToDocID(list(sorted_dic)[:limit])
 
 
+
     def getDocsForQueryWithExpansion(self, queryString: str):
         """
         get a query and return the docs in the correct order with expanding of the query using the word embedding
@@ -79,6 +80,14 @@ class Searcher:
         if len(sorted_dic) < limit:
             limit = len(sorted_dic)
         return self.ranker.convertDocNoListToDocID(list(sorted_dic)[:limit])
+
+
+    @staticmethod
+    def getResultFormatFromResultList(qID:str , runID: str, results:list ) -> str:
+        ansString = ''
+        for index in range(0,len(results)):
+            ansString += str(qID) + ' 0 ' + results[index][0] + ' ' + str(index) + ' ' + results[index][1] + ' ' + str(runID) + '\n'
+        return ansString
 
 
     def getDocumentsFromPostingFile(self, term:str, line:int) -> dict:
