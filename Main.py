@@ -22,9 +22,12 @@ def main():
 
 class MainClass:
 
-    def __init__(self):
+    def __init__(self,config=None):
 
-        self.config = ConfigClass()
+        if config is None:
+            self.config = ConfigClass()
+        else:
+            self.config = config
         self.cityAPI = CityAPI()
 
     def GUIRun(self):
@@ -115,31 +118,9 @@ class MainClass:
         finishTime = datetime.now()
         timeItTook = finishTime - startTime
 
-
-
-        # Merge docFiles:
-
-        allDocsTuplePath = self.config.getSavedFilesPath() + '/allDocs.txt'
-        allDocsTuple = get2DArrayFromFile(allDocsTuplePath)
-        unsortedDocsPath = self.config.getSavedFilesPath() + '/docIndex'
-        unsortedDocs = getDicFromFile(unsortedDocsPath)
-
-        for i in range(0,len(allDocsTuple)):
-            docNo = allDocsTuple[i][0]
-            allDocsTuple[i] = [docNo] + unsortedDocs[docNo]
-
-        headLineToWrite = 'DOCID|max_tf|uniqueTermCount|docLength|City|Language\n'
-
-        # allDocsTuple = [headLineToWrite] + allDocsTuple
-        os.remove(unsortedDocsPath)
-        os.remove(allDocsTuplePath)
-        writeListToFile(self.config.getSavedFilesPath(),'/docIndex',allDocsTuple,False)
-        # writeListToFile(self.config.getSavedFilesPath(),'/docIndex.txt',allDocsTuple,False)
-
-
-
-
         print("Term Posting took: " + str(timeItTook.seconds) + " seconds")
+
+
 
         firstManagerToFinish = True
 
@@ -162,9 +143,20 @@ class MainClass:
             if firstManagerToFinish:
                 firstManagerToFinish = False
                 self.getCitiesDataAndWriteItASync(dictionary_city_cityData, citiesFutureDic)
+                # Merge docFiles:
 
+                allDocsTuplePath = self.config.getSavedFilesPath() + '/allDocs.txt'
+                allDocsTuple = get2DArrayFromFile(allDocsTuplePath)
+                unsortedDocsPath = self.config.getSavedFilesPath() + '/docIndex'
+                unsortedDocs = getDicFromFile(unsortedDocsPath)
 
+                for i in range(0, len(allDocsTuple)):
+                    docNo = allDocsTuple[i][0]
+                    allDocsTuple[i] = [docNo] + unsortedDocs[docNo]
 
+                os.remove(unsortedDocsPath)
+                os.remove(allDocsTuplePath)
+                writeListToFile(self.config.getSavedFilesPath(), '/docIndex', allDocsTuple, False)
 
         finishTime = datetime.now()
         timeItTook = finishTime - startTime

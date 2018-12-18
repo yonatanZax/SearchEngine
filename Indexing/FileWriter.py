@@ -71,7 +71,6 @@ class FileWriter:
 
             if getStringSizeInBytes(lineToWritePost) + getStringSizeInBytes(line[1]) < postingMaxSize:
 
-
                 currentLineDic = '|'.join((line[0][0], str(line[0][1]), str(line[0][2]), str(index)))
 
                 index += 1
@@ -89,7 +88,6 @@ class FileWriter:
                 ListToWriteDic.append(currentLineDic)
                 lineToWritePost = ''
                 lineToWritePost += sortedPostingLine + "\n"
-
 
 
 

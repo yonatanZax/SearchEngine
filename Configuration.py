@@ -49,8 +49,8 @@ class ConfigClass:
         self.toStem = False
 
         # Part B
-        self.BM25_K = 1
-        self.BM25_B = 1
+        self.BM25_K = 1.2
+        self.BM25_B = 0.75
         self.BM25_avgDLength = 100
         self.totalNumberOfDocs = 1000
         self.totalNumberOfTerms = 1000
@@ -83,6 +83,8 @@ class ConfigClass:
         self.totalNumberOfTerms = numberOfTerms
 
     def setSaveMainFolderPath(self,newPath,delete=False):
+
+
         if not os.path.exists(newPath):
             os.mkdir(newPath)
         self.savedFileMainFolder = newPath

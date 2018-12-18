@@ -8,8 +8,11 @@ class Ranker:
 
         # format: key=docID, value = [0-max_tf, 1-uniqueTermCount, 2-docLength, 3-City, 4-Language]
         self.dictionary_document_info = {}
-
         self.getDocumentIndex()
+
+        # self.dictionary_city_documents = {}
+        # self.getCitiesIndex()
+
 
 
     # def getDocumentIndex(self):
@@ -36,6 +39,19 @@ class Ranker:
             self.dictionary_document_info[lineNumber] = splitLine
             totalLength += int(splitLine[3])
         self.config.setAverageDocLength(totalLength=totalLength, numberOfDocs=len(fileLines))
+
+
+    # def getCitiesIndex(self):
+    #     file = open(self.config.getSavedFilesPath() + '/cityIndex','r',encoding='utf-8')
+    #     fileLines = file.readlines()
+    #     # fileLines = file.readlines()[1:]
+    #     file.close()
+    #     totalLength = 0
+    #     for lineNumber in range(0,len(fileLines)):
+    #         splitLine = fileLines[lineNumber].split('|')
+    #         self.dictionary_document_info[lineNumber] = splitLine
+    #         totalLength += int(splitLine[3])
+    #     self.config.setAverageDocLength(totalLength=totalLength, numberOfDocs=len(fileLines))
 
 
     def convertDocNoListToDocID(self, docNoList : list)-> list:

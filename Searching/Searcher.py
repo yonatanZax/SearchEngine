@@ -4,11 +4,39 @@ from Parsing.IterativeParsing import IterativeTokenizer
 import os
 
 from Ranker.Ranker import Ranker
+from Searching.WordEmbedding import WordEmbedding
 
 
 class SearcherIterativeTokenizer(IterativeTokenizer):
 
     def ruleNBA(self, index: int, textList: list) -> (list,int):
+
+        listOfTerms = [textList[index]]
+        bigLetters = textList[index][0]
+        tempIndex = index + 1
+        while tempIndex < len(textList):
+
+            currWord = textList[tempIndex]
+            currWord = self.cleanToken(currWord)
+            if currWord is None:
+                tempIndex += 1
+                continue
+            if currWord == bigLetters:
+                listOfTerms = [' '.join(textList[index:tempIndex])] + textList[index:tempIndex]
+                listOfTerms.append(currWord)
+                return listOfTerms, tempIndex
+
+            if currWord[0].isupper():
+                bigLetters += currWord[0]
+                if len(bigLetters) > 6:
+                    break
+            else:
+                break
+
+            tempIndex += 1
+
+        return listOfTerms, index + 1
+
 #         TODO  - change me
         pass
 
@@ -16,15 +44,14 @@ class SearcherIterativeTokenizer(IterativeTokenizer):
 
 class Searcher:
 
-    def __init__(self, config,data):
+    def __init__(self, config, termDictionary):
         self.iterativeTokenizer = SearcherIterativeTokenizer(config)
         # form of dictionary: key=term, value=[0-df, 1-sumTF, 2-postingLine]
+        self.termDictionary = termDictionary
         self.config = config
-        self.termDic = data
-
-        self.termDictionary = self.termDic
         self.ranker = Ranker(config)
-        self.config.setTotalNumberOfTerms(len(self.termDic))
+        self.config.setTotalNumberOfTerms(len(termDictionary))
+        self.wordEmbedding = WordEmbedding()
 
 
 
@@ -34,7 +61,6 @@ class Searcher:
         :param queryString:
         :return:
         """
-
         queryTermDictionary, queryLength = self.iterativeTokenizer.parseText(queryString)
 
         document_score_dictionary = {}
@@ -53,6 +79,46 @@ class Searcher:
             limit = len(sorted_dic)
         return self.ranker.convertDocNoListToDocID(list(sorted_dic)[:limit])
 
+
+
+    def getDocsForQueryWithExpansion(self, queryString: str):
+        """
+        get a query and return the docs in the correct order with expanding of the query using the word embedding
+        :param queryString:
+        :return:
+        """
+
+        queryTermDictionary, queryLength = self.iterativeTokenizer.parseText(queryString)
+
+        expandedQueryList = self.wordEmbedding.expandQuery(list(queryTermDictionary.keys()))
+
+        document_score_dictionary = {}
+        for term in expandedQueryList:
+            if self.termDictionary.get(term) is not None:
+                temp_document_score_dictionary = self.getDocumentsFromPostingFile(term, int(self.termDictionary[term][2]))
+                for document, score in temp_document_score_dictionary.items():
+                    if document_score_dictionary.get(document) is None:
+                        document_score_dictionary[document] = score
+                    else:
+                        document_score_dictionary[document] += score
+
+        sorted_dic = sorted(document_score_dictionary.items(), key=lambda kv: kv[1],reverse=True)
+        limit = 49
+        if len(sorted_dic) < limit:
+            limit = len(sorted_dic)
+        return self.ranker.convertDocNoListToDocID(list(sorted_dic)[:limit])
+
+
+    @staticmethod
+    def getResultFormatFromResultList(qID:str , runID: str, results:list ) -> (str,str):
+        resultsToWrite = ''
+        resultsToPrint = ""
+        for index in range(0,len(results)):
+            # String to write 'Save Trec_Eval'
+            resultsToWrite += str(qID) + ' 0 ' + str(results[index][0]) + ' ' + str(index) + ' ' + str("{0:.3f}".format(round(results[index][1],3))) + ' ' + str(runID) + '\n'
+            # String to print in output window
+            resultsToPrint += "  ID: %s|\tDocNo: %s|\tScore: %s\n" % (str(qID),str(results[index][0]),str("{0:.3f}".format(round(results[index][1],3))) )
+        return resultsToWrite, resultsToPrint
 
 
     def getDocumentsFromPostingFile(self, term:str, line:int) -> dict:
@@ -90,8 +156,8 @@ class Searcher:
             # docID#DF#positions:
             splitDocumentInfo = documentSegment.split('#')
             gapAccumulator += int(splitDocumentInfo[0])
-            termScoreInDoc = self.ranker.getScore(docID=str(gapAccumulator), docDF=int(splitDocumentInfo[1]), positionList=splitDocumentInfo[2].split(':'), termDF=int(self.termDictionary[term][0]))
-            document_rank_dictionary[str(gapAccumulator)] = termScoreInDoc
+            termScoreInDoc = self.ranker.getScore(docID=gapAccumulator, docDF=int(splitDocumentInfo[1]), positionList=splitDocumentInfo[2].split(':'), termDF=int(self.termDictionary[term][0]))
+            document_rank_dictionary[gapAccumulator] = termScoreInDoc
 
 
         return document_rank_dictionary
