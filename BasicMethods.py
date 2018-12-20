@@ -190,7 +190,10 @@ def getDicFromFile(path, sep = '|'):
 
 
 def getTagFromText(textAsString,tag1,tag2='\n'):
-    start = textAsString.find(tag1) + len(tag1)
+    find = textAsString.find(tag1)
+    if find == -1:
+        return ''
+    start =  find + len(tag1)
     end = textAsString[start:].find(tag2)
     content = textAsString[start:start+end]
     return content.strip(' ')

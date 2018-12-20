@@ -10,6 +10,33 @@ from Searching.WordEmbedding import WordEmbedding
 class SearcherIterativeTokenizer(IterativeTokenizer):
 
     def ruleNBA(self, index: int, textList: list) -> (list,int):
+
+        listOfTerms = [textList[index]]
+        bigLetters = textList[index][0]
+        tempIndex = index + 1
+        while tempIndex < len(textList):
+
+            currWord = textList[tempIndex]
+            currWord = self.cleanToken(currWord)
+            if currWord is None:
+                tempIndex += 1
+                continue
+            if currWord == bigLetters:
+                listOfTerms = [' '.join(textList[index:tempIndex])] + textList[index:tempIndex]
+                listOfTerms.append(currWord)
+                return listOfTerms, tempIndex
+
+            if currWord[0].isupper():
+                bigLetters += currWord[0]
+                if len(bigLetters) > 6:
+                    break
+            else:
+                break
+
+            tempIndex += 1
+
+        return listOfTerms, index + 1
+
 #         TODO  - change me
         pass
 
@@ -25,10 +52,11 @@ class Searcher:
         self.ranker = Ranker(config)
         self.config.setTotalNumberOfTerms(len(termDictionary))
         self.wordEmbedding = WordEmbedding()
+        self.documentsByCitiesSet = None
 
 
 
-    def getDocsForQuery(self, queryString):
+    def getDocsForQuery(self, queryString, citiesList=None):
         """
         get a query and return the docs in the correct order
         :param queryString:
@@ -36,10 +64,13 @@ class Searcher:
         """
         queryTermDictionary, queryLength = self.iterativeTokenizer.parseText(queryString)
 
+
+
         document_score_dictionary = {}
         for term in queryTermDictionary.keys():
             if self.termDictionary.get(term) is not None:
-                temp_document_score_dictionary = self.getDocumentsFromPostingFile(term, int(self.termDictionary[term][2]))
+                correctPostingFilePath = self.getDocumentsFromPostingFile(term)
+                temp_document_score_dictionary = self.getDocumentsScoreFromPostingLine(correctPostingFilePath, term, int(self.termDictionary[term][2]))
                 for document, score in temp_document_score_dictionary.items():
                     if document_score_dictionary.get(document) is None:
                         document_score_dictionary[document] = score
@@ -47,16 +78,17 @@ class Searcher:
                         document_score_dictionary[document] += score
 
         sorted_dic = sorted(document_score_dictionary.items(), key=lambda kv: kv[1],reverse=True)
-        limit = 49
+        limit = 200
         if len(sorted_dic) < limit:
             limit = len(sorted_dic)
         return self.ranker.convertDocNoListToDocID(list(sorted_dic)[:limit])
 
 
 
-    def getDocsForQueryWithExpansion(self, queryString: str):
+    def getDocsForQueryWithExpansion(self, queryString: str, citiesList: list=None):
         """
         get a query and return the docs in the correct order with expanding of the query using the word embedding
+        :param citiesList:
         :param queryString:
         :return:
         """
@@ -65,32 +97,51 @@ class Searcher:
 
         expandedQueryList = self.wordEmbedding.expandQuery(list(queryTermDictionary.keys()))
 
+        self.documentsByCitiesSet = None
+        if citiesList is not None:
+            self.documentsByCitiesSet = self.ranker.getDocumentsFromCityList(citiesList=citiesList)
+
         document_score_dictionary = {}
         for term in expandedQueryList:
-            if self.termDictionary.get(term) is not None:
-                temp_document_score_dictionary = self.getDocumentsFromPostingFile(term, int(self.termDictionary[term][2]))
-                for document, score in temp_document_score_dictionary.items():
-                    if document_score_dictionary.get(document) is None:
-                        document_score_dictionary[document] = score
-                    else:
-                        document_score_dictionary[document] += score
+            termForm = None
+            if self.termDictionary.get(term.lower()) is not None:
+                termForm = term.lower()
+            elif self.termDictionary.get(term.upper()) is not None:
+                termForm = term.upper()
+            else:
+                continue
+
+            correctPostingFilePath = self.getDocumentsFromPostingFile(termForm)
+
+            temp_document_score_dictionary = self.getDocumentsScoreFromPostingLine(correctPostingFilePath, termForm, int(self.termDictionary[termForm][2]))
+
+            for document, score in temp_document_score_dictionary.items():
+                if document_score_dictionary.get(document) is None:
+                    document_score_dictionary[document] = score
+                else:
+                    document_score_dictionary[document] += score
 
         sorted_dic = sorted(document_score_dictionary.items(), key=lambda kv: kv[1],reverse=True)
-        limit = 49
+        # limit = 49
+        limit = 200
         if len(sorted_dic) < limit:
             limit = len(sorted_dic)
         return self.ranker.convertDocNoListToDocID(list(sorted_dic)[:limit])
 
 
     @staticmethod
-    def getResultFormatFromResultList(qID:str , runID: str, results:list ) -> str:
-        ansString = ''
+    def getResultFormatFromResultList(qID:str , runID: str, results:list ) -> (str,str):
+        resultsToWrite = ''
+        resultsToPrint = "   ID  |     DocNo    |  Score\n"
         for index in range(0,len(results)):
-            ansString += str(qID) + ' 0 ' + results[index][0] + ' ' + str(index) + ' ' + results[index][1] + ' ' + str(runID) + '\n'
-        return ansString
+            # String to write 'Save Trec_Eval'
+            resultsToWrite += str(qID) + ' 0 ' + str(results[index][0]) + ' ' + str(index) + ' ' + str("{0:.3f}".format(round(results[index][1],3))) + ' ' + str(runID) + '\n'
+            # String to print in output window
+            resultsToPrint += "  %s  |  %s  |  %s  \n" % (str(qID),str(results[index][0]),str("{0:.3f}".format(round(results[index][1],3))) )
+        return resultsToWrite, resultsToPrint
 
 
-    def getDocumentsFromPostingFile(self, term:str, line:int) -> dict:
+    def getDocumentsFromPostingFile(self, term:str) -> str:
         folderAsChar = term[0]
         if not term[0].isalpha():
             folderAsChar = '#'
@@ -109,12 +160,11 @@ class Searcher:
                 correctPostingFilePath = savedFilesPath + postingFile + '_post'
                 break
 
-        return self.getDocumentsScoreFromPostingLine(correctPostingFilePath, line, term)
+        return correctPostingFilePath
 
 
 
-
-    def getDocumentsScoreFromPostingLine(self, postingFilePath:str, line:int, term:str) -> dict:
+    def getDocumentsScoreFromPostingLine(self, postingFilePath:str, term:str, line:int) -> dict:
         file = open(postingFilePath, 'r', encoding='utf-8')
         fileLine = file.readlines()[line]
         file.close()
@@ -125,6 +175,8 @@ class Searcher:
             # docID#DF#positions:
             splitDocumentInfo = documentSegment.split('#')
             gapAccumulator += int(splitDocumentInfo[0])
+            if self.documentsByCitiesSet is not None and gapAccumulator not in self.documentsByCitiesSet:
+                continue
             termScoreInDoc = self.ranker.getScore(docID=gapAccumulator, docDF=int(splitDocumentInfo[1]), positionList=splitDocumentInfo[2].split(':'), termDF=int(self.termDictionary[term][0]))
             document_rank_dictionary[gapAccumulator] = termScoreInDoc
 
@@ -151,7 +203,7 @@ def getDicFromFile(path, sep = '|'):
             return myDict
 
     except Exception as ex:
-        print("Error while converting file to 2D array, E: ",ex)
+        print("Error while converting file to Dic, E: ",ex)
 
 
 

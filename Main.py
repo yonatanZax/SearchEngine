@@ -22,23 +22,23 @@ def main():
 
 class MainClass:
 
-    def __init__(self):
+    def __init__(self,config=None):
 
-        self.config = ConfigClass()
+        if config is None:
+            self.config = ConfigClass()
+        else:
+            self.config = config
         self.cityAPI = CityAPI()
 
     def GUIRun(self):
         from Gui import GuiMainView
-        from Gui.GuiPart2 import QuerySearcher
 
         print("***   Main Start   ***")
         root = GuiMainView.Tk()
         root = GuiMainView.setWindowSizeAndPosition(root)
-        # root.geometry('600x700')
         root.title("SearchEngine")
 
         guiFrame = GuiMainView.EngineBuilder(root, mainManager=self, config=self.config)
-        # guiFrame = QuerySearcher(root, mainManager=self, config=self.config)
         guiFrame.mainloop()
 
     def managerRun(self):

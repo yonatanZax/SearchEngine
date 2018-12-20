@@ -8,30 +8,16 @@ class Ranker:
 
         # format: key=docID, value = [0-max_tf, 1-uniqueTermCount, 2-docLength, 3-City, 4-Language]
         self.dictionary_document_info = {}
-        self.getDocumentIndex()
+        self.__getDocumentIndex()
 
-        # self.dictionary_city_documents = {}
-        # self.getCitiesIndex()
+        self.dictionary_city_documents = {}
+        self.__getCitiesIndex()
 
 
 
-    # def getDocumentIndex(self):
-    #     file = open(self.config.get__documentsIndexPath(),'r',encoding='utf-8')
-    #     fileLines = file.readlines()[1:]
-    #     file.close()
-    #     totalLength = 0
-    #     for line in fileLines:
-    #         splitLine = line.split('|')
-    #         self.dictionary_document_info[splitLine[0]] = splitLine[1:]
-    #         totalLength += int(splitLine[3])
-    #     averageDocLength = totalLength / len(fileLines)
-    #     self.config.setAverageDocLength(averageDocLength)
-
-    # TODO - These methods are for when we switch to condensed document names
-    def getDocumentIndex(self):
+    def __getDocumentIndex(self):
         file = open(self.config.get__documentsIndexPath(),'r',encoding='utf-8')
         fileLines = file.readlines()
-        # fileLines = file.readlines()[1:]
         file.close()
         totalLength = 0
         for lineNumber in range(0,len(fileLines)):
@@ -41,17 +27,24 @@ class Ranker:
         self.config.setAverageDocLength(totalLength=totalLength, numberOfDocs=len(fileLines))
 
 
-    # def getCitiesIndex(self):
-    #     file = open(self.config.getSavedFilesPath() + '/cityIndex','r',encoding='utf-8')
-    #     fileLines = file.readlines()
-    #     # fileLines = file.readlines()[1:]
-    #     file.close()
-    #     totalLength = 0
-    #     for lineNumber in range(0,len(fileLines)):
-    #         splitLine = fileLines[lineNumber].split('|')
-    #         self.dictionary_document_info[lineNumber] = splitLine
-    #         totalLength += int(splitLine[3])
-    #     self.config.setAverageDocLength(totalLength=totalLength, numberOfDocs=len(fileLines))
+    def __getCitiesIndex(self):
+        file = open(self.config.getSavedFilesPath() + '/cityIndex','r',encoding='utf-8')
+        fileLines = file.readlines()
+        file.close()
+        for line in fileLines:
+            splitLine = line.split('|')
+            city = splitLine[0]
+            documents = splitLine[4].split(',')
+            document_positionsList_dict = {}
+            gapAccumulator = 0
+
+            for document_positions in documents:
+                document_location = document_positions.split('#')
+                gapAccumulator += int(document_location[0])
+                documentID = gapAccumulator
+                cityPositionsInDocument = document_location[1].split(':')
+                document_positionsList_dict[documentID] = cityPositionsInDocument
+            self.dictionary_city_documents[city] = document_positionsList_dict
 
 
     def convertDocNoListToDocID(self, docNoList : list)-> list:
@@ -59,6 +52,13 @@ class Ranker:
         for docNo_score in docNoList:
             docIDList.append((self.dictionary_document_info[int(docNo_score[0])][0], docNo_score[1]))
         return docIDList
+
+
+    def getDocumentsFromCityList(self, citiesList: list)-> set:
+        documentsDict = set()
+        for city in citiesList:
+            documentsDict.update(self.dictionary_city_documents[city].keys())
+        return documentsDict
 
 
 

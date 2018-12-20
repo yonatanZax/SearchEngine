@@ -10,20 +10,29 @@ avoidCities = {'bartaman', 'dokumentation', 'nezavisimaya', 'calcutta', 'the', '
 
 
 
-def getFlagDicFromDocument(documentAsString):
+def getTagDicFromDocument(documentAsString):
     '''
-    This methods receives text and creates a dictionary of flags in the text
+    This methods receives text and creates a dictionary of tags in the text
         * Using getTagFromText in BasicMethods
     :param documentAsString: Document text from file
     :return: A dictionary with relevant flags from the text
     '''
-    flagDic = {}
-    flagDic["text"] = getTagFromText(documentAsString, "<TEXT>", "</TEXT>")
-    flagDic["docNo"] = getTagFromText(documentAsString, '<DOCNO>', '</DOCNO>')
-    flagDic["city"] = getTagFromText(documentAsString, "<F P=104>", "</F>")
-    flagDic["language"] = getTagFromText(documentAsString, "<F P=105>", "</F>")
+    tagDic = {}
+    onlyText = getTagFromText(documentAsString, "<TEXT>", "</TEXT>")
+    findTextSquared = onlyText.find('[Text]')
+    if findTextSquared > 0:
+        onlyText = onlyText[findTextSquared + len('[Text]'):]
 
-    cityLine = flagDic.get('city')
+
+    tagDic["text"] = onlyText
+
+
+
+    tagDic["docNo"] = getTagFromText(documentAsString, '<DOCNO>', '</DOCNO>')
+    tagDic["city"] = getTagFromText(documentAsString, "<F P=104>", "</F>")
+    tagDic["language"] = getTagFromText(documentAsString, "<F P=105>", "</F>")
+
+    cityLine = tagDic.get('city')
 
     # Code from Parse - set city properly
     if len(cityLine) > 1:
@@ -35,13 +44,13 @@ def getFlagDicFromDocument(documentAsString):
                 city = city + ' ' + splittedCity[2].strip(' ')
 
         if city.isalpha() and city.lower() not in avoidCities:
-            flagDic["text"] = flagDic["text"].replace(city, 'ZAXROY')
-            flagDic["city"] = city
+            tagDic["text"] = tagDic["text"].replace(city, 'ZAXROY')
+            tagDic["city"] = city
         else:
-            flagDic["city"] = ''
+            tagDic["city"] = ''
 
 
-    return flagDic
+    return tagDic
 
 
 
@@ -69,20 +78,27 @@ def createPreRunData(fileList: list, fileReader: ReadFile) -> (list,list,dict):
         for documentAsString in documentList:
 
             # Get relevant flags from this document
-            flagDic = getFlagDicFromDocument(documentAsString)
-            if flagDic:
-                if not flagDic.get('text') is None:
-                    if len(flagDic.get('text')) > 20:
+            tagDic = getTagDicFromDocument(documentAsString)
+            if tagDic:
+                if not tagDic.get('text') is None:
+
+                    if len(tagDic.get('text')) > 10:
 
                         # Add new doc to 'allDocsDic'
-                        allDocsTuple.append([flagDic['docNo'], str(counter)])
-
+                        allDocsTuple.append([tagDic['docNo'], str(counter)])
 
                         counter += 1
 
                         # Add new city to the cities dictionary
-                        if not flagDic.get('city') == '':
-                            cityDic[flagDic.get('city')] = True
+                        if not tagDic.get('city') == '':
+                            cityDic[tagDic.get('city')] = True
+
+                # For testing only
+                #     else:
+                #         print('test')
+                #
+                # else:
+                #     print('test')
 
         # After all the documents, add a tuple of <FileName,index>
         filesIndexTupleList.append([fileName,firstFileIndex])
@@ -99,8 +115,4 @@ def createPreRunData(fileList: list, fileReader: ReadFile) -> (list,list,dict):
 #
 # fileList = os.listdir(con.get__corpusPath())
 # createPreRunDics(fileList,reader)
-
-
-
-
 

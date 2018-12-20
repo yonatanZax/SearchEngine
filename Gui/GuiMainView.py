@@ -311,7 +311,6 @@ class EngineBuilder(Frame):
         lettersList.append('#')
 
 
-        # totalList = []
         totalDict = dict()
 
         for letter in lettersList:
@@ -358,7 +357,7 @@ class EngineBuilder(Frame):
             self.statusLabel['text'] = 'Status: Enter a valid path to posting'
             return
 
-        self.config.setSaveMainFolderPath(self.entry_postingPath.get() + '/SavedFiles')
+        self.config.setSaveMainFolderPath(self.setMainPathString(self.entry_postingPath.get()))
 
         check = self.checked.get()
         self.config.setToStem(check)
@@ -432,7 +431,7 @@ class EngineBuilder(Frame):
     def deleteEngine(self):
         import shutil
         saveMainFolderPath = str(self.entry_postingPath.get())
-        self.config.setSaveMainFolderPath(saveMainFolderPath)
+        self.config.setSaveMainFolderPath(self.setMainPathString(saveMainFolderPath))
         if self.entry_postingPath.get() == '' or self.entry_corpusPath.get() == '':
             self.statusLabel['text'] = 'Status: %s invalid path to delete' % (saveMainFolderPath,)
             return
@@ -483,7 +482,9 @@ class EngineBuilder(Frame):
             self.statusLabel['text'] = 'Status: %s path not exists' % (saveMainFolderPath,)
             return
 
-        self.config.setSaveMainFolderPath(saveMainFolderPath + '/SavedFiles',True)
+
+        self.config.setSaveMainFolderPath(self.setMainPathString(saveMainFolderPath),True)
+
 
         print("Posting path:     ", saveMainFolderPath)
 
@@ -528,12 +529,6 @@ class EngineBuilder(Frame):
         from Parsing.ConvertMethods import converSecondsToTime
 
         timeItTook, maxParsingTime, totalMerging, totalNumberOfTerms, totalNumberOfDocuments ,mergedLanguagesSet = future.result()
-        print("Number of Terms: " , str(totalNumberOfTerms))
-        print("Number of Docs: " , str(totalNumberOfDocuments))
-        print("Parsing Time: " , str(converSecondsToTime(maxParsingTime)))
-        print("Merging Time: " , str(converSecondsToTime(totalMerging)))
-        print("Everything took: " , str(converSecondsToTime(timeItTook)))
-        self.enableButtons()
 
 
         self.droplist.destroy()
@@ -543,6 +538,13 @@ class EngineBuilder(Frame):
         c.set('Select')
         self.droplist.place( x = self.XstartPixel + 180, y = self.YstartPixel + 190)
         self.setBuildDetails(timeItTook, maxParsingTime, totalMerging, totalNumberOfTerms, totalNumberOfDocuments)
+
+        print("Number of Terms: " , str(totalNumberOfTerms))
+        print("Number of Docs: " , str(totalNumberOfDocuments))
+        print("Parsing Time: " , str(converSecondsToTime(maxParsingTime)))
+        print("Merging Time: " , str(converSecondsToTime(totalMerging)))
+        print("Everything took: " , str(converSecondsToTime(timeItTook)))
+        self.enableButtons()
 
 
 
@@ -588,6 +590,13 @@ class EngineBuilder(Frame):
         self.uploadDicButton.configure(state = DISABLED)
         self.part2Button.configure(state = DISABLED)
 
+
+
+    def setMainPathString(self,newPath):
+        if newPath.endswith("SavedFiles"):
+            return newPath
+        else:
+            return newPath + '/SavedFiles'
 
 
 

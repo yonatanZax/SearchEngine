@@ -6,6 +6,8 @@ from tkinter import filedialog
 from threading import Thread
 
 import os
+
+from Main import MainClass
 from Searching.Searcher import Searcher
 
 
@@ -19,7 +21,10 @@ class QuerySearcher(Frame):
         self.config = config
         self.mainManager = mainManager
         self.data = data
-        self.searcher = Searcher(config,self.data)
+        self.dataNoStem = None
+        self.dataWithStem = None
+
+        self.resultsToWrite = ""
 
 
         Frame.__init__(self, master)
@@ -40,35 +45,54 @@ class QuerySearcher(Frame):
 
 
         label_query = Label(self.master, text="Query:", width=10, font=("bold", 10))
-        label_query.place( x = self.XstartPixel + 50, y = self.YstartPixel + 130)
+        label_query.place( x = self.XstartPixel + 50, y = self.YstartPixel + 125)
         self.entry_query_text = StringVar()
         self.entry_query_text.set("")
         self.entry_query = Entry(self.master, textvariable=self.entry_query_text, width=30)
-        self.entry_query.place(x =self.XstartPixel + 180, y =self.YstartPixel + 130)
+        self.entry_query.place(x =self.XstartPixel + 180, y =self.YstartPixel + 125)
 
 
         label_queryFilePath = Label(self.master, text="Query file:", width=10, font=("bold", 10))
-        label_queryFilePath.place( x = self.XstartPixel + 50,  y = self.YstartPixel + 160)
+        label_queryFilePath.place( x = self.XstartPixel + 50,  y = self.YstartPixel + 155)
         self.entry_queryFilePath_text = StringVar()
         self.entry_queryFilePath_text.set("")
         self.entry_queryFilePath = Entry(self.master,textvariable=self.entry_queryFilePath_text,width=30)
-        self.entry_queryFilePath.place( x = self.XstartPixel + 180, y = self.YstartPixel + 160)
+        self.entry_queryFilePath.place( x = self.XstartPixel + 180, y = self.YstartPixel + 155)
 
 
 
         def queryPath():
-            print("Choose query file path...")
+            # print("Choose query file path...")
             query_path = filedialog.askopenfilename()
             self.entry_queryFilePath_text.set(query_path)
 
 
         self.queryFilePathButton = Button(self.master, text='Browse', width=7, fg='black',command= queryPath)
-        self.queryFilePathButton.place( x = self.XstartPixel + 380, y = self.YstartPixel + 155)
+        self.queryFilePathButton.place( x = self.XstartPixel + 380, y = self.YstartPixel + 150)
+
+
+
+        label_querySaveFilePath = Label(self.master, text="Save Query:", width=10, font=("bold", 10))
+        label_querySaveFilePath.place( x = self.XstartPixel + 50,  y = self.YstartPixel + 185)
+        self.entry_querySaveFilePath_text = StringVar()
+        self.entry_querySaveFilePath_text.set("")
+        self.entry_querySaveFilePath = Entry(self.master,textvariable=self.entry_querySaveFilePath_text,width=30)
+        self.entry_querySaveFilePath.place( x = self.XstartPixel + 180, y = self.YstartPixel + 185)
+
+
+        def querySavePath():
+            # print("Choose query file path...")
+            querySave_path = filedialog.askdirectory()
+            self.entry_querySaveFilePath_text.set(querySave_path)
+
+
+        self.querySavePathButton = Button(self.master, text='Browse', width=7, fg='black',command= querySavePath)
+        self.querySavePathButton.place( x = self.XstartPixel + 380, y = self.YstartPixel + 180)
 
 
 
         label_4 = Label(self.master, text="City:", width=10, font=("bold", 10))
-        label_4.place( x = self.XstartPixel + 50, y = self.YstartPixel + 190)
+        label_4.place( x = self.XstartPixel + 50, y = self.YstartPixel + 220)
 
 
         list1 = ['NYC', 'TEL-AVIV', 'PARIS']
@@ -76,26 +100,29 @@ class QuerySearcher(Frame):
         self.droplist = OptionMenu(self.master, c, *list1)
         self.droplist.config(width=15)
         c.set('Select')
-        self.droplist.place( x = self.XstartPixel + 180, y = self.YstartPixel + 190)
+        self.droplist.place( x = self.XstartPixel + 180, y = self.YstartPixel + 220)
 
 
 
         label_stemming = Label(self.master, text="Stemming", width=10, font=("bold", 10))
-        label_stemming.place( x = self.XstartPixel + 200, y = self.YstartPixel + 250)
-        self.checked = BooleanVar()
-        self.stemmingCheckBox = Checkbutton(self.master, variable = self.checked)
-        self.stemmingCheckBox.place( x = self.XstartPixel + 180, y = self.YstartPixel + 250)
+        label_stemming.place( x = self.XstartPixel + 200, y = self.YstartPixel + 260)
+        self.checkedStem = BooleanVar()
+        self.stemmingCheckBox = Checkbutton(self.master, variable = self.checkedStem)
+        self.stemmingCheckBox.place( x = self.XstartPixel + 180, y = self.YstartPixel + 260)
 
 
         label_Semantics = Label(self.master, text="Semantics", width=10, font=("bold", 10))
-        label_Semantics.place( x = self.XstartPixel + 200, y = self.YstartPixel + 280)
-        self.checked = BooleanVar()
-        self.SemanticsCheckBox = Checkbutton(self.master, variable = self.checked)
-        self.SemanticsCheckBox.place( x = self.XstartPixel + 180, y = self.YstartPixel + 280)
+        label_Semantics.place( x = self.XstartPixel + 200, y = self.YstartPixel + 290)
+        self.checkedSemantics = BooleanVar()
+        self.semanticsCheckBox = Checkbutton(self.master, variable = self.checkedSemantics)
+        self.semanticsCheckBox.place(x =self.XstartPixel + 180, y =self.YstartPixel + 290)
 
 
         self.runQueryButton = Button(self.master, text='Run query', width=15, bg='green', fg='white',command= self.runQuery)
-        self.runQueryButton.place( x = self.XstartPixel + 180, y = self.YstartPixel + 340)
+        self.runQueryButton.place( x = self.XstartPixel + 100, y = self.YstartPixel + 340)
+
+        self.runQueryFromFileButton = Button(self.master, text='Run query from file', width=15, bg='green', fg='white',command= self.runQueryFromFile)
+        self.runQueryFromFileButton.place( x = self.XstartPixel + 260, y = self.YstartPixel + 340)
 
         self.findYishuyotButton = Button(self.master, text='חיפוש יישויות', width=15, bg='blue', fg='white',command= self.findYishuyot)
         self.findYishuyotButton.place( x = self.XstartPixel + 180, y = self.YstartPixel + 380)
@@ -121,7 +148,15 @@ class QuerySearcher(Frame):
         self.statusLabel.place( x = self.XstartPixel + 60, y = self.YstartPixel + 650)
 
 
+        self.disableButtons()
+        searcherThread = Thread(target=self.initSearcher)
+        searcherThread.start()
 
+
+
+    def initSearcher(self):
+        self.searcher = Searcher(self.config, self.data)
+        self.enableButtons()
 
     def switchPart1(self):
         import Gui.GuiMainView as Part1
@@ -129,7 +164,8 @@ class QuerySearcher(Frame):
         self.master = Tk()
         Part1.setWindowSizeAndPosition(self.master)
         self.master.title("SearchEngine")
-        guiFrame = Part1.EngineBuilder(self.master, mainManager=self, config=self.config)
+        mainManager = MainClass(self.config)
+        guiFrame = Part1.EngineBuilder(self.master, mainManager=mainManager, config=self.config)
         guiFrame.mainloop()
 
 
@@ -138,13 +174,38 @@ class QuerySearcher(Frame):
 
 
     def runQuery(self):
+        # Get the query
+        path = self.entry_query_text.get()
+        if path == '':
+            self.statusLabel['text'] = "Status: Query line is empty"
+
         docList = self.searcher.getDocsForQuery(self.entry_query_text.get())
-        docListText = ""
+        resultsToPrint = ""
         for file_score in docList:
-            docListText += '\t' + str(file_score[0]) + ' : ' + str("{0:.2f}".format(round(file_score[1],2))) + '\n'
+            resultsToPrint += "  %s  |  %s  |  %s  \n" % ('0', str(file_score[0]), str("{0:.3f}".format(round(file_score[1], 3))))
 
         self.txtbox.delete('1.0',END)
-        self.txtbox.insert('1.0',docListText)
+        self.txtbox.insert('1.0',resultsToPrint)
+
+
+    def runQueryFromFile(self):
+        import os
+        # Get the file's path
+        path = self.entry_queryFilePath_text.get()
+        if path == '':
+            self.statusLabel['text'] = "Status: Please enter a valid path to query"
+
+        if not os.path.exists(path):
+            self.statusLabel['text'] = "Status: Path %s , is not valid" % (path)
+
+        # Get result string from the file
+        trec_eval_results_toWrite, trec_eval_results_toPrint = self.runMultipleQueries()
+        self.resultsToWrite = trec_eval_results_toWrite
+
+        # Write the results to the output window
+        self.txtbox.insert('1.0',trec_eval_results_toPrint)
+
+
 
 
     def writeResultsForTREC(self, results, qID:str = '0', runID:str = '0'):
@@ -153,13 +214,20 @@ class QuerySearcher(Frame):
 
     def runMultipleQueries(self, runID:str = '0'):
         queriesList_ID_query = self.readQueriesFiles()
-        trec_eval_results_str = ''
+        trec_eval_results_toWrite = ''
+        trec_eval_results_toPrint = ''
         for query_ID_query in queriesList_ID_query:
-            docList = self.searcher.getDocsForQuery(query_ID_query[1])
-            trec_eval_results_str += self.searcher.getResultFormatFromResultList(qID=queriesList_ID_query[0], runID=runID, results=docList)
+            if self.checkedSemantics.get():
+                docList = self.searcher.getDocsForQueryWithExpansion(query_ID_query[1])
+            else:
+                docList = self.searcher.getDocsForQuery(query_ID_query[1])
+            toWrite, toPrint = self.searcher.getResultFormatFromResultList(qID=query_ID_query[0], runID=runID, results=docList)
+            trec_eval_results_toWrite += toWrite
+            trec_eval_results_toPrint += toPrint
 
     #     TODO - write to a file we need to set in config
-        print(trec_eval_results_str)
+        return trec_eval_results_toWrite , trec_eval_results_toPrint
+        # print(trec_eval_results_str)
 
 
     def readQueriesFiles(self)-> list:
@@ -175,7 +243,33 @@ class QuerySearcher(Frame):
 
 
     def saveTrec_Eval(self):
-        pass
+
+        # Get the text is the output window
+        textToWrite = self.resultsToWrite
+        if  textToWrite == '':
+            self.statusLabel['text'] = "Status: Nothing to save.."
+
+        # Get the path to save file
+        savePath = self.entry_querySaveFilePath_text.get()
+        if savePath == '':
+            self.statusLabel['text'] = "Status: path to save is empty"
+
+        if not os.path.exists(savePath):
+            self.statusLabel['text'] = "Status: path %s is invalid" % (savePath)
+
+        # Check if file exists
+        filePath = savePath + '/results.txt'
+        if os.path.exists(filePath):
+            os.remove(filePath)
+
+        # Write the file
+        try:
+            myFile = open(filePath,'a')
+            myFile.write(textToWrite)
+            myFile.close()
+
+        except Exception as ex:
+            print(ex)
 
 
 
@@ -189,6 +283,7 @@ class QuerySearcher(Frame):
 
     def enableButtons(self):
         self.runQueryButton.configure(state = NORMAL)
+        self.runQueryFromFileButton.configure(state = NORMAL)
         self.findYishuyotButton.configure(state = NORMAL)
         self.saveTrec_EvalButton.configure(state = NORMAL)
 
@@ -196,6 +291,7 @@ class QuerySearcher(Frame):
 
     def disableButtons(self):
         self.runQueryButton.configure(state = DISABLED)
+        self.runQueryFromFileButton.configure(state = DISABLED)
         self.findYishuyotButton.configure(state = DISABLED)
         self.saveTrec_EvalButton.configure(state = DISABLED)
 
