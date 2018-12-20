@@ -311,7 +311,6 @@ class EngineBuilder(Frame):
         lettersList.append('#')
 
 
-        # totalList = []
         totalDict = dict()
 
         for letter in lettersList:

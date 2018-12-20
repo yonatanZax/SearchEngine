@@ -106,16 +106,16 @@ class QuerySearcher(Frame):
 
         label_stemming = Label(self.master, text="Stemming", width=10, font=("bold", 10))
         label_stemming.place( x = self.XstartPixel + 200, y = self.YstartPixel + 260)
-        self.checked = BooleanVar()
-        self.stemmingCheckBox = Checkbutton(self.master, variable = self.checked)
+        self.checkedStem = BooleanVar()
+        self.stemmingCheckBox = Checkbutton(self.master, variable = self.checkedStem)
         self.stemmingCheckBox.place( x = self.XstartPixel + 180, y = self.YstartPixel + 260)
 
 
         label_Semantics = Label(self.master, text="Semantics", width=10, font=("bold", 10))
         label_Semantics.place( x = self.XstartPixel + 200, y = self.YstartPixel + 290)
-        self.checked = BooleanVar()
-        self.SemanticsCheckBox = Checkbutton(self.master, variable = self.checked)
-        self.SemanticsCheckBox.place( x = self.XstartPixel + 180, y = self.YstartPixel + 290)
+        self.checkedSemantics = BooleanVar()
+        self.semanticsCheckBox = Checkbutton(self.master, variable = self.checkedSemantics)
+        self.semanticsCheckBox.place(x =self.XstartPixel + 180, y =self.YstartPixel + 290)
 
 
         self.runQueryButton = Button(self.master, text='Run query', width=15, bg='green', fg='white',command= self.runQuery)
@@ -174,13 +174,18 @@ class QuerySearcher(Frame):
 
 
     def runQuery(self):
+        # Get the query
+        path = self.entry_query_text.get()
+        if path == '':
+            self.statusLabel['text'] = "Status: Query line is empty"
+
         docList = self.searcher.getDocsForQuery(self.entry_query_text.get())
-        docListText = ""
+        resultsToPrint = ""
         for file_score in docList:
-            docListText += '\t' + str(file_score[0]) + ' : ' + str("{0:.3f}".format(round(file_score[1],3))) + '\n'
+            resultsToPrint += "  %s  |  %s  |  %s  \n" % ('0', str(file_score[0]), str("{0:.3f}".format(round(file_score[1], 3))))
 
         self.txtbox.delete('1.0',END)
-        self.txtbox.insert('1.0',docListText)
+        self.txtbox.insert('1.0',resultsToPrint)
 
 
     def runQueryFromFile(self):
@@ -212,7 +217,10 @@ class QuerySearcher(Frame):
         trec_eval_results_toWrite = ''
         trec_eval_results_toPrint = ''
         for query_ID_query in queriesList_ID_query:
-            docList = self.searcher.getDocsForQuery(query_ID_query[1])
+            if self.checkedSemantics.get():
+                docList = self.searcher.getDocsForQueryWithExpansion(query_ID_query[1])
+            else:
+                docList = self.searcher.getDocsForQuery(query_ID_query[1])
             toWrite, toPrint = self.searcher.getResultFormatFromResultList(qID=query_ID_query[0], runID=runID, results=docList)
             trec_eval_results_toWrite += toWrite
             trec_eval_results_toPrint += toPrint

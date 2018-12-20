@@ -57,7 +57,7 @@ class WordEmbedding:
 
 
     def expandQuery(self, queryList:list)-> list:
-        expandedQuery = set()
+        expandedQuery = set(queryList)
         for word in queryList:
             expandedQuery = expandedQuery.union(self.__getTopNSimilarWords(word=word))
 
@@ -68,8 +68,24 @@ class WordEmbedding:
 
     def __getTopNSimilarWordsFromWordsList_avgVector(self, words:list, N: int=5) -> list:
         start = datetime.now()
-        finalVector = np.array(self.embedding_dict[words[0]])
-        for index in range(1,len(words)):
+
+        i = 0
+        j = 0
+        # Skip None words in list
+        while  j  < len(words):
+            if self.embedding_dict.get(words[j].lower()) is None:
+                j += 1
+            else:
+                i = j
+                break
+
+        if i == 0 and j > 0:
+            return []
+        finalVector = np.array(self.embedding_dict[words[i].lower()])
+
+        for index in range(i + 1,len(words)):
+            if self.embedding_dict.get(words[index].lower()) is None:
+                continue
             finalVector += np.array(self.embedding_dict[words[index].lower()])
         finalVector /= len(words)
         nearest_dist, nearest_idx = self.__getNearest_inxFromVector(finalVector, N)
@@ -77,6 +93,9 @@ class WordEmbedding:
         finish = datetime.now()
         print("Took: ", str((start - finish).microseconds))
         return nearest_words
+
+
+
 
 
 

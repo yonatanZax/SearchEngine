@@ -2,6 +2,7 @@ import os
 from Indexing.MyDictionary import MyDictionary, DocumentIndexData,CityIndexData
 import string
 from Indexing.FileWriter import FileWriter
+from Indexing.KWayMerge import MyHeap
 
 class Indexer:
 
@@ -28,6 +29,12 @@ class Indexer:
         documentDictionary = document.termDocDictionary_term_termData
         docNo = document.docNo
         maxFrequentWord = 0
+
+        # Dominant term - Top 5
+        # dominantTerms = MyHeap(5)
+
+
+
         for term, termData in documentDictionary.items():
             # add the term to the dictionary
             if len(term) <= 1:

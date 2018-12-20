@@ -22,8 +22,7 @@ def getTagDicFromDocument(documentAsString):
     findTextSquared = onlyText.find('[Text]')
     if findTextSquared > 0:
         onlyText = onlyText[findTextSquared + len('[Text]'):]
-        # if len(onlyText) <= 10:
-        #     onlyText = ' '
+
 
     tagDic["text"] = onlyText
 
@@ -84,23 +83,22 @@ def createPreRunData(fileList: list, fileReader: ReadFile) -> (list,list,dict):
                 if not tagDic.get('text') is None:
 
                     if len(tagDic.get('text')) > 10:
-                        onlyText = tagDic.get('text')
-                        #
-                        # findTextSquared = onlyText.find('[Text]')
-                        # if findTextSquared > 0:
-                        #     onlyText = onlyText[findTextSquared + len('[Text]'):]
-                        # if len(onlyText) <= 10:
-                        #     continue
 
                         # Add new doc to 'allDocsDic'
                         allDocsTuple.append([tagDic['docNo'], str(counter)])
-
 
                         counter += 1
 
                         # Add new city to the cities dictionary
                         if not tagDic.get('city') == '':
                             cityDic[tagDic.get('city')] = True
+
+                # For testing only
+                #     else:
+                #         print('test')
+                #
+                # else:
+                #     print('test')
 
         # After all the documents, add a tuple of <FileName,index>
         filesIndexTupleList.append([fileName,firstFileIndex])
@@ -117,8 +115,4 @@ def createPreRunData(fileList: list, fileReader: ReadFile) -> (list,list,dict):
 #
 # fileList = os.listdir(con.get__corpusPath())
 # createPreRunDics(fileList,reader)
-
-
-
-
 
