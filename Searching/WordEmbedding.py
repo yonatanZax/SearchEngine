@@ -20,8 +20,6 @@ class WordEmbedding:
         print('Loaded GLOVE')
 
 
-
-
     def initValues(self):
 
 
@@ -93,9 +91,6 @@ class WordEmbedding:
         finish = datetime.now()
         print("Took: ", str((start - finish).microseconds))
         return nearest_words
-
-
-
 
 
 

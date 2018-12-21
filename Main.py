@@ -117,15 +117,9 @@ class MainClass:
 
         print("Term Posting took: " + str(timeItTook.seconds) + " seconds")
 
-
-
         firstManagerToFinish = True
-
-
         # UpdateProgress
         self.updateProgressBar(len(listOfFolders),'Posting')
-
-
 
         totalNumberOfTerms = 0
         maxSecondMergeTime = 0
@@ -140,6 +134,7 @@ class MainClass:
             if firstManagerToFinish:
                 firstManagerToFinish = False
                 self.getCitiesDataAndWriteItASync(dictionary_city_cityData, citiesFutureDic)
+
                 # Merge docFiles:
 
                 allDocsTuplePath = self.config.getSavedFilesPath() + '/allDocs.txt'

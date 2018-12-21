@@ -18,9 +18,7 @@ class Parse:
         docNo = 'doc null'
         onlyText = ''
         city = ''
-        cityLine = ''
         language = ''
-        languageLine = ''
         try:
 
             tagDic = getTagDicFromDocument(documentAsString)
@@ -43,7 +41,7 @@ class Parse:
 
                         # Add new city to the cities dictionary
                         if not tagDic.get('city') == '':
-                            cityLine = tagDic.get('city')
+                            city = tagDic.get('city')
 
                         # onlyText = tagDic.get('text')
                         language = tagDic.get('language')

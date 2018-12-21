@@ -57,12 +57,12 @@ def getTagDicFromDocument(documentAsString):
 def createPreRunData(fileList: list, fileReader: ReadFile) -> (list,list,dict):
     '''
     This method creates two dictionaries:
-    1. File_Index list - every file name is connected to it's first doc index
-    2. doc_index list - every docNo is connected to it's index
+    0. File_Index list - every file name is connected to it's first doc index
+    1. doc_index list - every docNo is connected to it's index
     2. City dictionary - all the cities from doc tag "<F P=104>"
     :param fileList: List of file names from the corpus
     :param fileReader: FileReader class
-    :return: A tuple: 1. file_index , 2. doc_index, 3. cityDic
+    :return: A tuple: 0. file_index , 1. doc_index, 2. cityDic
     '''
     cityDic = {}
     allDocsTuple = []

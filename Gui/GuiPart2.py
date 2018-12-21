@@ -17,9 +17,10 @@ from Gui.TkinterTable import TableView
 
 class QuerySearcher(Frame):
 
-    def __init__(self, master, mainManager, config,data):
+    def __init__(self, master, mainManager, config,cityList,data):
         self.config = config
         self.mainManager = mainManager
+        self.cityList = cityList
         self.data = data
         self.dataNoStem = None
         self.dataWithStem = None
@@ -35,29 +36,45 @@ class QuerySearcher(Frame):
         self.XstartPixel = 60
         self.YstartPixel = 10
 
+        menubar = Menu(master)
+        show_all = BooleanVar()
+        show_all.set(True)
+        self.citySelection = []
+        view_menu = Menu(menubar)
+        # view_menu = Menu(menubar,tearoff=0)
 
-        label_0 = Label(self.master, text="Search Engine", width=20, font=("bold", 30))
-        label_0.place( x = self.XstartPixel + 20, y = self.YstartPixel + 40)
+        for city in self.cityList:
+            show_done = BooleanVar()
+            self.citySelection.append([show_done,city])
+            view_menu.add_checkbutton(label=str(city) , onvalue=True, offvalue=0, variable=show_done)
+
+        menubar.add_cascade(label='Filter cities', menu=view_menu)
+        master.config(menu=menubar)
 
         self.part1Button = Button(self.master, text='Part1', width=10, bg='blue', fg='white',command= self.switchPart1)
         self.part1Button.place(x = self.XstartPixel + 450, y = self.YstartPixel + 0)
 
+        label_0 = Label(self.master, text="Search Engine", width=20, font=("bold", 30))
+        label_0.place( x = self.XstartPixel + 20, y = self.YstartPixel + 30)
+
+
+
 
 
         label_query = Label(self.master, text="Query:", width=10, font=("bold", 10))
-        label_query.place( x = self.XstartPixel + 50, y = self.YstartPixel + 125)
+        label_query.place( x = self.XstartPixel + 50, y = self.YstartPixel + 105)
         self.entry_query_text = StringVar()
         self.entry_query_text.set("")
         self.entry_query = Entry(self.master, textvariable=self.entry_query_text, width=30)
-        self.entry_query.place(x =self.XstartPixel + 180, y =self.YstartPixel + 125)
+        self.entry_query.place(x =self.XstartPixel + 180, y =self.YstartPixel + 105)
 
 
         label_queryFilePath = Label(self.master, text="Query file:", width=10, font=("bold", 10))
-        label_queryFilePath.place( x = self.XstartPixel + 50,  y = self.YstartPixel + 155)
+        label_queryFilePath.place( x = self.XstartPixel + 50,  y = self.YstartPixel + 135)
         self.entry_queryFilePath_text = StringVar()
         self.entry_queryFilePath_text.set("")
         self.entry_queryFilePath = Entry(self.master,textvariable=self.entry_queryFilePath_text,width=30)
-        self.entry_queryFilePath.place( x = self.XstartPixel + 180, y = self.YstartPixel + 155)
+        self.entry_queryFilePath.place( x = self.XstartPixel + 180, y = self.YstartPixel + 135)
 
 
 
@@ -68,16 +85,16 @@ class QuerySearcher(Frame):
 
 
         self.queryFilePathButton = Button(self.master, text='Browse', width=7, fg='black',command= queryPath)
-        self.queryFilePathButton.place( x = self.XstartPixel + 380, y = self.YstartPixel + 150)
+        self.queryFilePathButton.place( x = self.XstartPixel + 380, y = self.YstartPixel + 130)
 
 
 
         label_querySaveFilePath = Label(self.master, text="Save Query:", width=10, font=("bold", 10))
-        label_querySaveFilePath.place( x = self.XstartPixel + 50,  y = self.YstartPixel + 185)
+        label_querySaveFilePath.place( x = self.XstartPixel + 50,  y = self.YstartPixel + 165)
         self.entry_querySaveFilePath_text = StringVar()
         self.entry_querySaveFilePath_text.set("")
         self.entry_querySaveFilePath = Entry(self.master,textvariable=self.entry_querySaveFilePath_text,width=30)
-        self.entry_querySaveFilePath.place( x = self.XstartPixel + 180, y = self.YstartPixel + 185)
+        self.entry_querySaveFilePath.place( x = self.XstartPixel + 180, y = self.YstartPixel + 165)
 
 
         def querySavePath():
@@ -87,28 +104,56 @@ class QuerySearcher(Frame):
 
 
         self.querySavePathButton = Button(self.master, text='Browse', width=7, fg='black',command= querySavePath)
-        self.querySavePathButton.place( x = self.XstartPixel + 380, y = self.YstartPixel + 180)
+        self.querySavePathButton.place( x = self.XstartPixel + 380, y = self.YstartPixel + 160)
 
 
 
         label_4 = Label(self.master, text="City:", width=10, font=("bold", 10))
-        label_4.place( x = self.XstartPixel + 50, y = self.YstartPixel + 220)
+        label_4.place( x = self.XstartPixel + 50, y = self.YstartPixel + 190)
 
 
-        list1 = ['NYC', 'TEL-AVIV', 'PARIS']
-        c = StringVar()
-        self.droplist = OptionMenu(self.master, c, *list1)
-        self.droplist.config(width=15)
-        c.set('Select')
-        self.droplist.place( x = self.XstartPixel + 180, y = self.YstartPixel + 220)
+        self.sb = Scrollbar(orient="vertical")
+        cityBox = Text(master, width=23, height=5, yscrollcommand=self.sb.set)
+        cityBox.place(x = self.XstartPixel + 180, y = self.YstartPixel + 190)
+
+        self.checkVar_CityList = []
+        self.checkBoxList = []
+        for city in sorted(self.cityList):
+            var = BooleanVar()
+            self.checkVar_CityList.append([var, city])
+            box = Checkbutton(text=str(city), var=var, padx=0, pady=0, bd=0)
+            self.checkBoxList.append(box)
+
+
+        cityBox.insert("end", "**  Cities  **\n  ")
+
+        for cb in self.checkBoxList:
+            cityBox.window_create("end", window=cb)
+            cityBox.insert("end", "\n  ")
+            cb.bind("<Button-1>", self.selectstart)
+            cb.bind("<Shift-Button-1>", self.selectrange)
 
 
 
-        label_stemming = Label(self.master, text="Stemming", width=10, font=("bold", 10))
-        label_stemming.place( x = self.XstartPixel + 200, y = self.YstartPixel + 260)
-        self.checkedStem = BooleanVar()
-        self.stemmingCheckBox = Checkbutton(self.master, variable = self.checkedStem)
-        self.stemmingCheckBox.place( x = self.XstartPixel + 180, y = self.YstartPixel + 260)
+
+
+
+
+
+        # list1 = ['NYC', 'TEL-AVIV', 'PARIS']
+        # c = StringVar()
+        # self.droplist = OptionMenu(self.master, c, *list1)
+        # self.droplist.config(width=15)
+        # c.set('Select')
+        # self.droplist.place( x = self.XstartPixel + 180, y = self.YstartPixel + 220)
+
+
+
+        # label_stemming = Label(self.master, text="Stemming", width=10, font=("bold", 10))
+        # label_stemming.place( x = self.XstartPixel + 200, y = self.YstartPixel + 260)
+        # self.checkedStem = BooleanVar()
+        # self.stemmingCheckBox = Checkbutton(self.master, variable = self.checkedStem)
+        # self.stemmingCheckBox.place( x = self.XstartPixel + 180, y = self.YstartPixel + 260)
 
 
         label_Semantics = Label(self.master, text="Semantics", width=10, font=("bold", 10))
@@ -141,6 +186,8 @@ class QuerySearcher(Frame):
         self.txtbox.place( x = self.XstartPixel + 60, y = self.YstartPixel + 450)
 
 
+
+
         self.saveTrec_EvalButton = Button(self.master, text='Save to TREC_EVAL', width=20, bg='blue', fg='white',command= self.saveTrec_Eval)
         self.saveTrec_EvalButton.place( x = self.XstartPixel + 160, y = self.YstartPixel + 610)
 
@@ -169,7 +216,40 @@ class QuerySearcher(Frame):
         guiFrame.mainloop()
 
 
+
+
+    # Cities CheckBox
+    def selectstart(self, event):
+        self.start = self.checkBoxList.index(event.widget)
+
+    def selectrange(self, event):
+        start = self.start
+        end = self.checkBoxList.index(event.widget)
+        sl = slice(min(start, end) + 1, max(start, end))
+        for cb in self.checkBoxList[sl]:
+            cb.toggle()
+        self.start = end
+
+    def getSelectedCities(self):
+        selectedCities = []
+        for var in self.checkVar_CityList:
+            if var[0].get():
+                selectedCities.append(var[1])
+
+
+
+
+
     def findYishuyot(self):
+        # for selected in self.citySelection:
+        #     if selected[0].get() == 1:
+        #         print(selected[1])
+
+
+        from Gui.checkbox1 import App
+        root2 = Tk()
+        app = App(root2,self.cityList)
+        root2.mainloop()
         pass
 
 
@@ -238,6 +318,7 @@ class QuerySearcher(Frame):
         for queryStr in queriesFileArr:
             queryID = getTagFromText(queryStr,'<num> Number:')
             query = getTagFromText(queryStr,'<title>')
+            # query += ' ' + getTagFromText(queryStr,'<desc>','<narr>')
             queriesList_ID_query.append((queryID, query))
         return queriesList_ID_query
 

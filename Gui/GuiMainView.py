@@ -202,8 +202,23 @@ class EngineBuilder(Frame):
         self.master = Tk()
         setWindowSizeAndPosition(self.master)
         self.master.title("SearchEngine")
-        guiFrame = QuerySearcher(self.master, mainManager=self, config=self.config,data=data)
+        guiFrame = QuerySearcher(self.master, mainManager=self, config=self.config,cityList=self.getCityList(),data=data)
         guiFrame.mainloop()
+
+
+    def getCityList(self):
+        cityIndexPath = self.config.getSavedFilesPath() + '/cityIndex'
+        list = []
+
+        if os.path.exists(cityIndexPath):
+            myFile = open(cityIndexPath,'r')
+            listFromFile = myFile.readlines()
+
+            for line in listFromFile:
+                splitedLine = line.split('|')
+                list.append(splitedLine[0])
+
+        return list
 
 
 

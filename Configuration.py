@@ -18,6 +18,7 @@ class ConfigClass:
         self.toStem = False
 
         # Todo - remove before submit
+        # self.corpusPath = 'D:/corpus - full'
         self.corpusPath = 'D:/corpus'
         self.savedFileMainFolder = '..'
         # self.corpusPath = 'C:/Users/doroy/Documents/סמסטר ה/אחזור מידע/עבודה/corpus'
@@ -83,8 +84,6 @@ class ConfigClass:
         self.totalNumberOfTerms = numberOfTerms
 
     def setSaveMainFolderPath(self,newPath,delete=False):
-
-
         if not os.path.exists(newPath):
             os.mkdir(newPath)
         self.savedFileMainFolder = newPath
