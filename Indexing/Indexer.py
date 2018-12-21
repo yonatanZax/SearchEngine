@@ -53,12 +53,12 @@ class Indexer:
 
             except Exception as ex:
             # print("CITYERROR: " + str(ex) + " " + str(docNo) + " " + str(document.city))
-                x=1
+                pass
 
             if self.city_dictionary.get(document.city) is None:
-                self.city_dictionary[document.city] = CityIndexData(docNo, positions)
+                self.city_dictionary[document.city] = CityIndexData(docNoAsIndex, positions)
             else:
-                self.city_dictionary[document.city].addDocumentToCity(docNo, positions)
+                self.city_dictionary[document.city].addDocumentToCity(docNoAsIndex, positions)
 
         if len(document.language) > 1 and self.languagesDic.get(document.language) is None:
             self.languagesDic[document.language] = True

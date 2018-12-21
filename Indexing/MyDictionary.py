@@ -86,11 +86,14 @@ class CityIndexData:
         self.dictionary_doc_locations[docID] = locations
 
     def getDocLocationsAsString(self):
-        # ansList = []
-        # for doc, locations in sorted(self.dictionary_doc_locations.items()):
-        #     ansList.append('|'.join())
-        ans = ','.join(['#'.join([doc,locations]) for doc,locations in sorted(self.dictionary_doc_locations.items())])
-        return ans
+        lastDoc = 0
+        ans = ''
+        for doc, locations in sorted(self.dictionary_doc_locations.items(),key=lambda kv: int(kv[0])):
+            docWithGap = str(int(doc) - lastDoc)
+            lastDoc = int(doc)
+            ans += '#'.join([docWithGap,locations]) + ','
+        # ans = ','.join(['#'.join([doc,locations]) for doc,locations in sorted(self.dictionary_doc_locations.items())])
+        return ans.rstrip(',')
 
 # get the format of the term how its saved in the dictionary or none if its not in the dictionary
 def getTermDictionaryForm(dictionary, termString):
