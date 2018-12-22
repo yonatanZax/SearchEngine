@@ -62,26 +62,41 @@ class Ranker:
 
 
 
-    def getScore(self, docID:str, docDF:int, positionList:list, termDF:int) -> int:
+    def getScore(self, docID:str, docDF:int, positionList:list, termDF:int) -> float:
         BM25Score = self.getBM25Score(docID=int(docID), docDF=docDF, termDF=termDF)
+
+        AxiomaticTermWeightingScore = self.getAxiomaticTermWeightingScore(docID=int(docID), docDF=docDF, termDF=termDF)
         # TODO - calculate the score in more ways
         return BM25Score
 
 
 
-    def getBM25Score(self, docID:int, docDF:int, termDF:int):
+    def getBM25Score(self, docID:int, docDF:int, termDF:int)->float:
         """
         BM25:
-        F(q,d) = SIGMA[c(w,q)*((k+1)*c(w,d))/((c(w,d)+k*(1-b+b*|D|/avd(D)))*Log((M+1)/df(w))]
+        F(q,d) = SIGMA[c(w,q)*((k+1)*c(w,d))/((c(w,d)+k*(1-b+b*|D|/avd(D)))*Log((M-c(w,d)+0.5)/(df(w)+0.5))]
         """
 
         mone = (self.config.BM25_K + 1) * docDF
 
-        mehane = docDF + self.config.BM25_K*(1 - self.config.BM25_B + self.config.BM25_B * int(self.dictionary_document_info[docID][2])/self.config.BM25_avgDLength)
+        mehane = docDF + self.config.BM25_K*(1 - self.config.BM25_B + self.config.BM25_B * float(self.dictionary_document_info[docID][2])/self.config.BM25_avgDLength)
 
-        log = math.log10((self.config.totalNumberOfDocs + 1) / termDF)
+        # log = math.log10((self.config.totalNumberOfDocs + 1) / termDF)
+
+        log = math.log10((self.config.totalNumberOfDocs - termDF + 0.5) / (termDF + 0.5))
+
 
         score = (mone / mehane) * log
 
         return score
+
+
+    def getAxiomaticTermWeightingScore(self, docID:int, docDF:int, termDF:int):
+#         https://pdfs.semanticscholar.org/94c9/30d010c17f3edc0df39ea99fd311d33327c1.pdf
+
+        mone = docDF * math.pow(self.config.totalNumberOfDocs,0.35)
+
+        mehane = (docDF + 0.5 + (0.5 * float(self.dictionary_document_info[docID][2]) / self.config.BM25_avgDLength)) * termDF
+
+        return mone / mehane
 
