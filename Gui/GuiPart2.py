@@ -236,15 +236,13 @@ class QuerySearcher(Frame):
             if var[0].get():
                 selectedCities.append(var[1])
 
+        return selectedCities
+
 
 
 
 
     def findYishuyot(self):
-        # for selected in self.citySelection:
-        #     if selected[0].get() == 1:
-        #         print(selected[1])
-
 
         from Gui.checkbox1 import App
         root2 = Tk()
@@ -258,12 +256,14 @@ class QuerySearcher(Frame):
         path = self.entry_query_text.get()
         if path == '':
             self.statusLabel['text'] = "Status: Query line is empty"
+            return
 
-        docList = self.searcher.getDocsForQuery(self.entry_query_text.get())
+        docList = self.searcher.getDocsForQuery(self.entry_query_text.get(),self.getSelectedCities())
         resultsToPrint = ""
         for file_score in docList:
             resultsToPrint += "  %s  |  %s  |  %s  \n" % ('0', str(file_score[0]), str("{0:.3f}".format(round(file_score[1], 3))))
 
+        # Write the results to the output window
         self.txtbox.delete('1.0',END)
         self.txtbox.insert('1.0',resultsToPrint)
 
@@ -274,15 +274,18 @@ class QuerySearcher(Frame):
         path = self.entry_queryFilePath_text.get()
         if path == '':
             self.statusLabel['text'] = "Status: Please enter a valid path to query"
+            return
 
         if not os.path.exists(path):
             self.statusLabel['text'] = "Status: Path %s , is not valid" % (path)
+            return
 
         # Get result string from the file
         trec_eval_results_toWrite, trec_eval_results_toPrint = self.runMultipleQueries()
         self.resultsToWrite = trec_eval_results_toWrite
 
         # Write the results to the output window
+        self.txtbox.delete('1.0', END)
         self.txtbox.insert('1.0',trec_eval_results_toPrint)
 
 
@@ -293,14 +296,15 @@ class QuerySearcher(Frame):
 
 
     def runMultipleQueries(self, runID:str = '0'):
+
         queriesList_ID_query = self.readQueriesFiles()
         trec_eval_results_toWrite = ''
         trec_eval_results_toPrint = ''
         for query_ID_query in queriesList_ID_query:
             if self.checkedSemantics.get():
-                docList = self.searcher.getDocsForQueryWithExpansion(query_ID_query[1])
+                docList = self.searcher.getDocsForQueryWithExpansion(query_ID_query[1],self.getSelectedCities())
             else:
-                docList = self.searcher.getDocsForQuery(query_ID_query[1])
+                docList = self.searcher.getDocsForQuery(query_ID_query[1],self.getSelectedCities())
             toWrite, toPrint = self.searcher.getResultFormatFromResultList(qID=query_ID_query[0], runID=runID, results=docList)
             trec_eval_results_toWrite += toWrite
             trec_eval_results_toPrint += toPrint

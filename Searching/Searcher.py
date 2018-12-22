@@ -21,24 +21,28 @@ class SearcherIterativeTokenizer(IterativeTokenizer):
             if currWord is None:
                 tempIndex += 1
                 continue
-            if currWord == bigLetters:
-                listOfTerms = [' '.join(textList[index:tempIndex])] + textList[index:tempIndex]
-                listOfTerms.append(currWord)
-                return listOfTerms, tempIndex
 
             if currWord[0].isupper():
                 bigLetters += currWord[0]
                 if len(bigLetters) > 6:
-                    break
+                    # Too long, return first
+                    return listOfTerms, index + 1
             else:
-                break
+                # Only the first is upper
+                if len(bigLetters) == 1:
+                    return listOfTerms, index + 1
+
+                # Add the combination, add the
+                listOfTerms = [' '.join(textList[index:tempIndex])] + textList[index:tempIndex]
+                listOfTerms.append(bigLetters)
+                return listOfTerms, tempIndex
 
             tempIndex += 1
 
-        return listOfTerms, index + 1
+        listOfTerms = [' '.join(textList[index:tempIndex])] + textList[index:tempIndex]
+        listOfTerms.append(bigLetters)
+        return listOfTerms, tempIndex
 
-#         TODO  - change me
-        pass
 
 
 
@@ -64,14 +68,25 @@ class Searcher:
         """
         queryTermDictionary, queryLength = self.iterativeTokenizer.parseText(queryString)
 
+        self.documentsByCitiesSet = None
+        if len(citiesList) > 0:
+            self.documentsByCitiesSet = self.ranker.getDocumentsFromCityList(citiesList=citiesList)
 
 
         document_score_dictionary = {}
         for term in queryTermDictionary.keys():
             if self.termDictionary.get(term) is not None:
+                if self.termDictionary.get(term.lower()) is not None:
+                    term = term.lower()
+                elif self.termDictionary.get(term.upper()) is not None:
+                    term = term.upper()
+                else:
+                    continue
+
                 correctPostingFilePath = self.getDocumentsFromPostingFile(term)
                 temp_document_score_dictionary = self.getDocumentsScoreFromPostingLine(correctPostingFilePath, term, int(self.termDictionary[term][2]))
                 for document, score in temp_document_score_dictionary.items():
+
                     if document_score_dictionary.get(document) is None:
                         document_score_dictionary[document] = score
                     else:
@@ -79,6 +94,7 @@ class Searcher:
 
         sorted_dic = sorted(document_score_dictionary.items(), key=lambda kv: kv[1],reverse=True)
         # limit = 200
+
         limit = 50
         if len(sorted_dic) < limit:
             limit = len(sorted_dic)
@@ -99,7 +115,7 @@ class Searcher:
         expandedQueryList = self.wordEmbedding.expandQuery(list(queryTermDictionary.keys()))
 
         self.documentsByCitiesSet = None
-        if citiesList is not None:
+        if len(citiesList) > 0:
             self.documentsByCitiesSet = self.ranker.getDocumentsFromCityList(citiesList=citiesList)
 
         document_score_dictionary = {}
@@ -240,3 +256,5 @@ def test():
 
 
 # test()
+
+
