@@ -36,5 +36,10 @@ class TermData:
     def toString(self):
         return '#'.join([str(self._termFrequency), self._positionStringWithGaps])
 
+    def setInTitle(self):
+        self._termFrequency += 1
+        self._positionStringWithGaps = '-:' + self._positionStringWithGaps
+
+
 
 

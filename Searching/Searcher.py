@@ -53,53 +53,54 @@ class Searcher:
         # form of dictionary: key=term, value=[0-df, 1-sumTF, 2-postingLine]
         self.termDictionary = termDictionary
         self.config = config
+        self.wordEmbedding = WordEmbedding()
+
         self.ranker = Ranker(config)
         self.config.setTotalNumberOfTerms(len(termDictionary))
-        self.wordEmbedding = WordEmbedding()
         self.documentsByCitiesSet = None
 
 
 
-    def getDocsForQuery(self, queryString, citiesList=None):
-        """
-        get a query and return the docs in the correct order
-        :param queryString:
-        :return:
-        """
-        queryTermDictionary, queryLength = self.iterativeTokenizer.parseText(queryString)
+    # def getDocsForQuery(self, queryString, citiesList=None):
+    #     """
+    #     get a query and return the docs in the correct order
+    #     :param queryString:
+    #     :return:
+    #     """
+    #     queryTermDictionary, queryLength = self.iterativeTokenizer.parseText(queryString)
+    #
+    #     self.documentsByCitiesSet = None
+    #     if len(citiesList) > 0:
+    #         self.documentsByCitiesSet = self.ranker.getDocumentsFromCityList(citiesList=citiesList)
+    #
+    #     document_score_dictionary = {}
+    #     for term in queryTermDictionary.keys():
+    #         if self.termDictionary.get(term) is not None:
+    #             if self.termDictionary.get(term.lower()) is not None:
+    #                 term = term.lower()
+    #             elif self.termDictionary.get(term.upper()) is not None:
+    #                 term = term.upper()
+    #             else:
+    #                 continue
+    #
+    #             correctPostingFilePath = self.getDocumentsFromPostingFile(term)
+    #             temp_document_score_dictionary = self.getDocumentsScoreFromPostingLine(correctPostingFilePath, term, int(self.termDictionary[term][2]))
+    #             for document, score in temp_document_score_dictionary.items():
+    #                 if document_score_dictionary.get(document) is None:
+    #                     document_score_dictionary[document] = score
+    #                 else:
+    #                     document_score_dictionary[document] += score
+    #
+    #     sorted_dic = sorted(document_score_dictionary.items(), key=lambda kv: kv[1],reverse=True)
+    #     limit = 200
+    #     # limit = 50
+    #     if len(sorted_dic) < limit:
+    #         limit = len(sorted_dic)
+    #     return self.ranker.convertDocNoListToDocID(list(sorted_dic)[:limit])
 
-        self.documentsByCitiesSet = None
-        if len(citiesList) > 0:
-            self.documentsByCitiesSet = self.ranker.getDocumentsFromCityList(citiesList=citiesList)
-
-        document_score_dictionary = {}
-        for term in queryTermDictionary.keys():
-            if self.termDictionary.get(term) is not None:
-                if self.termDictionary.get(term.lower()) is not None:
-                    term = term.lower()
-                elif self.termDictionary.get(term.upper()) is not None:
-                    term = term.upper()
-                else:
-                    continue
-
-                correctPostingFilePath = self.getDocumentsFromPostingFile(term)
-                temp_document_score_dictionary = self.getDocumentsScoreFromPostingLine(correctPostingFilePath, term, int(self.termDictionary[term][2]))
-                for document, score in temp_document_score_dictionary.items():
-                    if document_score_dictionary.get(document) is None:
-                        document_score_dictionary[document] = score
-                    else:
-                        document_score_dictionary[document] += score
-
-        sorted_dic = sorted(document_score_dictionary.items(), key=lambda kv: kv[1],reverse=True)
-        # limit = 200
-        limit = 50
-        if len(sorted_dic) < limit:
-            limit = len(sorted_dic)
-        return self.ranker.convertDocNoListToDocID(list(sorted_dic)[:limit])
 
 
-
-    def getDocsForQueryWithExpansion(self, queryString: str, citiesList: list=None, expend: bool=True):
+    def getDocsForQueryWithExpansion(self, queryString: str, citiesList: list=None, expend: bool=False):
         """
         get a query and return the docs in the correct order with expanding of the query using the word embedding
         :param expend:
@@ -139,10 +140,10 @@ class Searcher:
 
         sorted_dic = sorted(document_score_dictionary.items(), key=lambda kv: kv[1],reverse=True)
         filteredSortedList = self.filterByScores(sorted_dic)
-        # limit = 200
-        limit = 50
-        if len(sorted_dic) < limit:
-            limit = len(sorted_dic)
+        limit = 200
+        # limit = 50
+        if len(filteredSortedList) < limit:
+            limit = len(filteredSortedList)
         return self.ranker.convertDocNoListToDocID(list(filteredSortedList)[:limit])
 
 
@@ -163,12 +164,13 @@ class Searcher:
     @staticmethod
     def getResultFormatFromResultList(qID:str , runID: str, results:list ) -> (str,str):
         resultsToWrite = ''
-        resultsToPrint = "   ID  |     DocNo    |  Score\n"
+        resultsToPrint = "   ID  |      DocNo     |  Score\n"
         for index in range(0,len(results)):
             # String to write 'Save Trec_Eval'
             resultsToWrite += str(qID) + ' 0 ' + str(results[index][0]) + ' ' + str(index) + ' ' + str("{0:.3f}".format(round(results[index][1],3))) + ' ' + str(runID) + '\n'
             # String to print in output window
-            resultsToPrint += "  %s  |  %s  |  %s  \n" % (str(qID),str(results[index][0]),str("{0:.3f}".format(round(results[index][1],3))) )
+            fileName = '  ' + str(results[index][0]) + '       '
+            resultsToPrint += "  %s  |%s|  %s  \n" % (str(qID),fileName[:16],str("{0:.3f}".format(round(results[index][1],3))) )
         return resultsToWrite, resultsToPrint
 
 
@@ -217,56 +219,56 @@ class Searcher:
 
 
 
-def getDicFromFile(path, sep = '|'):
-
-    try:
-        myFile = open(path,'r')
-
-        with myFile:
-            lines = myFile.readlines()
-            myFile.close()
-            myDict = {}
-
-            for line in lines:
-                lineAsArray = line.split(sep)
-                myDict[lineAsArray[0]] = lineAsArray[1:]
-
-            return myDict
-
-    except Exception as ex:
-        print("Error while converting file to Dic, E: ",ex)
-
-
-
-
-def load(config):
-    # TODO - change this function to create a dictionary instead of lists (maybe a dic of the form - term, [df,sumTF,postingLine]
-    savedFolderPath = config.saveFilesWithoutStem
-    lettersList = list(string.ascii_lowercase)
-    lettersList.append('#')
-    totalDict = dict()
-    for letter in lettersList:
-        path = savedFolderPath + '/' + letter + '/' + 'mergedFile_dic'
-        if not os.path.exists(path):
-            print('Location not found', path)
-            return
-        arrayFromFile = getDicFromFile(path=path)
-        if len(totalDict) == 0:
-            totalDict = arrayFromFile
-        else:
-            totalDict.update(arrayFromFile)
-    return totalDict
-
-
-def test():
-    import Configuration
-    config = Configuration.ConfigClass()
-    config.setCorpusPath('C:/Users/doroy/Documents/סמסטר ה/אחזור מידע/עבודה/corpus')
-    config.setSaveMainFolderPath('C:/Users/doroy/Documents/סמסטר ה/אחזור מידע/עבודה/SavedFiles/SavedFiles')
-    termDic = load(config)
-    searcher = Searcher(config, termDic)
-    rankDic = searcher.getDocsForQueryWithExpansion('attracts man walk')
-    print(rankDic)
+# def getDicFromFile(path, sep = '|'):
+#
+#     try:
+#         myFile = open(path,'r')
+#
+#         with myFile:
+#             lines = myFile.readlines()
+#             myFile.close()
+#             myDict = {}
+#
+#             for line in lines:
+#                 lineAsArray = line.split(sep)
+#                 myDict[lineAsArray[0]] = lineAsArray[1:]
+#
+#             return myDict
+#
+#     except Exception as ex:
+#         print("Error while converting file to Dic, E: ",ex)
+#
+#
+#
+#
+# def load(config):
+#     # TODO - change this function to create a dictionary instead of lists (maybe a dic of the form - term, [df,sumTF,postingLine]
+#     savedFolderPath = config.saveFilesWithoutStem
+#     lettersList = list(string.ascii_lowercase)
+#     lettersList.append('#')
+#     totalDict = dict()
+#     for letter in lettersList:
+#         path = savedFolderPath + '/' + letter + '/' + 'mergedFile_dic'
+#         if not os.path.exists(path):
+#             print('Location not found', path)
+#             return
+#         arrayFromFile = getDicFromFile(path=path)
+#         if len(totalDict) == 0:
+#             totalDict = arrayFromFile
+#         else:
+#             totalDict.update(arrayFromFile)
+#     return totalDict
+#
+#
+# def test():
+#     import Configuration
+#     config = Configuration.ConfigClass()
+#     config.setCorpusPath('C:/Users/doroy/Documents/סמסטר ה/אחזור מידע/עבודה/corpus')
+#     config.setSaveMainFolderPath('C:/Users/doroy/Documents/סמסטר ה/אחזור מידע/עבודה/SavedFiles/SavedFiles')
+#     termDic = load(config)
+#     searcher = Searcher(config, termDic)
+#     rankDic = searcher.getDocsForQueryWithExpansion('attracts man walk')
+#     print(rankDic)
 
 
 # test()

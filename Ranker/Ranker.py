@@ -19,6 +19,7 @@ class Ranker:
         file = open(self.config.get__documentsIndexPath(),'r',encoding='utf-8')
         fileLines = file.readlines()
         file.close()
+        del file
         totalLength = 0
         for lineNumber in range(0,len(fileLines)):
             splitLine = fileLines[lineNumber].split('|')
@@ -31,6 +32,7 @@ class Ranker:
         file = open(self.config.getSavedFilesPath() + '/cityIndex','r',encoding='utf-8')
         fileLines = file.readlines()
         file.close()
+        del file
         for line in fileLines:
             splitLine = line.split('|')
             city = splitLine[0]
@@ -67,7 +69,12 @@ class Ranker:
 
         AxiomaticTermWeightingScore = self.getAxiomaticTermWeightingScore(docID=int(docID), docDF=docDF, termDF=termDF)
         # TODO - calculate the score in more ways
-        return BM25Score
+        joinedScore = BM25Score + AxiomaticTermWeightingScore
+
+        if positionList[0] is '-':
+            joinedScore *= 1.5
+
+        return joinedScore
 
 
 
@@ -84,7 +91,6 @@ class Ranker:
         # log = math.log10((self.config.totalNumberOfDocs + 1) / termDF)
 
         log = math.log10((self.config.totalNumberOfDocs - termDF + 0.5) / (termDF + 0.5))
-
 
         score = (mone / mehane) * log
 

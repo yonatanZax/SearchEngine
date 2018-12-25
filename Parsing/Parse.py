@@ -37,8 +37,6 @@ class Parse:
                         docNo = tagDic['docNo']
 
 
-
-
                         # Add new city to the cities dictionary
                         if not tagDic.get('city') == '':
                             city = tagDic.get('city')
@@ -53,60 +51,6 @@ class Parse:
 
 
 
-
-            # # Todo - change find methods to getTagFromText in basicMethods
-            # # docNo = getTagFromText(documentAsString,tag1='<DOCNO>',tag2='</DOCNO>')
-            # docNo = documentAsString[documentAsString.find('<DOCNO>') + len('<DOCNO>'):documentAsString.rfind('</DOCNO>')]
-            # if len(docNo) > 2:
-            #     docNo = docNo.strip(' ')
-            #     # print("#"+docNo+"#")
-            # else: return None
-            # textLabelIndex = documentAsString.find('<TEXT>')
-            # onlyText = documentAsString[textLabelIndex + len('<TEXT>'):documentAsString.rfind('</TEXT>')]
-            # findTextSquared = onlyText.find('[Text]')
-            # if findTextSquared > 0:
-            #     onlyText = onlyText[findTextSquared + len('[Text]'):]
-            # if len(onlyText) < 15:
-            #     return None
-            #
-            # cityStart = documentAsString.find('<F P=104>')
-            # if cityStart > 0:
-            #     cityEnd = documentAsString[cityStart:].find('</F>')
-            #     cityLine = documentAsString[cityStart + len('<F P=104>'): cityStart + cityEnd]
-            #
-            # languageStart = documentAsString.find('<F P=105>')
-            # if languageStart > 0:
-            #     languageEnd = documentAsString[languageStart:].find('</F>')
-            #     languageLine = documentAsString[languageStart + len('<F P=105>'): languageStart + languageEnd]
-            #
-            #
-            # if len(cityLine) > 1 :
-            #     splittedCity =  cityLine.replace('\n',' ').strip(' ').split(' ')
-            #     city = splittedCity[0]
-            #     if city.lower() in self.keepGoingCityDic and len(splittedCity) > 1:
-            #         city = city + ' ' + splittedCity[1].strip(' ')
-            #         if len(splittedCity) > 2 and splittedCity[1].lower() in ['de']:
-            #             city = city + ' ' + splittedCity[2].strip(' ')
-            #
-            #     if city.isalpha() and city.lower() not in self.avoidCities:
-            #         onlyText = onlyText.replace(city, 'ZAXROY')
-            #     else:
-            #         city = ''
-            #
-            # if len(languageLine) > 0 :
-            #     languageLine = languageLine.replace('\n',' ').strip(' ').split(' ')[0]
-            #     if len(languageLine) > 1 and languageLine[0].isupper():
-            #         tempLanguage = languageLine[0]
-            #         for l in languageLine[1:]:
-            #             if l.isalpha():
-            #                 tempLanguage += l
-            #             else: break
-            #
-            #         if len(tempLanguage) > 2:
-            #             language = languageLine
-
-
-
         except Exception as e:
             # print('DocNo: ',docNo)
             # print('Error spliting docs in parse, e: ',e)
@@ -115,11 +59,22 @@ class Parse:
 
 
         termDictionary, docLength = self.tokenizer.getTermDicFromText(onlyText)
+        if len(tagDic['title']) > 1:
+            titleTermDictionary, titleLength = self.tokenizer.getTermDicFromText(tagDic['title'])
+            termDictionary = self.addTitleToDic(termDictionary, titleTermDictionary)
         document =  Document(docNo, termDictionary, docLength, city = city,language=language)
         return document
 
 
-
-
-
+    @staticmethod
+    def addTitleToDic(termDictionary, titleTermDictionary)-> dict:
+        from Indexing.Document import TermData
+        for term in titleTermDictionary.keys():
+            if termDictionary.get(term.lower()) is not None:
+                termDictionary[term.lower()].setInTitle()
+            elif termDictionary.get(term.upper()) is not None:
+                termDictionary[term.upper()].setInTitle()
+            else:
+                termDictionary[term] = TermData(1, '-:')
+        return termDictionary
 

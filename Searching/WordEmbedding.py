@@ -28,6 +28,7 @@ class WordEmbedding:
         file = open(filename, 'r', encoding='UTF-8')
         fileLines = file.readlines()
         file.close()
+        del file
         glove_embed = []
         for line in fileLines:
             row = line.strip().split(' ')
@@ -37,6 +38,7 @@ class WordEmbedding:
             self.embedding_dict[vocab_word] = embed_vector
             glove_embed.append(embed_vector)
         self.tree = spatial.KDTree(glove_embed)
+        del glove_embed
 
 
     def __getWordsFromVector(self, vector: np.ndarray):
@@ -58,7 +60,8 @@ class WordEmbedding:
     def expandQuery(self, queryList:list)-> list:
         expandedQuery = set(queryList)
         for word in queryList:
-            expandedQuery = expandedQuery.union(self.__getTopNSimilarWords(word=word))
+            if self.embedding_dict.get(word.lower()) is not None:
+                expandedQuery = expandedQuery.union(self.__getTopNSimilarWords(word=word))
 
         if len(queryList) > 1:
             expandedQuery = expandedQuery.union(self.__getTopNSimilarWordsFromWordsList_avgVector(queryList))
