@@ -321,31 +321,52 @@ class EngineBuilder(Frame):
 
         # TODO - change this function to create a dictionary instead of lists (maybe a dic of the form - term, [df,sumTF,postingLine]
 
-        savedFolderPath = self.config.get__savedFilePath()
+
+        savedMainFolder = self.config.get__savedFileMainFolder()
+        savedNoStem = savedMainFolder + '/WithoutStem'
+        savedWithStem = savedMainFolder + '/WithStem'
+
+
         lettersList = list(string.ascii_lowercase)
         lettersList.append('#')
 
 
-        totalDict = dict()
+        totalDict_noStem = dict()
+        totalDict_withStem = dict()
 
         for letter in lettersList:
-            path = savedFolderPath + '/' + letter + '/' + 'mergedFile_dic'
-            if os.path.exists(path):
 
-                letterDicFromFile = getDicFromFile(path=path)
+            pathNoStem = savedNoStem + '/' + letter + '/' + 'mergedFile_dic'
+            if os.path.exists(pathNoStem):
 
-                if len(totalDict) == 0:
-                    totalDict = letterDicFromFile
+                letterDicFromFile = getDicFromFile(path=pathNoStem)
+
+                if len(totalDict_noStem) == 0:
+                    totalDict_noStem = letterDicFromFile
                 else:
-                    totalDict.update(letterDicFromFile)
+                    totalDict_noStem.update(letterDicFromFile)
 
 
+            pathWithStem = savedWithStem + '/' + letter + '/' + 'mergedFile_dic'
+            if os.path.exists(pathWithStem):
 
+                letterDicFromFile = getDicFromFile(path=pathWithStem)
 
-        if self.config.toStem:
-            self.dataStem = totalDict
+                if len(totalDict_noStem) == 0:
+                    totalDict_withStem = letterDicFromFile
+                else:
+                    totalDict_withStem.update(letterDicFromFile)
+
+        if len(totalDict_noStem) == 0:
+            self.dataNoStem = None
         else:
-            self.dataNoStem = totalDict
+            self.dataNoStem = totalDict_noStem
+
+        if len(totalDict_withStem) == 0:
+            self.dataStem = None
+        else:
+            self.dataStem = totalDict_withStem
+
 
         self.part2Button.configure(state = NORMAL)
 

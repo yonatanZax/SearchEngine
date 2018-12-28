@@ -5,7 +5,7 @@ import os
 
 
 # Getting better results for cities
-keepGoingCityDic = {'new', 'san', 'sao', 'la', 'tel', 'santa', 'hong', 'xian', 'cape', 'rio', 'buenos', 'panama','mexico', 'guatemala', 'abu'}
+keepGoingCityDic = {'new', 'san', 'sao', 'la','le', 'tel', 'santa', 'hong', 'xian', 'cape', 'rio', 'buenos', 'panama','mexico', 'guatemala', 'abu'}
 avoidCities = {'bartaman', 'dokumentation', 'nezavisimaya', 'calcutta', 'the', 'air'}
 
 

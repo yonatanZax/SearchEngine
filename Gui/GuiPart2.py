@@ -21,10 +21,9 @@ class QuerySearcher(Frame):
         self.config = config
         self.mainManager = mainManager
         self.cityList = cityList
-        #self.data = data
         self.dataNoStem = dataNoStem
         self.dataWithStem = dataWithStem
-        self.DocsForDominant = []
+        self.docsForDominant = []
 
         self.resultsToWrite = ""
 
@@ -227,22 +226,54 @@ class QuerySearcher(Frame):
 
 
 
-    def findYishuyot(self,data,headLine):
-        self.disableButtons()
-        print('Display dominant table')
+    def findYishuyot(self):
+        from BasicMethods import getDicFromFile
 
-        t = Thread(target=self.displayDominant, args=())
-        displayThread = Thread(target=self.listener, args=(t, self.enableButtons))
+
+        pathToDominantIndex = self.config.getSavedFilesPath() + '/docDominantIndex'
+
+        if not os.path.exists(pathToDominantIndex):
+            if self.checkedStem.get():
+                self.statusLabel['text'] = 'Status (stem is checked): dominant dictionary doesnt exists'
+            else:
+                self.statusLabel['text'] = 'Status (stem is not checked): dominant dictionary doesnt exists'
+
+            return
+
+        docsFromQuery = self.docsForDominant
+        dominantDic = dict()
+
+        dominantDicFromFile = getDicFromFile(path=pathToDominantIndex)
+
+        for qid_docNoArray in docsFromQuery:
+            i = 0
+            while i + 1 < len(qid_docNoArray):
+                docNo = qid_docNoArray[i+1]
+                i += 2
+
+                dominantTerms = dominantDicFromFile[docNo][0]
+                splitedTerms = dominantTerms.split(',')
+                for score_term in splitedTerms:
+                    if dominantDic.get(docNo) is None:
+                        dominantDic[docNo] = [score_term.rstrip('\n')]
+                    else:
+                        dominantDic[docNo] += [score_term.rstrip('\n')]
+
+
+
+
+
+
+        t = Thread(target=self.displayDominant, args=([dominantDic]))
         t.start()
-        displayThread.start()
 
 
 
-    def displayDominant(self):
+    def displayDominant(self,dataArray):
         self.disableButtons()
 
-        data = self.DocsForDominant
-        headLine = ['', 'Query','Term','Score']
+        data = dataArray
+        headLine = ['DocNo','Term_Score1','Term_Score2','Term_Score3','Term_Score4','Term_Score5']
 
         print('Display dominant table')
 
@@ -276,6 +307,9 @@ class QuerySearcher(Frame):
             self.statusLabel['text'] = "Status: Data without stem is None"
             return
 
+
+        # Set stem in config
+        self.config.setToStem(self.checkedStem.get())
 
 
         docList = self.searcher.getDocsForQueryWithExpansion(self.entry_query_text.get(),self.getSelectedCities(), semantics, useStem = useStem)
@@ -318,6 +352,11 @@ class QuerySearcher(Frame):
             self.statusLabel['text'] = "Status: Path %s , is not valid" % (path)
             return
 
+
+        # Set stem in config
+        self.config.setToStem(self.checkedStem.get())
+
+
         # Get result string from the file
         trec_eval_results_toWrite, trec_eval_results_toPrint = self.runMultipleQueries()
         self.resultsToWrite = trec_eval_results_toWrite
@@ -325,12 +364,6 @@ class QuerySearcher(Frame):
         # Write the results to the output window
         self.txtbox.delete('1.0', END)
         self.txtbox.insert('1.0',trec_eval_results_toPrint)
-
-
-
-
-    def writeResultsForTREC(self, results, qID:str = '0', runID:str = '0'):
-        resultStr = self.searcher.getResultFormatFromResultList(qID=qID, runID=runID, results=results)
 
 
     def runMultipleQueries(self, runID:str = '0'):
@@ -349,16 +382,18 @@ class QuerySearcher(Frame):
             return '', ''
 
 
+        # reset dominant doc
+        self.docsForDominant = []
+
         for query_ID_query in queriesList_ID_query:
-
-
 
             docList = self.searcher.getDocsForQueryWithExpansion(query_ID_query[1],self.getSelectedCities(),self.checkedSemantics.get(), useStem = useStem)
             toWrite, toPrint, resultsForDominant = self.searcher.getResultFormatFromResultList(qID=query_ID_query[0], runID=runID, results=docList)
             trec_eval_results_toWrite += toWrite
 
             # Save query_doc to future display
-            self.DocsForDominant += resultsForDominant
+            #  resultsForDominant = [str(qID),docNo]
+            self.docsForDominant += [resultsForDominant]
 
             trec_eval_results_toPrint += toPrint
 

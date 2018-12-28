@@ -110,7 +110,9 @@ class Searcher:
 
             correctPostingFilePath = self.getDocumentsFromPostingFile(termForm)
 
-            temp_document_score_dictionary = self.getDocumentsScoreFromPostingLine(correctPostingFilePath, termForm, int(termDictionary[termForm][2]), useStem = useStem)
+
+            postingLine = int(termDictionary[termForm][2])
+            temp_document_score_dictionary = self.getDocumentsScoreFromPostingLine(correctPostingFilePath, termForm, postingLine, useStem = useStem)
 
             for document, score in temp_document_score_dictionary.items():
                 if document_score_dictionary.get(document) is None:
@@ -163,7 +165,9 @@ class Searcher:
                 values[i] = ' ' * before + values[i] + ' ' * (dif - before)
 
             resultsToPrint += "%s|%s|%s\n" % (values[0], values[1], values[2])
-            resultsForDominant = [str(qID), str(results[index][0])]
+
+            docNo =  str(results[index][0])
+            resultsForDominant += [str(qID),docNo]
 
             # resultsToPrint += "  %s  |  %s  |  %s  \n" % (str(qID),str(results[index][0]),str("{0:.3f}".format(round(results[index][1],3))) )
         return resultsToWrite, resultsToPrint, resultsForDominant
@@ -193,16 +197,23 @@ class Searcher:
 
 
     def getDocumentsScoreFromPostingLine(self, postingFilePath:str, term:str, line:int, useStem = False) -> dict:
-        file = open(postingFilePath, 'r', encoding='utf-8')
-        fileLine = file.readlines()[line]
-        file.close()
-        gapAccumulator = 0
-        document_rank_dictionary = {}
 
         if useStem:
             termDictionary = self.termDictionaryWithStem
         else:
             termDictionary = self.termDictionaryNoStem
+
+
+        file = open(postingFilePath, 'r', encoding='utf-8')
+        linesFromFile = file.readlines()
+        file.close()
+
+        fileLine = linesFromFile[line]
+
+
+        gapAccumulator = 0
+        document_rank_dictionary = {}
+
 
         TermDocumentsList = fileLine.split(',')
         for documentSegment in TermDocumentsList:
@@ -217,59 +228,3 @@ class Searcher:
 
         return document_rank_dictionary
 
-
-
-
-# def getDicFromFile(path, sep = '|'):
-#
-#     try:
-#         myFile = open(path,'r')
-#
-#         with myFile:
-#             lines = myFile.readlines()
-#             myFile.close()
-#             myDict = {}
-#
-#             for line in lines:
-#                 lineAsArray = line.split(sep)
-#                 myDict[lineAsArray[0]] = lineAsArray[1:]
-#
-#             return myDict
-#
-#     except Exception as ex:
-#         print("Error while converting file to Dic, E: ",ex)
-#
-#
-#
-#
-# def load(config):
-#     # TODO - change this function to create a dictionary instead of lists (maybe a dic of the form - term, [df,sumTF,postingLine]
-#     savedFolderPath = config.saveFilesWithoutStem
-#     lettersList = list(string.ascii_lowercase)
-#     lettersList.append('#')
-#     totalDict = dict()
-#     for letter in lettersList:
-#         path = savedFolderPath + '/' + letter + '/' + 'mergedFile_dic'
-#         if not os.path.exists(path):
-#             print('Location not found', path)
-#             return
-#         arrayFromFile = getDicFromFile(path=path)
-#         if len(totalDict) == 0:
-#             totalDict = arrayFromFile
-#         else:
-#             totalDict.update(arrayFromFile)
-#     return totalDict
-#
-#
-# def test():
-#     import Configuration
-#     config = Configuration.ConfigClass()
-#     config.setCorpusPath('C:/Users/doroy/Documents/סמסטר ה/אחזור מידע/עבודה/corpus')
-#     config.setSaveMainFolderPath('C:/Users/doroy/Documents/סמסטר ה/אחזור מידע/עבודה/SavedFiles/SavedFiles')
-#     termDic = load(config)
-#     searcher = Searcher(config, termDic)
-#     rankDic = searcher.getDocsForQueryWithExpansion('attracts man walk')
-#     print(rankDic)
-
-
-# test()

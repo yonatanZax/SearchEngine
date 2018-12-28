@@ -4,7 +4,7 @@ from datetime import datetime
 
 class WordEmbedding:
 
-    def __init__(self, wordExistsFunc: function = lambda: True):
+    def __init__(self):
         """
         http://www.brightideasinanalytics.com/pretrained-word-vectors-example/
         glove_vocab – list of the words that we now have embeddings for
@@ -18,7 +18,6 @@ class WordEmbedding:
         self.tree = None
         self.initValues()
         # self.tree = spatial.KDTree(self.glove_embed)
-        self.wordExistsFunc = wordExistsFunc
         print('Loaded GLOVE')
 
 

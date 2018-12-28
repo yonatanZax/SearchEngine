@@ -179,6 +179,18 @@ class ConfigClass:
     def get__documentsIndexPath(self):
         return self.documentsIndexPath
 
+    def get__documentIndexPathStem(self):
+        return self.saveFilesWithStem + '/docIndex'
+
+    def get__documentIndexPathWithoutStem(self):
+        return self.saveFilesWithoutStem + '/docIndex'
+
+    def get__cityIndexPathStem(self):
+        return self.saveFilesWithStem + '/cityIndex'
+
+    def get__cityIndexPathWithoutStem(self):
+        return self.saveFilesWithoutStem + '/cityIndex'
+
     def get__savedFilePath(self):
         return self.savedFilePath
 
