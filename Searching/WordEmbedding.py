@@ -12,11 +12,12 @@ class WordEmbedding:
         embedding_dict – dictionary where the words are the keys and the embeddings are the values
         """
         self.glove_vocab = []
-        self.glove_embed = []
+        # self.glove_embed = []
         self.embedding_dict = {}
         print('Started loading GLOVE')
+        self.tree = None
         self.initValues()
-        self.tree = spatial.KDTree(self.glove_embed)
+        # self.tree = spatial.KDTree(self.glove_embed)
         print('Loaded GLOVE')
 
 
@@ -29,13 +30,17 @@ class WordEmbedding:
         file = open(filename, 'r', encoding='UTF-8')
         fileLines = file.readlines()
         file.close()
+        del file
+        glove_embed = []
         for line in fileLines:
             row = line.strip().split(' ')
             vocab_word = row[0]
             self.glove_vocab.append(vocab_word)
             embed_vector = [float(i) for i in row[1:]]  # convert to list of float
             self.embedding_dict[vocab_word] = embed_vector
-            self.glove_embed.append(embed_vector)
+            glove_embed.append(embed_vector)
+        self.tree = spatial.KDTree(glove_embed)
+        del glove_embed
 
 
     def __getWordsFromVector(self, vector: np.ndarray):
@@ -57,7 +62,8 @@ class WordEmbedding:
     def expandQuery(self, queryList:list)-> list:
         expandedQuery = set(queryList)
         for word in queryList:
-            expandedQuery = expandedQuery.union(self.__getTopNSimilarWords(word=word))
+            if self.embedding_dict.get(word.lower()) is not None:
+                expandedQuery = expandedQuery.union(self.__getTopNSimilarWords(word=word))
 
         if len(queryList) > 1:
             expandedQuery = expandedQuery.union(self.__getTopNSimilarWordsFromWordsList_avgVector(queryList))

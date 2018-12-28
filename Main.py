@@ -1,6 +1,9 @@
 
 import os
 from datetime import datetime
+
+import copy
+
 from Manager import MyManager
 from concurrent.futures import ProcessPoolExecutor
 from concurrent.futures import ThreadPoolExecutor
@@ -11,6 +14,7 @@ from PreRun import createPreRunData
 from ReadFiles.ReadFile import ReadFile
 import threading
 
+from BasicMethods import writeListToFile, getDicFromFile, get2DArrayFromFile
 
 config = None
 
@@ -43,7 +47,6 @@ class MainClass:
 
     def managerRun(self):
         import string
-        from BasicMethods import writeListToFile,getDicFromFile,get2DArrayFromFile
         startTime = datetime.now()
         managersNumber = self.config.get__managersNumber()
         listOfFolders = os.listdir(self.config.get__corpusPath())
@@ -139,16 +142,28 @@ class MainClass:
 
                 allDocsTuplePath = self.config.getSavedFilesPath() + '/allDocs.txt'
                 allDocsTuple = get2DArrayFromFile(allDocsTuplePath)
+                allDocsDominant = copy.deepcopy(allDocsTuple)
                 unsortedDocsPath = self.config.getSavedFilesPath() + '/docIndex'
                 unsortedDocs = getDicFromFile(unsortedDocsPath)
 
                 for i in range(0, len(allDocsTuple)):
                     docNo = allDocsTuple[i][0]
-                    allDocsTuple[i] = [docNo] + unsortedDocs[docNo]
+                    allDocsTuple[i] = [docNo] + unsortedDocs[docNo][:5]
+                    allDocsDominant[i] = [docNo] + [unsortedDocs[docNo][5]]
+
 
                 os.remove(unsortedDocsPath)
                 os.remove(allDocsTuplePath)
-                writeListToFile(self.config.getSavedFilesPath(), '/docIndex', allDocsTuple, False)
+                # Split docIndex:
+                # 1. docIndex
+                # 2. Dominant terms
+                writeListToFile(self.config.getSavedFilesPath(), '/docIndex', allDocsTuple, True)
+                writeListToFile(self.config.getSavedFilesPath(), '/docDominantIndex', allDocsDominant, False)
+
+
+
+
+
 
         finishTime = datetime.now()
         timeItTook = finishTime - startTime
@@ -172,6 +187,7 @@ class MainClass:
     def managerMerge(manager):
 
         return manager.merge()
+
 
 
     def getCitiesDataAndWriteItASync(self, dictionary_city_cityData, citiesFutureDic):

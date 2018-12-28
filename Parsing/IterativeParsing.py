@@ -165,7 +165,7 @@ class IterativeTokenizer:
         t = lxml.html.fromstring(text)
         text = t.text_content()
 
-        text = text.replace("\n", ' ').replace('\t', ' ').replace('{', '').replace('}', '').replace('[', '').replace(']',
+        text = text.replace("'s",'').replace("\n", ' ').replace('\t', ' ').replace('{', '').replace('}', '').replace('[', '').replace(']',
                                                                                                                    '').replace(
             '\"', '').replace('\'', '').replace('(', '').replace(')', '').replace('?', '').replace('!', '').replace('#',
                                                                                                                     '').replace(

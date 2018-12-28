@@ -31,6 +31,7 @@ def getTagDicFromDocument(documentAsString):
     tagDic["docNo"] = getTagFromText(documentAsString, '<DOCNO>', '</DOCNO>')
     tagDic["city"] = getTagFromText(documentAsString, "<F P=104>", "</F>")
     tagDic["language"] = getTagFromText(documentAsString, "<F P=105>", "</F>")
+    tagDic["title"] = getTagFromText(documentAsString, "<TI>", "</TI>")
 
     cityLine = tagDic.get('city')
 

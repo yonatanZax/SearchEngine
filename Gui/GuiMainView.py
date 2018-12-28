@@ -15,9 +15,11 @@ from Gui.TkinterTable import TableView
 
 class EngineBuilder(Frame):
 
-    def __init__(self, master, mainManager, config):
+    def __init__(self, master, mainManager, config, dataNoStem=None,dataWithStem = None):
         self.master = master
         self.config = config
+        self.dataNoStem = dataNoStem
+        self.dataStem = dataWithStem
         self.mainManager = mainManager
         Frame.__init__(self, master)
         self.grid()
@@ -74,9 +76,7 @@ class EngineBuilder(Frame):
 
 
 
-        self.dataStem = None
-        self.dataNoStem = None
-        self.headline = None
+
 
 
 
@@ -202,7 +202,7 @@ class EngineBuilder(Frame):
         self.master = Tk()
         setWindowSizeAndPosition(self.master)
         self.master.title("SearchEngine")
-        guiFrame = QuerySearcher(self.master, mainManager=self, config=self.config,cityList=self.getCityList(),data=data)
+        guiFrame = QuerySearcher(self.master, mainManager=self, config=self.config,cityList=self.getCityList(),dataNoStem=self.dataNoStem,dataWithStem=self.dataStem)
         guiFrame.mainloop()
 
 
@@ -330,23 +330,18 @@ class EngineBuilder(Frame):
 
         for letter in lettersList:
             path = savedFolderPath + '/' + letter + '/' + 'mergedFile_dic'
-            if not os.path.exists(path):
-                self.enableButtons()
-                self.statusLabel['text'] = 'Need to build (Check if stem is clicked)'
-                print('Location not found', path)
-                return
-            # arrayFromFile = get2DArrayFromFile(path=path)
-            letterDicFromFile = getDicFromFile(path=path)
+            if os.path.exists(path):
 
-            # totalList = totalList + arrayFromFile
-            if len(totalDict) == 0:
-                totalDict = letterDicFromFile
-            else:
-                totalDict.update(letterDicFromFile)
+                letterDicFromFile = getDicFromFile(path=path)
+
+                if len(totalDict) == 0:
+                    totalDict = letterDicFromFile
+                else:
+                    totalDict.update(letterDicFromFile)
 
 
 
-        self.headline = ['Term', 'df', 'sumTF', '# Posting']
+
         if self.config.toStem:
             self.dataStem = totalDict
         else:
@@ -413,14 +408,14 @@ class EngineBuilder(Frame):
         data = None
 
         if self.config.toStem:
-            if self.dataStem is None or self.headline is None:
+            if self.dataStem is None:
                 self.statusLabel['text'] = 'Status (stem is checked): upload before Show'
                 return
             else:
                 data = self.dataStem
 
         else:
-            if self.dataNoStem is None or self.headline is None:
+            if self.dataNoStem is None:
                 self.statusLabel['text'] = 'Status (stem not checked): upload before Show'
                 return
             else:
@@ -429,11 +424,12 @@ class EngineBuilder(Frame):
 
 
         self.disableButtons()
+        self.part2Button.configure(state = NORMAL)
         print('Display dictionary')
 
         self.statusLabel['text'] = 'Status: preparing a nice table to view terms'
 
-        self.displayClass = TableView(data, self.headline)
+        self.displayClass = TableView(data, ['Term', 'df', 'sumTF', '# Posting'])
 
 
 
@@ -546,12 +542,15 @@ class EngineBuilder(Frame):
         timeItTook, maxParsingTime, totalMerging, totalNumberOfTerms, totalNumberOfDocuments ,mergedLanguagesSet = future.result()
 
 
-        self.droplist.destroy()
-        c = StringVar()
-        self.droplist = OptionMenu(self.master, c, *mergedLanguagesSet)
-        self.droplist.config(width=15)
-        c.set('Select')
-        self.droplist.place( x = self.XstartPixel + 180, y = self.YstartPixel + 190)
+        if len(mergedLanguagesSet) > 0:
+            self.droplist.destroy()
+            c = StringVar()
+            self.droplist = OptionMenu(self.master, c, *mergedLanguagesSet)
+            self.droplist.config(width=15)
+            c.set('Select')
+            self.droplist.place(x=self.XstartPixel + 180, y=self.YstartPixel + 190)
+
+
         self.setBuildDetails(timeItTook, maxParsingTime, totalMerging, totalNumberOfTerms, totalNumberOfDocuments)
 
         print("Number of Terms: " , str(totalNumberOfTerms))

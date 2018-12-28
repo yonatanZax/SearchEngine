@@ -18,8 +18,8 @@ class ConfigClass:
         self.toStem = False
 
         # Todo - remove before submit
-        # self.corpusPath = 'D:/corpus - full'
-        self.corpusPath = 'D:/corpus'
+        self.corpusPath = 'D:/corpus - full'
+        # self.corpusPath = 'D:/corpus'
         self.savedFileMainFolder = '..'
         # self.corpusPath = 'C:/Users/doroy/Documents/סמסטר ה/אחזור מידע/עבודה/corpus'
         # self.savedFileMainFolder = 'C:/Users/doroy/Documents/סמסטר ה/אחזור מידע/עבודה/SavedFiles'
@@ -80,8 +80,9 @@ class ConfigClass:
         self.BM25_avgDLength = totalLength / numberOfDocs
         self.totalNumberOfDocs = numberOfDocs
 
-    def setTotalNumberOfTerms(self, numberOfTerms:int):
-        self.totalNumberOfTerms = numberOfTerms
+    def setTotalNumberOfTerms(self, numNoStem:int, numWithStem:int):
+        self.totalNumberOfTermsNoStem = numNoStem
+        self.totalNumberOfTermsWithStem = numWithStem
 
     def setSaveMainFolderPath(self,newPath,delete=False):
         if not os.path.exists(newPath):
