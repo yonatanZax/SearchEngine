@@ -91,8 +91,8 @@ class MySentences(object):
         for fname in filesList:
             with open(os.path.join(self.dirname, fname)) as file:
                 counter += 1
-                if counter % 50000 == 0:
-                    print (str(counter) + '/' + str(filesList) + "files processed")
+                if counter % 1 == 0:
+                    print (str(counter) + '/' + str(len(filesList)) + "files processed")
 
                 text = file.read()
                 onlyText = getTagFromText(text, "<TEXT>", "</TEXT>")
@@ -124,13 +124,23 @@ class EmbeddingCreator(object):
         self._stopwordsPath = path
 
     def createModel(self):
+        from gensim.models import word2vec
+        print('Stared creating the model')
+
         start = datetime.now()
         sentences = MySentences(self._corpusPath, self._stopwordsPath)  # a memory-friendly iterator
+        model = None
+        if word2vec.FAST_VERSION == 1:
+            model = gensim.models.Word2Vec(sentences, min_count=1, workers=4)
+        else:
+            model = gensim.models.Word2Vec(sentences, min_count=1)
 
-        model = gensim.models.Word2Vec(sentences, min_count=1)
-        model.save(self._outputPath)  # TODO set the path to where you want to save it
+        if model is not None:
+            model.save(self._outputPath)  # TODO set the path to where you want to save it
+            print ('model was built successfully')
         finish = datetime.now()
-        print("took: ", str((start - finish).seconds))
+        took = start - finish
+        print("took: ", str(took.seconds))
         return model
 
 
@@ -228,6 +238,8 @@ class WordEmbeddingUser(EmbeddingCreator):
         plt.show()
 
 
+creator = EmbeddingCreator(corpusPath='../../test/FBIS3-99',outputPath='../../test/mymodel.model',stopwordsPath='../../test/stop_words.txt')
+model = creator.createModel()
 
 
 
