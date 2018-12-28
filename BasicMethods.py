@@ -158,8 +158,8 @@ def get2DArrayFromFile(path, sep = '|'):
             twoDArray = []
 
             for line in lines:
+                line = line.rstrip('\n')
                 lineAsArray = line.split(sep)
-                lineAsArray[len(lineAsArray)-1] = lineAsArray[len(lineAsArray)-1][:-1]
                 twoDArray.append(lineAsArray)
 
             return twoDArray
@@ -200,35 +200,7 @@ def getTagFromText(textAsString,tag1,tag2='\n'):
 
 
 
-textAsString = '''
-
-<DOC>
-<DOCNO> FBIS3-1 </DOCNO>
-<HT>  "cr00000011094001" </HT>
-
-
-
-<top>
-
-<num> Number: 351 
-<title> Falkland petroleum exploration 
-
-<desc> Description: 
-What information is available on petroleum exploration in 
-the South Atlantic near the Falkland Islands?
-
-<narr> Narrative: 
-Any document discussing petroleum exploration in the
-South Atlantic near the Falkland Islands is considered
-relevant.  Documents discussing petroleum exploration in 
-continental South America are not relevant.
-
-</top>
-'''
-
-# docNo = getTagFromText(textAsString,tag1='<DOCNO>',tag2='</DOCNO>')
-# num = getTagFromText(textAsString, tag1='<num>')
-# print(num)
-# title = getTagFromText(textAsString, tag1='<title>')
-# print(title)
+def getStringFormatForFloatValue(numOfDigits,valueAsFloat):
+    formatString = "{0:.%sf}" % (str(numOfDigits))
+    return str(formatString.format(round(valueAsFloat, numOfDigits)))
 

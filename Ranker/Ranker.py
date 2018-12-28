@@ -1,4 +1,5 @@
 import math
+import BasicMethods as basic
 
 
 class Ranker:
@@ -52,7 +53,7 @@ class Ranker:
     def convertDocNoListToDocID(self, docNoList : list)-> list:
         docIDList = []
         for docNo_score in docNoList:
-            docIDList.append((self.dictionary_document_info[int(docNo_score[0])][0], docNo_score[1]))
+            docIDList.append([self.dictionary_document_info[int(docNo_score[0])][0], docNo_score[1], int(docNo_score[0])])
         return docIDList
 
 
@@ -65,15 +66,24 @@ class Ranker:
 
 
     def getScore(self, docID:str, docDF:int, positionList:list, termDF:int) -> float:
+
         BM25Score = self.getBM25Score(docID=int(docID), docDF=docDF, termDF=termDF)
 
         AxiomaticTermWeightingScore = self.getAxiomaticTermWeightingScore(docID=int(docID), docDF=docDF, termDF=termDF)
+
+        # Add positionScore
+        docLength = int(self.dictionary_document_info[docID][2])
+        positionScore = getPositionsScore(docLength,positionList)
+
         # TODO - calculate the score in more ways
-        joinedScore = BM25Score + AxiomaticTermWeightingScore
+        joinedScore = BM25Score + 6*AxiomaticTermWeightingScore
+        # joinedScore = BM25Score + 3*AxiomaticTermWeightingScore + 0.3*positionScore
 
-        if positionList[0] is '-':
-            joinedScore *= 1.5
+        # if positionList[0] is '-':
+        #     joinedScore *= 1.5
 
+        # return positionScore
+        # return AxiomaticTermWeightingScore
         return joinedScore
 
 
@@ -84,9 +94,12 @@ class Ranker:
         F(q,d) = SIGMA[c(w,q)*((k+1)*c(w,d))/((c(w,d)+k*(1-b+b*|D|/avd(D)))*Log((M-c(w,d)+0.5)/(df(w)+0.5))]
         """
 
+        docLength = float(self.dictionary_document_info[docID][2])
+
+
         mone = (self.config.BM25_K + 1) * docDF
 
-        mehane = docDF + self.config.BM25_K*(1 - self.config.BM25_B + self.config.BM25_B * float(self.dictionary_document_info[docID][2])/self.config.BM25_avgDLength)
+        mehane = docDF + self.config.BM25_K*(1 - self.config.BM25_B + self.config.BM25_B * (docLength/self.config.BM25_avgDLength))
 
         # log = math.log10((self.config.totalNumberOfDocs + 1) / termDF)
 
@@ -106,3 +119,17 @@ class Ranker:
 
         return mone / mehane
 
+
+def getPositionsScore(length, listOfPositionsWithGaps):
+    score = 0
+    lastPos = 0
+    for pos in listOfPositionsWithGaps:
+        if pos == '-':
+            score += 1.5
+            continue
+
+        if basic.isInt(pos):
+            lastPos += int(pos)
+            score += (1 - lastPos / length)
+
+    return score

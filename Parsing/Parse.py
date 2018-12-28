@@ -75,6 +75,6 @@ class Parse:
             elif termDictionary.get(term.upper()) is not None:
                 termDictionary[term.upper()].setInTitle()
             else:
-                termDictionary[term] = TermData(1, '-:')
+                termDictionary[term] = TermData(1, '-')
         return termDictionary
 

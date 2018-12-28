@@ -165,7 +165,7 @@ class IterativeTokenizer:
         t = lxml.html.fromstring(text)
         text = t.text_content()
 
-        text = text.replace("\n", ' ').replace('\t', ' ').replace('{', '').replace('}', '').replace('[', '').replace(']',
+        text = text.replace("'s",'').replace("\n", ' ').replace('\t', ' ').replace('{', '').replace('}', '').replace('[', '').replace(']',
                                                                                                                    '').replace(
             '\"', '').replace('\'', '').replace('(', '').replace(')', '').replace('?', '').replace('!', '').replace('#',
                                                                                                                     '').replace(
@@ -333,13 +333,12 @@ class IterativeTokenizer:
                         isAllLower = cleanedWord.islower()
                         lowerCaseCleanedWord = cleanedWord.lower()
                         if self.dictionary_term_stemmedTerm.get(lowerCaseCleanedWord) is None:
-                            afterStem = Stemmer.Stemmer.stemTerm(lowerCaseCleanedWord)
+                            afterStem = Stemmer.Stemmer.stemTerm(cleanedWord)
                             self.dictionary_term_stemmedTerm[lowerCaseCleanedWord] = afterStem
                             cleanedWord = afterStem
                         else:
                             if isAllLower:
-                                self.dictionary_term_stemmedTerm[lowerCaseCleanedWord] = \
-                                self.dictionary_term_stemmedTerm[lowerCaseCleanedWord].lower()
+                                self.dictionary_term_stemmedTerm[lowerCaseCleanedWord] = self.dictionary_term_stemmedTerm[lowerCaseCleanedWord].lower()
                             cleanedWord = self.dictionary_term_stemmedTerm[lowerCaseCleanedWord]
 
                     if self.stopWordsDic.get(cleanedWord.lower()) is None:

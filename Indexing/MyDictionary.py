@@ -1,3 +1,5 @@
+from BasicMethods import getStringFormatForFloatValue
+
 
 class MyDictionary:
 
@@ -54,20 +56,40 @@ class DictionaryData:
 
 class DocumentIndexData:
 
-    def __init__(self, max_tf, uniqueTermsCount, docLength, city = '',language = ''):
+    def __init__(self, max_tf, uniqueTermsCount, docLength, city = '',language = '', dominantTerm = []):
         self.max_tf = max_tf
         self.uniqueTermCount = uniqueTermsCount
         self.docLength = docLength
         self.city = city.upper()
         self.language = language
+        self.dominantTerms = []
+
+        if len(dominantTerm) > 0:
+            for score_term in dominantTerm:
+
+                # score_term = score
+                if score_term[0] > 0:
+                    self.dominantTerms.append(score_term)
+
 
     def toString(self):
         '''
         max_tf|uniqueTermCount|docLength|city|language
         :return:
         '''
-        ans = '|'.join([str(self.max_tf) , str(self.uniqueTermCount), str(self.docLength) ,str(self.city),self.language])
+        ans = '|'.join([str(self.max_tf) , str(self.uniqueTermCount), str(self.docLength) ,str(self.city),self.language, self.dominantTermPrintFormat(self.dominantTerms)])
         return ans
+
+
+    def dominantTermPrintFormat(self, listOfDominantTerms):
+        ans = ""
+
+        for score_term in listOfDominantTerms:
+            # Format: (term:score),(term,score)
+            ans += '(%s:%s),' % (score_term[1],getStringFormatForFloatValue(2,score_term[0]))
+
+        return ans.strip(',')
+
 
 
 class CityIndexData:

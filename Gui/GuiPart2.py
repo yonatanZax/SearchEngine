@@ -17,13 +17,14 @@ from Gui.TkinterTable import TableView
 
 class QuerySearcher(Frame):
 
-    def __init__(self, master, mainManager, config,cityList,data):
+    def __init__(self, master, mainManager, config,cityList,dataNoStem, dataWithStem):
         self.config = config
         self.mainManager = mainManager
         self.cityList = cityList
-        self.data = data
-        self.dataNoStem = None
-        self.dataWithStem = None
+        #self.data = data
+        self.dataNoStem = dataNoStem
+        self.dataWithStem = dataWithStem
+        self.DocsForDominant = []
 
         self.resultsToWrite = ""
 
@@ -36,20 +37,6 @@ class QuerySearcher(Frame):
         self.XstartPixel = 60
         self.YstartPixel = 10
 
-        menubar = Menu(master)
-        show_all = BooleanVar()
-        show_all.set(True)
-        self.citySelection = []
-        view_menu = Menu(menubar)
-        # view_menu = Menu(menubar,tearoff=0)
-
-        for city in self.cityList:
-            show_done = BooleanVar()
-            self.citySelection.append([show_done,city])
-            view_menu.add_checkbutton(label=str(city) , onvalue=True, offvalue=0, variable=show_done)
-
-        menubar.add_cascade(label='Filter cities', menu=view_menu)
-        master.config(menu=menubar)
 
         self.part1Button = Button(self.master, text='Part1', width=10, bg='blue', fg='white',command= self.switchPart1)
         self.part1Button.place(x = self.XstartPixel + 450, y = self.YstartPixel + 0)
@@ -149,28 +136,28 @@ class QuerySearcher(Frame):
 
 
 
-        # label_stemming = Label(self.master, text="Stemming", width=10, font=("bold", 10))
-        # label_stemming.place( x = self.XstartPixel + 200, y = self.YstartPixel + 260)
-        # self.checkedStem = BooleanVar()
-        # self.stemmingCheckBox = Checkbutton(self.master, variable = self.checkedStem)
-        # self.stemmingCheckBox.place( x = self.XstartPixel + 180, y = self.YstartPixel + 260)
+        label_stemming = Label(self.master, text="Stemming", width=10, font=("bold", 10))
+        label_stemming.place( x = self.XstartPixel + 200, y = self.YstartPixel + 290)
+        self.checkedStem = BooleanVar()
+        self.stemmingCheckBox = Checkbutton(self.master, variable = self.checkedStem)
+        self.stemmingCheckBox.place( x = self.XstartPixel + 180, y = self.YstartPixel + 290)
 
 
         label_Semantics = Label(self.master, text="Semantics", width=10, font=("bold", 10))
-        label_Semantics.place( x = self.XstartPixel + 200, y = self.YstartPixel + 290)
+        label_Semantics.place( x = self.XstartPixel + 200, y = self.YstartPixel + 310)
         self.checkedSemantics = BooleanVar()
         self.semanticsCheckBox = Checkbutton(self.master, variable = self.checkedSemantics)
-        self.semanticsCheckBox.place(x =self.XstartPixel + 180, y =self.YstartPixel + 290)
+        self.semanticsCheckBox.place(x =self.XstartPixel + 180, y =self.YstartPixel + 310)
 
 
         self.runQueryButton = Button(self.master, text='Run query', width=15, bg='green', fg='white',command= self.runQuery)
-        self.runQueryButton.place( x = self.XstartPixel + 100, y = self.YstartPixel + 340)
+        self.runQueryButton.place( x = self.XstartPixel + 100, y = self.YstartPixel + 350)
 
         self.runQueryFromFileButton = Button(self.master, text='Run query from file', width=15, bg='green', fg='white',command= self.runQueryFromFile)
-        self.runQueryFromFileButton.place( x = self.XstartPixel + 260, y = self.YstartPixel + 340)
+        self.runQueryFromFileButton.place( x = self.XstartPixel + 260, y = self.YstartPixel + 350)
 
         self.findYishuyotButton = Button(self.master, text='חיפוש יישויות', width=15, bg='blue', fg='white',command= self.findYishuyot)
-        self.findYishuyotButton.place( x = self.XstartPixel + 180, y = self.YstartPixel + 380)
+        self.findYishuyotButton.place( x = self.XstartPixel + 180, y = self.YstartPixel + 390)
 
 
 
@@ -200,7 +187,7 @@ class QuerySearcher(Frame):
 
 
     def initSearcher(self):
-        self.searcher = Searcher(self.config, self.data)
+        self.searcher = Searcher(self.config, self.dataNoStem, self.dataWithStem)
         self.enableButtons()
 
     def switchPart1(self):
@@ -210,7 +197,7 @@ class QuerySearcher(Frame):
         Part1.setWindowSizeAndPosition(self.master)
         self.master.title("SearchEngine")
         mainManager = MainClass(self.config)
-        guiFrame = Part1.EngineBuilder(self.master, mainManager=mainManager, config=self.config)
+        guiFrame = Part1.EngineBuilder(self.master, mainManager = mainManager, config = self.config, dataNoStem = self.dataNoStem, dataWithStem = self.dataWithStem)
         guiFrame.mainloop()
 
 
@@ -240,13 +227,35 @@ class QuerySearcher(Frame):
 
 
 
-    def findYishuyot(self):
+    def findYishuyot(self,data,headLine):
+        self.disableButtons()
+        print('Display dominant table')
 
-        from Gui.checkbox1 import App
-        root2 = Tk()
-        app = App(root2,self.cityList)
-        root2.mainloop()
-        pass
+        t = Thread(target=self.displayDominant, args=())
+        displayThread = Thread(target=self.listener, args=(t, self.enableButtons))
+        t.start()
+        displayThread.start()
+
+
+
+    def displayDominant(self):
+        self.disableButtons()
+
+        data = self.DocsForDominant
+        headLine = ['', 'Query','Term','Score']
+
+        print('Display dominant table')
+
+        self.statusLabel['text'] = 'Status: preparing a nice table to view dominant terms'
+
+        self.displayClass = TableView(data, headLine)
+
+        t = Thread(target=self.displayClass.run, args=())
+        displayThread = Thread(target=self.listener, args=(t, self.enableButtons))
+        t.start()
+        displayThread.start()
+
+
 
 
     def runQuery(self):
@@ -255,12 +264,46 @@ class QuerySearcher(Frame):
         if path == '':
             self.statusLabel['text'] = "Status: Query line is empty"
             return
+
         semantics = self.checkedSemantics.get()
-        docList = self.searcher.getDocsForQueryWithExpansion(self.entry_query_text.get(),self.getSelectedCities(), semantics)
-        trec_eval_results_toWrite, trec_eval_results_toPrint = self.searcher.getResultFormatFromResultList(qID='0', runID='0', results=docList)
+        useStem = self.checkedStem.get()
+
+        if useStem and self.dataWithStem is None:
+            self.statusLabel['text'] = "Status: Data with stem is None"
+            return
+
+        if not useStem and self.dataNoStem is None:
+            self.statusLabel['text'] = "Status: Data without stem is None"
+            return
+
+
+
+        docList = self.searcher.getDocsForQueryWithExpansion(self.entry_query_text.get(),self.getSelectedCities(), semantics, useStem = useStem)
+        resultsToPrint = "  qID  |         DocNo          |  Score   \n"
+
+
+        windowSizes = [7,24,10]
+
+
+        for file_score in docList:
+            values = ['0', str(file_score[0]), str("{0:.3f}".format(round(file_score[1], 3)))]
+
+            # Insert to dominant list
+
+
+
+
+            for i in range(0,len(values)):
+                dif = windowSizes[i] - len(values[i])
+                before = int(dif/2)
+                values[i] = ' '*before + values[i] + ' '*(dif-before)
+
+            resultsToPrint += "%s|%s|%s\n" % (values[0],values[1],values[2])
+            # resultsToPrint += "  %s  |  %s  |  %s  \n" % ('0', str(file_score[0]), str("{0:.3f}".format(round(file_score[1], 3))))
+
         # Write the results to the output window
         self.txtbox.delete('1.0',END)
-        self.txtbox.insert('1.0',trec_eval_results_toPrint)
+        self.txtbox.insert('1.0',resultsToPrint)
 
 
     def runQueryFromFile(self):
@@ -293,17 +336,35 @@ class QuerySearcher(Frame):
     def runMultipleQueries(self, runID:str = '0'):
         queriesList_ID_query = self.readQueriesFiles()
         trec_eval_results_toWrite = ''
-        trec_eval_results_toPrint = ''
+        trec_eval_results_toPrint = "  qID  |          DocNo         |  Score   \n"
+
+        useStem = self.checkedStem.get()
+
+        if useStem and self.dataWithStem is None:
+            self.statusLabel['text'] = "Status: Data with stem is None"
+            return '', ''
+
+        if not useStem and self.dataNoStem is None:
+            self.statusLabel['text'] = "Status: Data without stem is None"
+            return '', ''
+
+
         for query_ID_query in queriesList_ID_query:
 
-            docList = self.searcher.getDocsForQueryWithExpansion(query_ID_query[1],self.getSelectedCities(),self.checkedSemantics.get())
-            toWrite, toPrint = self.searcher.getResultFormatFromResultList(qID=query_ID_query[0], runID=runID, results=docList)
+
+
+            docList = self.searcher.getDocsForQueryWithExpansion(query_ID_query[1],self.getSelectedCities(),self.checkedSemantics.get(), useStem = useStem)
+            toWrite, toPrint, resultsForDominant = self.searcher.getResultFormatFromResultList(qID=query_ID_query[0], runID=runID, results=docList)
             trec_eval_results_toWrite += toWrite
+
+            # Save query_doc to future display
+            self.DocsForDominant += resultsForDominant
+
             trec_eval_results_toPrint += toPrint
 
     #     TODO - write to a file we need to set in config
+
         return trec_eval_results_toWrite , trec_eval_results_toPrint
-        # print(trec_eval_results_str)
 
 
     def readQueriesFiles(self)-> list:
@@ -330,9 +391,11 @@ class QuerySearcher(Frame):
         savePath = self.entry_querySaveFilePath_text.get()
         if savePath == '':
             self.statusLabel['text'] = "Status: path to save is empty"
+            return
 
         if not os.path.exists(savePath):
             self.statusLabel['text'] = "Status: path %s is invalid" % (savePath)
+            return
 
         # Check if file exists
         filePath = savePath + '/results.txt'

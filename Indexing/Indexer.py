@@ -2,6 +2,57 @@ import os
 from Indexing.MyDictionary import MyDictionary, DocumentIndexData,CityIndexData
 import string
 from Indexing.FileWriter import FileWriter
+from Indexing.KWayMerge import MyHeap
+import BasicMethods as basic
+
+class TopList():
+
+    def __init__(self,size):
+        self.myList = []
+        for i in range(0,size):
+            self.myList.append((0,''))
+
+
+    def _getMinValue(self):
+        minValue = min([value for value in self.myList])
+        self.myList.remove(minValue)
+        return minValue
+
+    def _getMaxValue(self):
+        minValue = max([value for value in self.myList])
+        self.myList.remove(minValue)
+        return minValue
+
+
+    def tryAddNewValue(self, newValue:tuple):
+        minValue = self._getMinValue()
+        if minValue[0] > newValue[0]:
+            self.myList.append(minValue)
+        else:
+            self.myList.append(newValue)
+
+
+    def getSortedList(self):
+        sorted = []
+        for i in range(0,len(self.myList)):
+            sorted.append(self._getMaxValue())
+
+        return sorted
+
+
+    def testTopFive(self):
+        self.tryAddNewValue((3, 'abc'))
+        self.tryAddNewValue((4, 'abc'))
+        self.tryAddNewValue((2, 'abc'))
+        self.tryAddNewValue((3, 'abc'))
+        self.tryAddNewValue((1, 'abc'))
+        self.tryAddNewValue((5, 'abc'))
+        self.tryAddNewValue((3, 'abc'))
+        self.tryAddNewValue((4, 'abc'))
+
+
+
+
 
 class Indexer:
 
@@ -28,6 +79,12 @@ class Indexer:
         documentDictionary = document.termDocDictionary_term_termData
         docNo = document.docNo
         maxFrequentWord = 0
+
+        # TopList of five
+        dominantTerms = TopList(5)
+
+
+
         for term, termData in documentDictionary.items():
             # add the term to the dictionary
             if len(term) <= 1:
@@ -38,12 +95,42 @@ class Indexer:
             if englishLetters.get(term[0]):
                 if 'ZAXROY' in term and len(document.city) > 1:
                     term = term.replace('ZAXROY',document.city)
-                self.myDictionaryByLetters[term[0].lower()].addTerm(termString=term, docNo=docNo, termFrequency=termFrequency, termPositions=termData.getPositions(),docNoAsIndex=docNoAsIndex)
+                self.myDictionaryByLetters[term[0].lower()].addTerm(termString=term,
+                                                                    docNo=docNo,
+                                                                    termFrequency=termFrequency,
+                                                                    termPositions=termData.getPositions(),
+                                                                    docNoAsIndex=docNoAsIndex)
+                if term.isupper():
+                    from Ranker.Ranker import getPositionsScore
+                    positionsAsString = document.termDocDictionary_term_termData[term].getPositions()
+                    listOfPosition = listOfPositionsWithGaps = positionsAsString.split(':')
+                    score = getPositionsScore(document.docLength,listOfPositionsWithGaps)
+                    dominantTerms.tryAddNewValue((score, term))
+
+
             else:
                 if len(term) > 0:
-                    self.myDictionaryByLetters["#"].addTerm(termString=term, docNo=docNo, termFrequency=termFrequency, termPositions=termData.getPositions(),docNoAsIndex=docNoAsIndex)
+                    self.myDictionaryByLetters["#"].addTerm(termString=term,
+                                                            docNo=docNo,
+                                                            termFrequency=termFrequency,
+                                                            termPositions=termData.getPositions(),
+                                                            docNoAsIndex=docNoAsIndex)
+
             maxFrequentWord = max(termFrequency, maxFrequentWord)
-        newDocumentIndexData = DocumentIndexData(max_tf=maxFrequentWord, uniqueTermsCount=len(document.termDocDictionary_term_termData), docLength=document.docLength, city = document.city, language = document.language)
+
+
+
+
+
+
+        newDocumentIndexData = DocumentIndexData(max_tf=maxFrequentWord,
+                                                 uniqueTermsCount=len(document.termDocDictionary_term_termData),
+                                                 docLength=document.docLength,
+                                                 city = document.city,
+                                                 language = document.language,
+                                                 dominantTerm=dominantTerms.getSortedList())
+
+
         self.documents_dictionary[docNo] = newDocumentIndexData
 
         if len(document.city) > 1:
@@ -62,6 +149,8 @@ class Indexer:
 
         if len(document.language) > 1 and self.languagesDic.get(document.language) is None:
             self.languagesDic[document.language] = True
+
+
 
 
     def flushMemory(self):
@@ -118,6 +207,8 @@ class Indexer:
 
                         iteration = 0
                         mergedList = merger.merge(fileToMergeList)
+                        if mergedList is None:
+                            continue
                         future = executor.submit(self.fileWriter.writeMergedFileTemp,mergedList, self.config.savedFilePath + "\\" + folder + "\\" + str(folder[0]) + str(self.ID) + "-" + str(counter))
 
                         futureList.append(future)
@@ -125,14 +216,18 @@ class Indexer:
 
                         counter += 1
 
-
             if iteration > filesPerIteration / 2:
                 # print('Iteration:', str(iteration))
 
                 mergedList = merger.merge(fileToMergeList)
-                future = executor.submit(self.fileWriter.writeMergedFileTemp, mergedList,self.config.savedFilePath + "\\" + folder + "\\" + str(folder[0]) + str(self.ID) + "-" + str(counter))
+                if mergedList is not None:
+                    future = executor.submit(self.fileWriter.writeMergedFileTemp, mergedList,
+                                             self.config.savedFilePath + "\\" + folder + "\\" + str(folder[0]) + str(
+                                                 self.ID) + "-" + str(counter))
 
-                futureList.append(future)
+                    futureList.append(future)
+
+
 
             progressCounter += 10*iteration
             if progressCounter > 0:
@@ -148,10 +243,16 @@ class Indexer:
                 if letterFile[1] == str(self.ID):
                     fileToMergeList.append(letterFile)
 
-            mergedList = merger.merge(fileToMergeList)
 
-            future = executor.submit(self.fileWriter.writeMergedFileTemp, mergedList, self.config.savedFilePath + "\\" + folder + "\\" + str(folder[0]) + str(self.ID))
-            futureList.append(future)
+
+            mergedList = merger.merge(fileToMergeList)
+            if mergedList is not None:
+                future = executor.submit(self.fileWriter.writeMergedFileTemp, mergedList,
+                                         self.config.savedFilePath + "\\" + folder + "\\" + str(folder[0]) + str(
+                                             self.ID))
+                futureList.append(future)
+
+
         executor.shutdown()
 
 

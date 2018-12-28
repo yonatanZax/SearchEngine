@@ -110,6 +110,12 @@ class MyManager:
             filesInLetterFolder = os.listdir(self.config.savedFilePath + "\\" + letter)
             mergedList = merger.merge(filesInLetterFolder)
 
+            if mergedList is None:
+                progressCounter += 50
+                self.updateProgressBar(progressCounter + int(self.config.get_numOfFiles() / self.config.managersNumber),
+                                       'Merge')
+                continue
+
             future = executor.submit(self.fileWriter.writeMergedFile,mergedList, self.config.savedFilePath + "\\" + letter + "\\",)
             futureList.append(future)
 
