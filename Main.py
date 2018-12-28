@@ -189,7 +189,6 @@ class MainClass:
         return manager.merge()
 
 
-
     def getCitiesDataAndWriteItASync(self, dictionary_city_cityData, citiesFutureDic):
         writeLine = ''
         listToWrite = []

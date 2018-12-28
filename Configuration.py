@@ -18,8 +18,8 @@ class ConfigClass:
         self.toStem = False
 
         # Todo - remove before submit
-        self.corpusPath = 'D:/corpus - full'
-        # self.corpusPath = 'D:/corpus'
+        # self.corpusPath = 'D:/corpus - full'
+        self.corpusPath = 'D:/corpus'
         self.savedFileMainFolder = '..'
         # self.corpusPath = 'C:/Users/doroy/Documents/סמסטר ה/אחזור מידע/עבודה/corpus'
         # self.savedFileMainFolder = 'C:/Users/doroy/Documents/סמסטר ה/אחזור מידע/עבודה/SavedFiles'

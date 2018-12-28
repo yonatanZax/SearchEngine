@@ -216,7 +216,6 @@ class Indexer:
 
                         counter += 1
 
-
             if iteration > filesPerIteration / 2:
                 # print('Iteration:', str(iteration))
 

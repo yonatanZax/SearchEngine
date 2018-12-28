@@ -138,10 +138,10 @@ class Merger:
 
 
 
-            else:
-                self.addToDic(FinalDictionary,
-                              MergeDataClass(currentValTermLower, currentValTerm, currentValDF, currentValSUMTF,
-                                             currentValPosting))
+            # else:
+            #     self.addToDic(FinalDictionary,
+            #                   MergeDataClass(currentValTermLower, currentValTerm, currentValDF, currentValSUMTF,
+            #                                  currentValPosting))
 
             # 3. While queue not empty
             # dequeue head (m, i,f) of queue
