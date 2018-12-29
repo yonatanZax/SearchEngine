@@ -162,12 +162,12 @@ class Searcher:
     def expandQuery(self, queryList:list, termDictionary:dict)->list or None:
         if self.wordEmbedding is None:
             return None
-        expandedQuery = set()
+        expandedQuery = []
         for word in queryList:
             try:
                 mostSimilar = self.wordEmbedding.getTopNSimilarWords(word=word.lower())
                 mostSimilarExistingWords = self.getExistingResults(mostSimilar, termDictionary)
-                expandedQuery.union(mostSimilarExistingWords)
+                expandedQuery += mostSimilarExistingWords
 
             except Exception as err:
                 pass
@@ -179,10 +179,10 @@ class Searcher:
                     lowerList.append(w.lower())
                 mostSimilar = self.wordEmbedding.getTopNSimilarWordsFromList(wordList=lowerList)
                 mostSimilarExistingWords = self.getExistingResults(mostSimilar, termDictionary)
-                expandedQuery.union(mostSimilarExistingWords)
+                expandedQuery += mostSimilarExistingWords
             except Exception as err:
                 pass
-        return list(expandedQuery)
+        return expandedQuery
 
 
     @staticmethod

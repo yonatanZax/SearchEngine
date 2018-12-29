@@ -36,7 +36,7 @@ class MyEmbedderTokenizer(IterativeTokenizer):
         t = lxml.html.fromstring(text)
         text = t.text_content()
 
-        text = text.replace("\n", ' ').replace('\t', ' ').replace('{', ' ').replace('}', ' ').replace('[', ' ').replace(']',
+        text = text.replace("\n", ' ').replace('\t', ' ').replace("'s", '').replace('{', ' ').replace('}', ' ').replace('[', ' ').replace(']',
                                                                                                                    ' ').replace(
             '\"', ' ').replace('\'', ' ').replace('(', ' ').replace(')', ' ').replace('?', ' ').replace('!', ' ').replace('#',
                                                                                                                     ' ').replace(
@@ -44,7 +44,7 @@ class MyEmbedderTokenizer(IterativeTokenizer):
                                                                                                                    ' ').replace(
             '~', ' ').replace(';', ' ').replace(':', ' ').replace('*', ' ').replace('+', ' ').replace('|', ' ').replace('&',
                                                                                                                   ' ').replace(
-            '=', '')
+            '=', ' ')
         text = re.sub(r'[-]+','-',text)
         text = re.sub(r'[.]+', '.', text)
         text = re.sub(r'[,]+', ',', text)
@@ -64,12 +64,12 @@ class MyEmbedderTokenizer(IterativeTokenizer):
             term = term.lower()
             if '-' in term:
                 finalTermList += self.parseList(term.split('-'))
-            elif ',' in term :
+            elif term.count(',') > 0 :
                 finalTermList += self.parseList(term.split(','))
-            elif '.' in term :
+            elif term.count('.') > 0:
                 finalTermList += self.parseList(term.split('.'))
 
-            finalTermList.append(term)
+            finalTermList.append(term.strip(',').strip('.'))
 
         return finalTermList
 
@@ -143,11 +143,42 @@ class EmbeddingCreator(object):
             model = gensim.models.Word2Vec(sentences, min_count=1)
 
         if model is not None:
-            model.save(self._outputPath)  # TODO set the path to where you want to save it
+            model.save(self._outputPath)
             print ('model was built successfully')
         finish = datetime.now()
         took = start - finish
-        print("took: ", str(took.seconds))
+        print("Took: ", str(took.seconds/60) + 'Minutes')
+
+        return model
+
+
+    def createModelFromGlove(self, pathOfGlove:str, dimensions:int):
+        # https://datascience.stackexchange.com/questions/10695/how-to-initialize-a-new-word2vec-model-with-pre-trained-model-weights
+        from gensim.models import word2vec
+        from gensim.models import KeyedVectors
+        print('Stared creating the model')
+
+        start = datetime.now()
+        sentences = MySentences(self._corpusPath, self._stopwordsPath)  # a memory-friendly iterator
+        model = None
+        if word2vec.FAST_VERSION == 1:
+            model = gensim.models.Word2Vec(size=dimensions, min_count=1, workers=4)
+
+        else:
+            model = gensim.models.Word2Vec(size=dimensions, min_count=1)
+
+        model.build_vocab(sentences)
+        total_examples = model.corpus_count
+        modelGlove = KeyedVectors.load_word2vec_format(pathOfGlove, binary=False)
+        model.build_vocab([list(modelGlove.vocab.keys())], update=True)
+        model.intersect_word2vec_format(pathOfGlove, binary=False, lockf=1.0)
+        model.train(sentences, total_examples=total_examples, epochs=model.iter)
+        if model is not None:
+            model.save(self._outputPath)
+            print ('model was built successfully')
+        finish = datetime.now()
+        took = finish - start
+        print("Took: ", str(took.seconds/60) + ' Minutes')
         return model
 
 
@@ -181,7 +212,7 @@ class WordEmbeddingUser(EmbeddingCreator):
 
     def getTopNSimilarWords(self, word:str ,N:int=5)->list or None:
         try:
-            mostSimilar = self._model.most_similar(positive=[word], topn=N)
+            mostSimilar = self._model.wv.similar_by_word(word=word, topn=N)
             return mostSimilar
         except Exception as err:
             print (err)
@@ -281,10 +312,8 @@ class WordEmbeddingUser(EmbeddingCreator):
         plt.show()
 
 
-# creator = EmbeddingCreator(corpusPath='../../test/FBIS3-99',outputPath='../../test/mymodel.model',stopwordsPath='../../test/stop_words.txt')
-# model = creator.createModel()
-
-
+creator = EmbeddingCreator(corpusPath='../../test/FBIS3-99',outputPath='../../test/mymodel.model',stopwordsPath='../../test/stop_words.txt')
+model = creator.createModelFromGlove(pathOfGlove='../../test/word2vecTest2.txt',dimensions=50)
 
 
 # print (model)
