@@ -5,7 +5,7 @@ import os
 
 
 # Getting better results for cities
-keepGoingCityDic = {'new', 'san', 'sao', 'la', 'tel', 'santa', 'hong', 'xian', 'cape', 'rio', 'buenos', 'panama','mexico', 'guatemala', 'abu'}
+keepGoingCityDic = {'new', 'san', 'sao', 'la','le', 'tel', 'santa', 'hong', 'xian', 'cape', 'rio', 'buenos', 'panama','mexico', 'guatemala', 'abu'}
 avoidCities = {'bartaman', 'dokumentation', 'nezavisimaya', 'calcutta', 'the', 'air'}
 
 
@@ -43,6 +43,10 @@ def getTagDicFromDocument(documentAsString):
             city = city + ' ' + splittedCity[1].strip(' ')
             if len(splittedCity) > 2 and splittedCity[1].lower() in ['de']:
                 city = city + ' ' + splittedCity[2].strip(' ')
+
+            tagDic["text"] = tagDic["text"].replace(city, 'ZAXROY')
+            tagDic["city"] = city
+            return tagDic
 
         if city.isalpha() and city.lower() not in avoidCities:
             tagDic["text"] = tagDic["text"].replace(city, 'ZAXROY')

@@ -102,8 +102,8 @@ class Indexer:
                                                                     docNoAsIndex=docNoAsIndex)
                 if term.isupper():
                     from Ranker.Ranker import getPositionsScore
-                    positionsAsString = document.termDocDictionary_term_termData[term].getPositions()
-                    listOfPosition = listOfPositionsWithGaps = positionsAsString.split(':')
+                    positionsAsString = termData.getPositions()
+                    listOfPositionsWithGaps = positionsAsString.split(':')
                     score = getPositionsScore(document.docLength,listOfPositionsWithGaps)
                     dominantTerms.tryAddNewValue((score, term))
 

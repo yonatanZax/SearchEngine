@@ -229,14 +229,17 @@ class QuerySearcher(Frame):
     def findYishuyot(self):
         from BasicMethods import getDicFromFile
 
+        # Set stem in config
+        self.config.setToStem(self.checkedStem.get())
+
 
         pathToDominantIndex = self.config.getSavedFilesPath() + '/docDominantIndex'
 
         if not os.path.exists(pathToDominantIndex):
             if self.checkedStem.get():
-                self.statusLabel['text'] = 'Status (stem is checked): dominant dictionary doesnt exists'
+                self.statusLabel['text'] = 'Status (stem): dominant dic doesnt exists'
             else:
-                self.statusLabel['text'] = 'Status (stem is not checked): dominant dictionary doesnt exists'
+                self.statusLabel['text'] = 'Status (noStem): dominant dic doesnt exists'
 
             return
 

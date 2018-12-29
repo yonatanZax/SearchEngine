@@ -5,6 +5,7 @@ import os
 
 from Ranker.Ranker import Ranker
 from Searching.WordEmbedding import WordEmbedding
+from Searching.MyWordEmbedder import WordEmbeddingUser
 
 
 class SearcherIterativeTokenizer(IterativeTokenizer):
@@ -56,7 +57,13 @@ class Searcher:
         self.termDictionaryWithStem = dataWithStem
 
         self.config = config
-        # self.wordEmbedding = WordEmbedding()
+
+        self.wordEmbedding = WordEmbeddingUser(modelPath="C:/SavedModel/mymodel.model",corpusPath=self.config.get__corpusPath())
+        if self.wordEmbedding.loadModel():
+            print ('WordEmbedding Model was Loaded successfully')
+        else:
+            print ('There was a problem while loading the WordEmbedding Model  ')
+
 
         self.ranker = Ranker(config)
 
