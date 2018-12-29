@@ -154,22 +154,42 @@ class WordEmbeddingUser(EmbeddingCreator):
     def setModelPath(self, path:str):
         self._modelPath = path
 
-    def loadModel(self):
+    def createModel(self)->bool:
+        if (super(WordEmbeddingUser, self)._stopwordsPath != '' and os.path.exists(super(WordEmbeddingUser, self)._stopwordsPath)) and (super(WordEmbeddingUser, self)._outputPath != '' and os.path.exists(super(WordEmbeddingUser, self)._outputPath)) and super(WordEmbeddingUser, self)._corpusPath != '' and os.path.exists(super(WordEmbeddingUser, self)._corpusPath):
+            self._model = super().createModel()
+        else:
+            return False
+        return self._model is None
+
+    def loadModel(self)->bool:
         try:
             self._model = gensim.models.Word2Vec.load(self._modelPath)
+            return True
         except Exception as err:
             print (err)
-            return None
+            return False
 
     def getModel(self)->gensim.models.Word2Vec:
         return self._model
 
-    def getTopNSimilarWords(self, word:str ,N:int=5):
+    def getTopNSimilarWords(self, word:str or list ,N:int=5)->list or None:
         try:
-            self._model.most_similar(positive=[word], topn=N)
+            return self._model.most_similar(positive=[word], topn=N)
         except Exception as err:
             print (err)
             return None
+
+    def expandQuery(self,queryList:list)->list:
+        if self._model is None:
+            return queryList
+        expandedQuery = set(queryList)
+        for word in queryList:
+            if self._model[word] is not None:
+                expandedQuery = expandedQuery.union(self.getTopNSimilarWords(word=word))
+
+        if len(queryList) > 1:
+            expandedQuery = expandedQuery.union(self.getTopNSimilarWords(queryList))
+        return list(expandedQuery)
 
     def visualizeMyModel(self):
         if self._model is not None:
@@ -238,8 +258,8 @@ class WordEmbeddingUser(EmbeddingCreator):
         plt.show()
 
 
-creator = EmbeddingCreator(corpusPath='../../test/FBIS3-99',outputPath='../../test/mymodel.model',stopwordsPath='../../test/stop_words.txt')
-model = creator.createModel()
+# creator = EmbeddingCreator(corpusPath='../../test/FBIS3-99',outputPath='../../test/mymodel.model',stopwordsPath='../../test/stop_words.txt')
+# model = creator.createModel()
 
 
 

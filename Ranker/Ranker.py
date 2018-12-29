@@ -37,6 +37,8 @@ class Ranker:
         fileLines = file.readlines()
         file.close()
         del file
+        if len(fileLines) == 0:
+            return 0, 0
         totalLength = 0
         for lineNumber in range(0,len(fileLines)):
             splitLine = fileLines[lineNumber].split('|')
