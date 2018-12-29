@@ -63,6 +63,7 @@ class Searcher:
             print ('WordEmbedding Model was Loaded successfully')
         else:
             print ('There was a problem while loading the WordEmbedding Model  ')
+
         self.ranker = Ranker(config)
 
 
@@ -90,8 +91,9 @@ class Searcher:
 
         queryTermDictionary, queryLength = self.iterativeTokenizer.parseText(queryString)
         queryList = list(queryTermDictionary.keys())
+        expandedList = []
         if expend:
-            queryList = self.wordEmbedding.expandQuery(queryList)
+            expandedList = self.wordEmbedding.expandQuery(queryList)
 
         self.documentsByCitiesSet = None
         if len(citiesList) > 0:
@@ -104,6 +106,7 @@ class Searcher:
             termDictionary = self.termDictionaryNoStem
 
         document_score_dictionary = {}
+        # Go through the query terms
         for term in queryList:
             termForm = None
             if termDictionary.get(term.lower()) is not None:
@@ -114,8 +117,6 @@ class Searcher:
                 continue
 
             correctPostingFilePath = self.getDocumentsFromPostingFile(termForm)
-
-
             postingLine = int(termDictionary[termForm][2])
             temp_document_score_dictionary = self.getDocumentsScoreFromPostingLine(correctPostingFilePath, termForm, postingLine, useStem = useStem)
 
@@ -124,6 +125,27 @@ class Searcher:
                     document_score_dictionary[document] = score
                 else:
                     document_score_dictionary[document] += score
+
+        # Go through the terms came back from the WordEmbedding
+        for term in expandedList:
+            termForm = None
+            termEmbeddingScore = term[1]
+            if termDictionary.get(term[0].lower()) is not None:
+                termForm = term[0].lower()
+            elif termDictionary.get(term[0].upper()) is not None:
+                termForm = term[0].upper()
+            else:
+                continue
+
+            correctPostingFilePath = self.getDocumentsFromPostingFile(termForm)
+            postingLine = int(termDictionary[termForm][2])
+            temp_document_score_dictionary = self.getDocumentsScoreFromPostingLine(correctPostingFilePath, termForm, postingLine, useStem = useStem)
+
+            for document, score in temp_document_score_dictionary.items():
+                if document_score_dictionary.get(document) is None:
+                    document_score_dictionary[document] = score * termEmbeddingScore
+                else:
+                    document_score_dictionary[document] += (score * termEmbeddingScore)
 
         sorted_dic = sorted(document_score_dictionary.items(), key=lambda kv: kv[1],reverse=True)
         filteredSortedList = self.filterByScores(sorted_dic)

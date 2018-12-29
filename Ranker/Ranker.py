@@ -12,14 +12,14 @@ class Ranker:
         self.dictionary_document_info_stemmed = {}
         self.numberOfDoc_Stemmed = 0
         self.averageDocLength_Stemmed = 0
-        if os.path.exists(config.get__documentIndexPathStem()):
-            self.numberOfDoc_Stemmed, self.averageDocLength_Stemmed = self.__getDocumentIndex(config.get__documentIndexPathStem(), self.dictionary_document_info_stemmed)
+        if os.path.exists(self.config.get__documentIndexPathStem()):
+            self.numberOfDoc_Stemmed, self.averageDocLength_Stemmed = self.__getDocumentIndex(self.config.get__documentIndexPathStem(), self.dictionary_document_info_stemmed)
 
         self.numberOfDoc_NotStemmed = 0
         self.averageDocLength_NotStemmed = 0
         self.dictionary_document_info_withoutStem = {}
         if os.path.exists(config.get__documentIndexPathWithoutStem()):
-            self.numberOfDoc_NotStemmed, self.averageDocLength_NotStemmed = self.__getDocumentIndex(config.get__documentIndexPathWithoutStem, self.dictionary_document_info_withoutStem)
+            self.numberOfDoc_NotStemmed, self.averageDocLength_NotStemmed = self.__getDocumentIndex(self.config.get__documentIndexPathWithoutStem(), self.dictionary_document_info_withoutStem)
 
         self.dictionary_city_documents_withoutStem = {}
         if os.path.exists(config.get__cityIndexPathWithoutStem()):
@@ -104,8 +104,8 @@ class Ranker:
             numberOfDocs = self.numberOfDoc_Stemmed
         else:
             docLength = int(self.dictionary_document_info_withoutStem[docID][2])
-            avgDocLength = self.averageDocLength_Stemmed
-            numberOfDocs = self.numberOfDoc_Stemmed
+            avgDocLength = self.averageDocLength_NotStemmed
+            numberOfDocs = self.numberOfDoc_NotStemmed
 
         BM25Score = self.getBM25Score(docDF=docDF, termDF=termDF, documentLength=docLength, docLengthAvg=avgDocLength, numOfDocs=numberOfDocs)
 

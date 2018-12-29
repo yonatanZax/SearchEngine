@@ -44,6 +44,10 @@ def getTagDicFromDocument(documentAsString):
             if len(splittedCity) > 2 and splittedCity[1].lower() in ['de']:
                 city = city + ' ' + splittedCity[2].strip(' ')
 
+            tagDic["text"] = tagDic["text"].replace(city, 'ZAXROY')
+            tagDic["city"] = city
+            return tagDic
+
         if city.isalpha() and city.lower() not in avoidCities:
             tagDic["text"] = tagDic["text"].replace(city, 'ZAXROY')
             tagDic["city"] = city

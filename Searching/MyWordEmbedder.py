@@ -36,14 +36,14 @@ class MyEmbedderTokenizer(IterativeTokenizer):
         t = lxml.html.fromstring(text)
         text = t.text_content()
 
-        text = text.replace("\n", ' ').replace('\t', ' ').replace('{', '').replace('}', '').replace('[', '').replace(']',
-                                                                                                                   '').replace(
-            '\"', '').replace('\'', '').replace('(', '').replace(')', '').replace('?', '').replace('!', '').replace('#',
-                                                                                                                    '').replace(
-            '@', '').replace('/', '').replace('\\', '').replace('_', '').replace('>', '').replace('<', '').replace('`',
-                                                                                                                   '').replace(
-            '~', '').replace(';', '').replace(':', '').replace('*', '').replace('+', '').replace('|', '').replace('&',
-                                                                                                                  '').replace(
+        text = text.replace("\n", ' ').replace('\t', ' ').replace('{', ' ').replace('}', ' ').replace('[', ' ').replace(']',
+                                                                                                                   ' ').replace(
+            '\"', ' ').replace('\'', ' ').replace('(', ' ').replace(')', ' ').replace('?', ' ').replace('!', ' ').replace('#',
+                                                                                                                    ' ').replace(
+            '@', ' ').replace('/', ' ').replace('\\', ' ').replace('_', ' ').replace('>', ' ').replace('<', ' ').replace('`',
+                                                                                                                   ' ').replace(
+            '~', ' ').replace(';', ' ').replace(':', ' ').replace('*', ' ').replace('+', ' ').replace('|', ' ').replace('&',
+                                                                                                                  ' ').replace(
             '=', '')
         text = re.sub(r'[-]+','-',text)
         text = re.sub(r'[.]+', '.', text)
@@ -80,6 +80,7 @@ class MyEmbedderTokenizer(IterativeTokenizer):
 class MySentences(object):
     def __init__(self, dirname, stopwordPath:str):
         self.dirname = dirname
+        self.iterationNumber = 0
         try:
             self.tokenizer = MyEmbedderTokenizer(stopwordPath)
         except AttributeError as err:
@@ -87,18 +88,24 @@ class MySentences(object):
 
     def __iter__(self):
         counter = 0
+        self.iterationNumber += 1
+
         filesList = os.listdir(self.dirname)
         for fname in filesList:
             with open(os.path.join(self.dirname, fname)) as file:
                 counter += 1
-                if counter % 1 == 0:
-                    print (str(counter) + '/' + str(len(filesList)) + "files processed")
+                if counter % 50000 == 0:
+                    print ('IterNum: ' + str(self.iterationNumber),datetime.now(), str(counter) + '/' + str(len(filesList)) + " files processed")
 
                 text = file.read()
                 onlyText = getTagFromText(text, "<TEXT>", "</TEXT>")
                 findTextSquared = onlyText.find('[Text]')
                 if findTextSquared > 0:
                     onlyText = onlyText[findTextSquared + len('[Text]'):]
+
+                if len(onlyText) < 10:
+                    continue
+
                 parsedText = self.tokenizer.parseText(onlyText)
                 yield parsedText
 
@@ -174,7 +181,8 @@ class WordEmbeddingUser(EmbeddingCreator):
 
     def getTopNSimilarWords(self, word:str or list ,N:int=5)->list or None:
         try:
-            return self._model.most_similar(positive=[word], topn=N)
+            mostSimilar = self._model.most_similar(positive=[word], topn=N)
+            return mostSimilar
         except Exception as err:
             print (err)
             return None
@@ -182,13 +190,20 @@ class WordEmbeddingUser(EmbeddingCreator):
     def expandQuery(self,queryList:list)->list:
         if self._model is None:
             return queryList
-        expandedQuery = set(queryList)
+        expandedQuery = set()
         for word in queryList:
-            if self._model[word] is not None:
-                expandedQuery = expandedQuery.union(self.getTopNSimilarWords(word=word))
+            if self._model[word.lower()] is not None:
+                mostSimilar = self.getTopNSimilarWords(word=word.lower())
+                if mostSimilar is not None:
+                    expandedQuery = expandedQuery.union(mostSimilar)
 
         if len(queryList) > 1:
-            expandedQuery = expandedQuery.union(self.getTopNSimilarWords(queryList))
+            lowerList = []
+            for w in queryList:
+                lowerList.append(w.lower())
+            mostSimilar = self.getTopNSimilarWords(self.getTopNSimilarWords(lowerList))
+            if mostSimilar is not None:
+                expandedQuery = expandedQuery.union(mostSimilar)
         return list(expandedQuery)
 
     def visualizeMyModel(self):

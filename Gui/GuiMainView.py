@@ -321,6 +321,7 @@ class EngineBuilder(Frame):
 
         # TODO - change this function to create a dictionary instead of lists (maybe a dic of the form - term, [df,sumTF,postingLine]
 
+        savedFolderPath = self.config.get__savedFilePath()
 
         savedMainFolder = self.config.get__savedFileMainFolder()
         savedNoStem = savedMainFolder + '/WithoutStem'
