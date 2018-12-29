@@ -179,7 +179,7 @@ class WordEmbeddingUser(EmbeddingCreator):
     def getModel(self)->gensim.models.Word2Vec:
         return self._model
 
-    def getTopNSimilarWords(self, word:str or list ,N:int=5)->list or None:
+    def getTopNSimilarWords(self, word:str ,N:int=5)->list or None:
         try:
             mostSimilar = self._model.most_similar(positive=[word], topn=N)
             return mostSimilar
@@ -187,24 +187,32 @@ class WordEmbeddingUser(EmbeddingCreator):
             print (err)
             return None
 
-    def expandQuery(self,queryList:list)->list:
-        if self._model is None:
-            return queryList
-        expandedQuery = set()
-        for word in queryList:
-            if self._model[word.lower()] is not None:
-                mostSimilar = self.getTopNSimilarWords(word=word.lower())
-                if mostSimilar is not None:
-                    expandedQuery = expandedQuery.union(mostSimilar)
+    def getTopNSimilarWordsFromList(self, wordList: list ,N:int=5)->list or None:
+        try:
+            mostSimilar = self._model.most_similar(positive=wordList, topn=N)
+            return mostSimilar
+        except Exception as err:
+            print (err)
+            return None
 
-        if len(queryList) > 1:
-            lowerList = []
-            for w in queryList:
-                lowerList.append(w.lower())
-            mostSimilar = self.getTopNSimilarWords(self.getTopNSimilarWords(lowerList))
-            if mostSimilar is not None:
-                expandedQuery = expandedQuery.union(mostSimilar)
-        return list(expandedQuery)
+    # def expandQuery(self,queryList:list)->list:
+    #     if self._model is None:
+    #         return queryList
+    #     expandedQuery = set()
+    #     for word in queryList:
+    #         if self._model[word.lower()] is not None:
+    #             mostSimilar = self.getTopNSimilarWords(word=word.lower())
+    #             if mostSimilar is not None:
+    #                 expandedQuery = expandedQuery.union(mostSimilar)
+    #
+    #     if len(queryList) > 1:
+    #         lowerList = []
+    #         for w in queryList:
+    #             lowerList.append(w.lower())
+    #         mostSimilar = self.getTopNSimilarWordsFromList(wordList=lowerList)
+    #         if mostSimilar is not None:
+    #             expandedQuery = expandedQuery.union(mostSimilar)
+    #     return list(expandedQuery)
 
     def visualizeMyModel(self):
         if self._model is not None:
