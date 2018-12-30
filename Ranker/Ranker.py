@@ -37,6 +37,8 @@ class Ranker:
         fileLines = file.readlines()
         file.close()
         del file
+        if len(fileLines) == 0:
+            return 0, 0
         totalLength = 0
         for lineNumber in range(0,len(fileLines)):
             splitLine = fileLines[lineNumber].split('|')
@@ -105,7 +107,19 @@ class Ranker:
             avgDocLength = self.averageDocLength_NotStemmed
             numberOfDocs = self.numberOfDoc_NotStemmed
 
+
+
+
+
         BM25Score = self.getBM25Score(docDF=docDF, termDF=termDF, documentLength=docLength, docLengthAvg=avgDocLength, numOfDocs=numberOfDocs)
+
+        # Prints
+        # print("\n*** DocId: ", self.dictionary_document_info_withoutStem[docID],' ***')
+        # print("TermDF: ", termDF)
+        # print("DocLength: ", docLength)
+        # print("avgDocLength: ", avgDocLength)
+        # print("numOfDocs: ", numberOfDocs)
+        # print("BM25: ", BM25Score)
 
         AxiomaticTermWeightingScore = self.getAxiomaticTermWeightingScore(docDF=docDF, termDF=termDF, documentLength=docLength, docLengthAvg=avgDocLength, numOfDocs=numberOfDocs)
 
@@ -114,7 +128,10 @@ class Ranker:
         positionScore = getPositionsScore(docLength, positionList)
 
         # TODO - calculate the score in more ways
-        joinedScore = BM25Score + 6 * AxiomaticTermWeightingScore
+
+        joinedScore = BM25Score + self.config.Axu_Value * AxiomaticTermWeightingScore
+
+
         # joinedScore = BM25Score + 3*AxiomaticTermWeightingScore + 0.3*positionScore
 
         # if positionList[0] is '-':
@@ -135,8 +152,6 @@ class Ranker:
 
 
         mone = (self.config.BM25_K + 1) * docDF
-        # if docLengthAvg == 0:
-        #     return 0
 
         mehane = docDF + self.config.BM25_K*(1 - self.config.BM25_B + self.config.BM25_B * (documentLength/docLengthAvg))
 
@@ -153,9 +168,6 @@ class Ranker:
 #         https://pdfs.semanticscholar.org/94c9/30d010c17f3edc0df39ea99fd311d33327c1.pdf
 
         mone = docDF * math.pow(numOfDocs,0.35)
-
-        # if docLengthAvg == 0:
-        #     return 0
 
         mehane = (docDF + 0.5 + (0.5 * float(documentLength) / docLengthAvg)) * termDF
 

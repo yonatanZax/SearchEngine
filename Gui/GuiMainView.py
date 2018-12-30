@@ -190,12 +190,10 @@ class EngineBuilder(Frame):
             return
 
 
-        if check and self.dataStem is not None:
-            data = self.dataStem
-        elif not check and self.dataNoStem is not None:
-            data = self.dataNoStem
-        else:
+        if self.dataStem is None and self.dataNoStem is None:
+            self.statusLabel['text'] = 'Status: No data available, please upload'
             return
+
 
         from Gui.GuiPart2 import QuerySearcher
         self.master.destroy()

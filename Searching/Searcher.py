@@ -58,12 +58,13 @@ class Searcher:
 
         self.config = config
 
-        self.wordEmbedding = WordEmbeddingUser(modelPath="C:/SavedModel/mymodel.model",corpusPath=self.config.get__corpusPath())
+        self.wordEmbedding = WordEmbeddingUser(modelPath="C:/SavedModel/mymodel.model")
         if self.wordEmbedding.loadModel():
             print ('WordEmbedding Model was Loaded successfully')
+
         else:
             print ('There was a problem while loading the WordEmbedding Model  ')
-
+            self.wordEmbedding = None
 
         self.ranker = Ranker(config)
 
@@ -92,20 +93,22 @@ class Searcher:
 
         queryTermDictionary, queryLength = self.iterativeTokenizer.parseText(queryString)
         queryList = list(queryTermDictionary.keys())
-        if expend:
-            queryList = self.wordEmbedding.expandQuery(queryList)
-
-        self.documentsByCitiesSet = None
-        if len(citiesList) > 0:
-            self.documentsByCitiesSet = self.ranker.getDocumentsFromCityList(citiesList=citiesList)
-
+        expandedList = []
 
         if useStem:
             termDictionary = self.termDictionaryWithStem
         else:
             termDictionary = self.termDictionaryNoStem
 
+        if expend:
+            expandedList = self.expandQuery(queryList, termDictionary)
+
+        self.documentsByCitiesSet = None
+        if len(citiesList) > 0:
+            self.documentsByCitiesSet = self.ranker.getDocumentsFromCityList(citiesList=citiesList)
+
         document_score_dictionary = {}
+        # Go through the query terms
         for term in queryList:
             termForm = None
             if termDictionary.get(term.lower()) is not None:
@@ -116,8 +119,6 @@ class Searcher:
                 continue
 
             correctPostingFilePath = self.getDocumentsFromPostingFile(termForm)
-
-
             postingLine = int(termDictionary[termForm][2])
             temp_document_score_dictionary = self.getDocumentsScoreFromPostingLine(correctPostingFilePath, termForm, postingLine, useStem = useStem)
 
@@ -127,21 +128,87 @@ class Searcher:
                 else:
                     document_score_dictionary[document] += score
 
+        # Go through the terms came back from the WordEmbedding
+        for term in expandedList:
+            termForm = None
+            termEmbeddingScore = term[1]
+            termNormalization = term[2]
+            if termDictionary.get(term[0].lower()) is not None:
+                termForm = term[0].lower()
+            elif termDictionary.get(term[0].upper()) is not None:
+                termForm = term[0].upper()
+            else:
+                continue
+
+            correctPostingFilePath = self.getDocumentsFromPostingFile(termForm)
+            postingLine = int(termDictionary[termForm][2])
+            temp_document_score_dictionary = self.getDocumentsScoreFromPostingLine(correctPostingFilePath, termForm, postingLine, useStem = useStem)
+
+            for document, score in temp_document_score_dictionary.items():
+                if document_score_dictionary.get(document) is None:
+                    document_score_dictionary[document] = score * termEmbeddingScore * termNormalization
+                else:
+                    document_score_dictionary[document] += ((score * termEmbeddingScore) * termNormalization)
+
         sorted_dic = sorted(document_score_dictionary.items(), key=lambda kv: kv[1],reverse=True)
         filteredSortedList = self.filterByScores(sorted_dic)
-        # limit = 200
+
         limit = 50
+
         if len(filteredSortedList) < limit:
             limit = len(filteredSortedList)
         return self.ranker.convertDocNoListToDocID(list(filteredSortedList)[:limit])
 
+
+    def expandQuery(self, queryList:list, termDictionary:dict)->list or None:
+        if self.wordEmbedding is None:
+            return None
+        expandedQuery = []
+        for word in queryList:
+            try:
+                mostSimilar = self.wordEmbedding.getTopNSimilarWords(word=word.lower())
+                mostSimilarExistingWords = self.getExistingResults(mostSimilar, termDictionary)
+                expandedQuery += mostSimilarExistingWords
+
+            except Exception as err:
+                pass
+
+        if len(queryList) > 1:
+            try:
+                lowerList = []
+                for w in queryList:
+                    lowerList.append(w.lower())
+                mostSimilar = self.wordEmbedding.getTopNSimilarWordsFromList(wordList=lowerList)
+                mostSimilarExistingWords = self.getExistingResults(mostSimilar, termDictionary)
+                expandedQuery += mostSimilarExistingWords
+            except Exception as err:
+                pass
+        return expandedQuery
+
+
+    @staticmethod
+    def getExistingResults(mostSimilar:list, termDictionary:dict)->list:
+        finalList = []
+        if mostSimilar is not None:
+            existingList = []
+            for term_sim_tuple in mostSimilar:
+                term = term_sim_tuple[0]
+                if termDictionary.get(term) is not None:
+                    existingList.append(term_sim_tuple)
+            existingListSize = len(existingList)
+            if existingListSize > 0:
+                for term_sim_tuple in existingList:
+                    term = term_sim_tuple[0]
+                    score = term_sim_tuple[1]
+                    finalList.append([term, score, 1 / existingListSize])
+        return finalList
 
     @staticmethod
     def filterByScores(doc_Score_list: list)-> list:
         if len(doc_Score_list) == 0:
             return doc_Score_list
         topScore = doc_Score_list[0][1]
-        filterPercent = 0.2
+        filterPercent = 0.05
         # filterPercent = 0.4
         threshold = topScore * filterPercent
         index = 0

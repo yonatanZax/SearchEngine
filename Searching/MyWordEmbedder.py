@@ -36,7 +36,7 @@ class MyEmbedderTokenizer(IterativeTokenizer):
         t = lxml.html.fromstring(text)
         text = t.text_content()
 
-        text = text.replace("\n", ' ').replace('\t', ' ').replace('{', ' ').replace('}', ' ').replace('[', ' ').replace(']',
+        text = text.replace("\n", ' ').replace('\t', ' ').replace("'s", '').replace('{', ' ').replace('}', ' ').replace('[', ' ').replace(']',
                                                                                                                    ' ').replace(
             '\"', ' ').replace('\'', ' ').replace('(', ' ').replace(')', ' ').replace('?', ' ').replace('!', ' ').replace('#',
                                                                                                                     ' ').replace(
@@ -44,7 +44,7 @@ class MyEmbedderTokenizer(IterativeTokenizer):
                                                                                                                    ' ').replace(
             '~', ' ').replace(';', ' ').replace(':', ' ').replace('*', ' ').replace('+', ' ').replace('|', ' ').replace('&',
                                                                                                                   ' ').replace(
-            '=', '')
+            '=', ' ')
         text = re.sub(r'[-]+','-',text)
         text = re.sub(r'[.]+', '.', text)
         text = re.sub(r'[,]+', ',', text)
@@ -64,12 +64,12 @@ class MyEmbedderTokenizer(IterativeTokenizer):
             term = term.lower()
             if '-' in term:
                 finalTermList += self.parseList(term.split('-'))
-            elif ',' in term :
+            elif term.count(',') > 0 :
                 finalTermList += self.parseList(term.split(','))
-            elif '.' in term :
+            elif term.count('.') > 0:
                 finalTermList += self.parseList(term.split('.'))
 
-            finalTermList.append(term)
+            finalTermList.append(term.strip(',').strip('.'))
 
         return finalTermList
 
@@ -143,11 +143,54 @@ class EmbeddingCreator(object):
             model = gensim.models.Word2Vec(sentences, min_count=1)
 
         if model is not None:
-            model.save(self._outputPath)  # TODO set the path to where you want to save it
+            model.save(self._outputPath)
             print ('model was built successfully')
         finish = datetime.now()
         took = start - finish
-        print("took: ", str(took.seconds))
+        print("Took: ", str(took.seconds/60) + 'Minutes')
+
+        return model
+
+
+    def createModelFromGlove(self, pathOfGlove:str, dimensions:int):
+        # https://datascience.stackexchange.com/questions/10695/how-to-initialize-a-new-word2vec-model-with-pre-trained-model-weights
+        from gensim.models import word2vec
+        from gensim.models import KeyedVectors
+        print('Stared creating the model')
+
+        start = datetime.now()
+        sentences = MySentences(self._corpusPath, self._stopwordsPath)  # a memory-friendly iterator
+        model = None
+        if word2vec.FAST_VERSION == 1:
+            model = gensim.models.Word2Vec(size=dimensions, min_count=1, workers=4)
+
+        else:
+            model = gensim.models.Word2Vec(size=dimensions, min_count=1)
+
+        model.build_vocab(sentences)
+        total_examples = model.corpus_count
+
+
+
+         # call glove2word2vec script
+         # default way (through CLI): python -m gensim.scripts.glove2word2vec --input <glove_file> --output <w2v_file>
+        from gensim.scripts.glove2word2vec import glove2word2vec
+        glove2word2vec(pathOfGlove, "C:/SavedModel/glove2Word2vec")
+
+        # model = KeyedVectors.load_word2vec_format(tmp_file)
+
+        modelGlove = KeyedVectors.load_word2vec_format("C:/SavedModel/glove2Word2vec", binary=False)
+        model.build_vocab([list(modelGlove.vocab.keys())], update=True)
+        model.intersect_word2vec_format("C:/SavedModel/glove2Word2vec", binary=False, lockf=1.0)
+        model.train(sentences, total_examples=total_examples, epochs=model.iter)
+        if model is not None:
+            model.save(self._outputPath)
+            print ('model was built successfully')
+        finish = datetime.now()
+        took = finish - start
+        print("Took: ", str(took.seconds/60) + ' Minutes')
+
+
         return model
 
 
@@ -179,32 +222,61 @@ class WordEmbeddingUser(EmbeddingCreator):
     def getModel(self)->gensim.models.Word2Vec:
         return self._model
 
-    def getTopNSimilarWords(self, word:str or list ,N:int=5)->list or None:
+    def getTopNSimilarWords(self, word:str ,N:int=5)->list or None:
         try:
-            mostSimilar = self._model.most_similar(positive=[word], topn=N)
+            mostSimilar = self._model.wv.similar_by_word(word=word, topn=N)
             return mostSimilar
         except Exception as err:
             print (err)
             return None
 
-    def expandQuery(self,queryList:list)->list:
-        if self._model is None:
-            return queryList
-        expandedQuery = set(queryList)
-        for word in queryList:
-            if self._model[word.lower()] is not None:
-                mostSimilar = self.getTopNSimilarWords(word=word.lower())
-                if mostSimilar is not None:
-                    expandedQuery = expandedQuery.union(mostSimilar)
+    def getTopNSimilarWordsFromList(self, wordList: list ,N:int=5)->list or None:
+        finalVector = None
+        for word in wordList:
+            try:
+                tempVector = self._model.wv.word_vec(word=word, use_norm=True)
+                if finalVector is None:
+                    finalVector = tempVector
+                else:
+                    finalVector += tempVector
+            except :
+                pass
+        if finalVector is not None:
+            mostSimilar = self._model.wv.similar_by_vector(finalVector, topn=10)
+            return mostSimilar
 
-        if len(queryList) > 1:
-            lowerList = []
-            for w in queryList:
-                lowerList.append(w.lower())
-            mostSimilar = self.getTopNSimilarWords(self.getTopNSimilarWords(lowerList))
-            if mostSimilar is not None:
-                expandedQuery = expandedQuery.union(mostSimilar)
-        return list(expandedQuery)
+        return None
+
+
+
+
+
+    # def getTopNSimilarWordsFromList(self, wordList: list ,N:int=5)->list or None:
+    #     try:
+    #         mostSimilar = self._model.most_similar(positive=wordList, topn=N)
+    #         return mostSimilar
+    #     except Exception as err:
+    #         print (err)
+    #         return None
+
+    # def expandQuery(self,queryList:list)->list:
+    #     if self._model is None:
+    #         return queryList
+    #     expandedQuery = set()
+    #     for word in queryList:
+    #         if self._model[word.lower()] is not None:
+    #             mostSimilar = self.getTopNSimilarWords(word=word.lower())
+    #             if mostSimilar is not None:
+    #                 expandedQuery = expandedQuery.union(mostSimilar)
+    #
+    #     if len(queryList) > 1:
+    #         lowerList = []
+    #         for w in queryList:
+    #             lowerList.append(w.lower())
+    #         mostSimilar = self.getTopNSimilarWordsFromList(wordList=lowerList)
+    #         if mostSimilar is not None:
+    #             expandedQuery = expandedQuery.union(mostSimilar)
+    #     return list(expandedQuery)
 
     def visualizeMyModel(self):
         if self._model is not None:
@@ -274,9 +346,20 @@ class WordEmbeddingUser(EmbeddingCreator):
 
 
 
-# corpusPath = "C:/AllDocs"
-# outputPath = "C:/SavedModel/mymodel.model"
-# stopWordsPath = "C:/stop_words.txt"
+
+corpusPath = "C:/AllDocs"
+outputPath = "C:/SavedModel/mymodel.model"
+tempPath = "C:/SavedModel/glove2Word2vec"
+stopWordsPath = "C:/stop_words.txt"
+pathOfGlove = "C:/mat100.txt"
 # manager = EmbeddingCreator(corpusPath=corpusPath,outputPath=outputPath,stopwordsPath=stopWordsPath)
 # manager.createModel()
+from gensim.models import KeyedVectors
+# modelGlove = KeyedVectors.load_word2vec_format("C:/SavedModel/glove2Word2vec", binary=False)
+
+# creator = EmbeddingCreator(corpusPath=corpusPath,outputPath=outputPath,stopwordsPath=stopWordsPath)
+# model = creator.createModelFromGlove(pathOfGlove=pathOfGlove,dimensions=100)
+
+
+
 
