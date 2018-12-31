@@ -10,6 +10,8 @@ from Searching.MyWordEmbedder import WordEmbeddingUser
 
 class SearcherIterativeTokenizer(IterativeTokenizer):
 
+
+
     def ruleNBA(self, index: int, textList: list) -> (list,int):
 
         listOfTerms = [textList[index]]
@@ -81,10 +83,10 @@ class Searcher:
 
 
 
-
     def getDocsForQueryWithExpansion(self, queryString: str, citiesList: list=None, expend: bool=False, useStem = False):
         """
         get a query and return the docs in the correct order with expanding of the query using the word embedding
+        :param useStem:
         :param expend:
         :param citiesList:
         :param queryString:
@@ -164,10 +166,15 @@ class Searcher:
         if self.wordEmbedding is None:
             return None
         expandedQuery = []
+        print('The query is: ',queryList)
+
         for word in queryList:
             try:
                 mostSimilar = self.wordEmbedding.getTopNSimilarWords(word=word.lower())
                 mostSimilarExistingWords = self.getExistingResults(mostSimilar, termDictionary)
+                print ('Existing words in Embedding for the term: ', word.lower())
+                for term_sim_tuple in mostSimilarExistingWords:
+                    print ('\t\t' + term_sim_tuple[0],term_sim_tuple[1])
                 expandedQuery += mostSimilarExistingWords
 
             except Exception as err:
@@ -180,10 +187,26 @@ class Searcher:
                     lowerList.append(w.lower())
                 mostSimilar = self.wordEmbedding.getTopNSimilarWordsFromList(wordList=lowerList)
                 mostSimilarExistingWords = self.getExistingResults(mostSimilar, termDictionary)
+                print("\nExisting words in emb for the entire query:")
+                for term_sim_tuple in mostSimilarExistingWords:
+                    print("\t\t",term_sim_tuple[0]," - ",term_sim_tuple[1])
                 expandedQuery += mostSimilarExistingWords
             except Exception as err:
                 pass
-        return expandedQuery
+        finalExtendedQuery = {}
+        for term_sim_appearance in expandedQuery:
+            term = term_sim_appearance[0]
+            sim = term_sim_appearance[1]
+            appearance = term_sim_appearance[2]
+            if finalExtendedQuery.get(term) is None:
+                finalExtendedQuery[term] = (term,sim,appearance,0)
+                continue
+            numberOfAverage = finalExtendedQuery[term][3]
+            newAverageSim = (sim + ((numberOfAverage + 1) * finalExtendedQuery[term][1]) ) / (numberOfAverage + 2)
+            newAppearance = (appearance + ((numberOfAverage + 1) * finalExtendedQuery[term][2]) ) / (numberOfAverage + 2)
+            finalExtendedQuery[term] = (term, newAverageSim, newAppearance, numberOfAverage + 1)
+
+        return finalExtendedQuery.values()
 
 
     @staticmethod
@@ -203,13 +226,19 @@ class Searcher:
                     finalList.append([term, score, 1 / existingListSize])
         return finalList
 
+
+
+
+    # ***  Change Percent  ***
+
+
     @staticmethod
     def filterByScores(doc_Score_list: list)-> list:
         if len(doc_Score_list) == 0:
             return doc_Score_list
         topScore = doc_Score_list[0][1]
-        filterPercent = 0.05
-        # filterPercent = 0.4
+        # filterPercent = 0.2
+        filterPercent = 0.4
         threshold = topScore * filterPercent
         index = 0
         for index in range(0,len(doc_Score_list)):
@@ -218,33 +247,6 @@ class Searcher:
         return doc_Score_list[:index]
 
 
-    @staticmethod
-    def getResultFormatFromResultList(qID:str , runID: str, results:list ) -> (str,str):
-        resultsToWrite = ''
-        resultsToPrint = ""
-        resultsForDominant = []
-        for index in range(0,len(results)):
-            # String to write 'Save Trec_Eval'
-            resultsToWrite += str(qID) + ' 0 ' + str(results[index][0]) + ' ' + str(index) + ' ' + str("{0:.3f}".format(round(results[index][1],3))) + ' ' + str(runID) + '\n'
-
-
-            # String to print in output window
-            lineSize = 44
-            windowSizes = [7, 24, 10]
-
-            values = [str(qID), str(results[index][0]), str("{0:.3f}".format(round(results[index][1], 3)))]
-            for i in range(0, len(values)):
-                dif = windowSizes[i] - len(values[i])
-                before = int(dif / 2)
-                values[i] = ' ' * before + values[i] + ' ' * (dif - before)
-
-            resultsToPrint += "%s|%s|%s\n" % (values[0], values[1], values[2])
-
-            docNo =  str(results[index][0])
-            resultsForDominant += [str(qID),docNo]
-
-            # resultsToPrint += "  %s  |  %s  |  %s  \n" % (str(qID),str(results[index][0]),str("{0:.3f}".format(round(results[index][1],3))) )
-        return resultsToWrite, resultsToPrint, resultsForDominant
 
 
     def getDocumentsFromPostingFile(self, term:str) -> str:

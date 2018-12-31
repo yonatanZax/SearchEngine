@@ -152,24 +152,10 @@ class EngineBuilder(Frame):
     def switchPart2(self):
 
 
-        if self.entry_postingPath.get() == '' or self.entry_corpusPath.get() == '':
-            self.statusLabel['text'] = 'Status: Enter a path to corpus and posting fields'
+        if self.entry_postingPath.get() == '':
+            self.statusLabel['text'] = 'Status: Enter a path to posting'
             return
 
-        print("Corpus path:     ", self.entry_corpusPath.get())
-        corpusPath = str(self.entry_corpusPath.get())
-        if not os.path.exists(corpusPath):
-            self.statusLabel['text'] = 'Status: Corpus path not exists'
-            return
-        if not os.path.exists(corpusPath + '/stop_words.txt'):
-            self.statusLabel['text'] = 'Status: stop_words.txt doesnt exists in corpus path'
-            return
-
-
-        self.config.setCorpusPath(corpusPath)
-
-        check = self.checked.get()
-        self.config.setToStem(check)
 
         saveMainFolderPath = str(self.entry_postingPath.get())
         if not os.path.exists(saveMainFolderPath):
@@ -177,22 +163,26 @@ class EngineBuilder(Frame):
             return
 
         if '/SavedFiles' not in saveMainFolderPath :
-            self.config.setSaveMainFolderPath(saveMainFolderPath + '/SavedFiles')
+            saveMainFolderPath += '/SavedFiles'
+            self.config.setSaveMainFolderPath(saveMainFolderPath)
 
-
-
-        if not os.path.exists(self.config.savedFilePath + '/a'):
-            if check:
-                self.statusLabel['text'] = 'Status (stem is checked): build before load'
-            else:
-                self.statusLabel['text'] = 'Status (stem not checked): build before load'
-
-            return
 
 
         if self.dataStem is None and self.dataNoStem is None:
             self.statusLabel['text'] = 'Status: No data available, please upload'
             return
+
+        pathToStopWords = saveMainFolderPath + "/" + self.config.stopWordFile
+        if os.path.exists(pathToStopWords):
+            self.config.stopWordPath = pathToStopWords
+
+        else:
+            self.statusLabel['text'] = 'Status: No stop words file'
+            return
+
+
+        self.config.setToStem(False)
+        self.checked.set(False)
 
 
         from Gui.GuiPart2 import QuerySearcher
@@ -317,9 +307,6 @@ class EngineBuilder(Frame):
 
     def load(self):
 
-        # TODO - change this function to create a dictionary instead of lists (maybe a dic of the form - term, [df,sumTF,postingLine]
-
-        savedFolderPath = self.config.get__savedFilePath()
 
         savedMainFolder = self.config.get__savedFileMainFolder()
         savedNoStem = savedMainFolder + '/WithoutStem'

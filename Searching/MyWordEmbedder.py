@@ -54,6 +54,7 @@ class MyEmbedderTokenizer(IterativeTokenizer):
 
 
     def parseList(self, termList):
+        from Stemmer import Stemmer
         termList = list(filter(self.filterAll, termList))
 
         finalTermList = []
@@ -69,7 +70,15 @@ class MyEmbedderTokenizer(IterativeTokenizer):
             elif term.count('.') > 0:
                 finalTermList += self.parseList(term.split('.'))
 
-            finalTermList.append(term.strip(',').strip('.'))
+            cleanedWord = term.strip(',').strip('.')
+
+            if self.dictionary_term_stemmedTerm.get(cleanedWord) is None:
+                afterStem = Stemmer.stemTerm(cleanedWord)
+                self.dictionary_term_stemmedTerm[cleanedWord] = afterStem
+            else:
+                afterStem = self.dictionary_term_stemmedTerm[cleanedWord]
+
+            finalTermList.append(afterStem)
 
         return finalTermList
 
@@ -162,10 +171,10 @@ class EmbeddingCreator(object):
         sentences = MySentences(self._corpusPath, self._stopwordsPath)  # a memory-friendly iterator
         model = None
         if word2vec.FAST_VERSION == 1:
-            model = gensim.models.Word2Vec(size=dimensions, min_count=1, workers=4)
+            model = gensim.models.Word2Vec(size=dimensions, min_count=4, workers=4)
 
         else:
-            model = gensim.models.Word2Vec(size=dimensions, min_count=1)
+            model = gensim.models.Word2Vec(size=dimensions, min_count=4)
 
         model.build_vocab(sentences)
         total_examples = model.corpus_count
@@ -224,10 +233,18 @@ class WordEmbeddingUser(EmbeddingCreator):
 
     def getTopNSimilarWords(self, word:str ,N:int=5)->list or None:
         try:
-            mostSimilar = self._model.wv.similar_by_word(word=word, topn=N)
-            return mostSimilar
+            # mostSimilar = self._model.wv.similar_by_word(word=word, topn=N)
+            # tempVector = self._model.wv.word_vec(word=word, use_norm=True)
+            tempVector = self._model.wv[word]
+            mostSimilar = self._model.wv.similar_by_vector(tempVector, topn=N)
+            finalResults = []
+            for word_sim in mostSimilar:
+                if word_sim[0] == word or word_sim[1] >= 1:
+                    continue
+                finalResults.append(word_sim)
+            return finalResults
         except Exception as err:
-            print (err)
+            # print (err)
             return None
 
     def getTopNSimilarWordsFromList(self, wordList: list ,N:int=5)->list or None:
@@ -243,7 +260,12 @@ class WordEmbeddingUser(EmbeddingCreator):
                 pass
         if finalVector is not None:
             mostSimilar = self._model.wv.similar_by_vector(finalVector, topn=10)
-            return mostSimilar
+            finalResults = []
+            for word_sim in mostSimilar:
+                if word_sim[0] in wordList or word_sim[1] >= 1:
+                    continue
+                finalResults.append(word_sim)
+            return finalResults
 
         return None
 
@@ -349,16 +371,16 @@ class WordEmbeddingUser(EmbeddingCreator):
 
 corpusPath = "C:/AllDocs"
 outputPath = "C:/SavedModel/mymodel.model"
-tempPath = "C:/SavedModel/glove2Word2vec"
+tempPath = "C:/SavedModel/glove2Word2vec_stemmedAndStopWord"
 stopWordsPath = "C:/stop_words.txt"
 pathOfGlove = "C:/mat100.txt"
 # manager = EmbeddingCreator(corpusPath=corpusPath,outputPath=outputPath,stopwordsPath=stopWordsPath)
 # manager.createModel()
 from gensim.models import KeyedVectors
-# modelGlove = KeyedVectors.load_word2vec_format("C:/SavedModel/glove2Word2vec", binary=False)
+modelGlove = KeyedVectors.load_word2vec_format("C:/SavedModel/glove2Word2vec_stemmedAndStopWord", binary=False)
 
-# creator = EmbeddingCreator(corpusPath=corpusPath,outputPath=outputPath,stopwordsPath=stopWordsPath)
-# model = creator.createModelFromGlove(pathOfGlove=pathOfGlove,dimensions=100)
+creator = EmbeddingCreator(corpusPath=corpusPath,outputPath=outputPath,stopwordsPath=stopWordsPath)
+model = creator.createModelFromGlove(pathOfGlove=pathOfGlove,dimensions=100)
 
 
 

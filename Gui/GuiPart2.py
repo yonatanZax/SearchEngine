@@ -152,10 +152,16 @@ class QuerySearcher(Frame):
 
 
         self.runQueryButton = Button(self.master, text='Run query', width=15, bg='green', fg='white',command= self.runQueryListener)
-        self.runQueryButton.place( x = self.XstartPixel + 100, y = self.YstartPixel + 350)
+        self.runQueryButton.place( x = self.XstartPixel + 50, y = self.YstartPixel + 350)
 
         self.runQueryFromFileButton = Button(self.master, text='Run query from file', width=15, bg='green', fg='white',command= self.runQueryFromFileListener)
-        self.runQueryFromFileButton.place( x = self.XstartPixel + 260, y = self.YstartPixel + 350)
+        self.runQueryFromFileButton.place( x = self.XstartPixel + 175, y = self.YstartPixel + 350)
+
+
+        self.makeThreeRunsButton = Button(self.master, text='Make Three Runs', width=15, bg='green', fg='white',command= self.makeThreeRunsListener)
+        self.makeThreeRunsButton.place( x = self.XstartPixel + 300, y = self.YstartPixel + 350)
+
+
 
         self.findYishuyotButton = Button(self.master, text='חיפוש יישויות', width=15, bg='blue', fg='white',command= self.findYishuyot)
         self.findYishuyotButton.place( x = self.XstartPixel + 180, y = self.YstartPixel + 390)
@@ -230,6 +236,7 @@ class QuerySearcher(Frame):
 
     def findYishuyot(self):
         from BasicMethods import getDicFromFile
+        from BasicMethods import get2DArrayFromFile
 
         # Set stem in config
         self.config.setToStem(self.checkedStem.get())
@@ -248,24 +255,11 @@ class QuerySearcher(Frame):
         docsFromQuery = self.docsForDominant
         dominantDic = dict()
 
-        dominantDicFromFile = getDicFromFile(path=pathToDominantIndex)
+        dominantDicFromFile = get2DArrayFromFile(path=pathToDominantIndex,sep=',')
 
-        for qid_docNoArray in docsFromQuery:
-            i = 0
-            while i + 1 < len(qid_docNoArray):
-                docNo = qid_docNoArray[i+1]
-                i += 2
-
-                dominantTerms = dominantDicFromFile[docNo][0]
-                splitedTerms = dominantTerms.split(',')
-                for score_term in splitedTerms:
-                    if dominantDic.get(docNo) is None:
-                        dominantDic[docNo] = [score_term.rstrip('\n')]
-                    else:
-                        dominantDic[docNo] += [score_term.rstrip('\n')]
-
-
-
+        for docID_score_docIndx in docsFromQuery:
+            dominantEntities = dominantDicFromFile[docID_score_docIndx[2]]
+            dominantDic[docID_score_docIndx[0]] = dominantEntities
 
 
 
@@ -293,31 +287,40 @@ class QuerySearcher(Frame):
 
 
 
-    def runQueryListener(self):
+    def makeThreeRunsListener(self):
+
+        # Get the file's path
+        path = self.entry_queryFilePath_text.get()
+        if path == '':
+            self.statusLabel['text'] = "Status: Please enter a valid path to query"
+            return
+
+        if not os.path.exists(path):
+            self.statusLabel['text'] = "Status: Path %s , is not valid" % (path)
+            return
+
+
+        pathToSaveQuery = self.entry_querySaveFilePath_text.get()
+
+        if pathToSaveQuery == '':
+            self.statusLabel['text'] = "Status: Please enter a valid path to query"
+            return
+
+        if not os.path.exists(pathToSaveQuery):
+            self.statusLabel['text'] = "Status: Path %s , is not valid" % (pathToSaveQuery)
+            return
+
+
 
         self.disableButtons()
 
-        t = Thread(target=self.runQuery, args=())
+        t = Thread(target=self.makeThreeRuns, args=())
         runQueryThread = Thread(target=self.listener, args=(t, self.enableButtons))
         t.start()
         runQueryThread.start()
 
 
-
-
-    def runQueryFromFileListener(self):
-
-        self.disableButtons()
-
-        t = Thread(target=self.runQueryFromFile, args=())
-        runQueryFromFileThread = Thread(target=self.listener, args=(t, self.enableButtons))
-        t.start()
-        runQueryFromFileThread.start()
-
-
-
-    def runQuery(self):
-
+    def runQueryListener(self):
 
 
         # Get the query
@@ -338,13 +341,133 @@ class QuerySearcher(Frame):
             return
 
 
+        self.disableButtons()
+
+        t = Thread(target=self.runQuery, args=())
+        runQueryThread = Thread(target=self.listener, args=(t, self.enableButtons))
+        t.start()
+        runQueryThread.start()
+
+
+
+
+    def runQueryFromFileListener(self):
+
+        import os
+        # Get the file's path
+        path = self.entry_queryFilePath_text.get()
+        if path == '':
+            self.statusLabel['text'] = "Status: Please enter a valid path to query"
+            return
+
+        if not os.path.exists(path):
+            self.statusLabel['text'] = "Status: Path %s , is not valid" % (path)
+            return
+
+
         # Set stem in config
         self.config.setToStem(self.checkedStem.get())
 
 
-        docList = self.searcher.getDocsForQueryWithExpansion(self.entry_query_text.get(),self.getSelectedCities(), semantics, useStem = useStem)
+
+        self.disableButtons()
+
+        t = Thread(target=self.runQueryFromFile, args=())
+        runQueryFromFileThread = Thread(target=self.listener, args=(t, self.enableButtons))
+        t.start()
+        runQueryFromFileThread.start()
+
+
+
+
+
+
+
+    def makeThreeRuns(self):
+        from shutil import copyfile
+        # Three runs:
+        # 1. results_noStem_noSem
+        # 2. results_Stem_noSem
+        # 3. results_Stem_Sem
+
+        pathToSaveQuery = self.entry_querySaveFilePath_text.get()
+
+
+        pathForThreeRuns = os.path.join(pathToSaveQuery,"ThreeRuns")
+        if not os.path.exists(pathForThreeRuns):
+            os.mkdir(pathForThreeRuns)
+
+
+        # first Run:
+        fileName = "results_%s.txt" % ("noStem_noSem")
+        destPath = os.path.join(pathForThreeRuns,fileName )
+        self.config.setToStem(False)
+        self.checkedSemantics.set(False)
+
+        self.runQueryFromFile()
+        self.saveTrec_Eval()
+        copyfile(os.path.join(pathToSaveQuery,"results.txt"),destPath)
+
+        # second Run:
+        fileName = "results_%s.txt" % ("Stem_noSem")
+        destPath = os.path.join(pathForThreeRuns,fileName )
+        self.config.setToStem(True)
+        self.checkedSemantics.set(False)
+
+        self.runQueryFromFile()
+        self.saveTrec_Eval()
+        copyfile(os.path.join(pathToSaveQuery,"results.txt"),destPath)
+
+        # third Run:
+        fileName = "results_%s.txt" % ("Stem_Sem")
+        destPath = os.path.join(pathForThreeRuns,fileName )
+        self.config.setToStem(True)
+        self.checkedSemantics.set(True)
+
+        self.runQueryFromFile()
+        self.saveTrec_Eval()
+        copyfile(os.path.join(pathToSaveQuery,"results.txt"),destPath)
+
+
+        # Set all to False
+        self.config.setToStem(False)
+        self.checkedSemantics.set(False)
+        self.checkedStem.set(False)
+
+        resultsToPrint = '''
+        
+* Files are saved in %s 
+* 1. Results for No stemming and No Semantics 
+    file: results_noStem_noSem.txt
+* 2. Results for With stemming and No Semantics 
+    file: results_Stem_noSem.txt
+* 3. Results for With stemming and With Semantics 
+    file: results_Stem_Sem.txt
+        
+        '''  % (pathForThreeRuns)
+
+        # Write the results to the output window
+        self.txtbox.delete('1.0',END)
+        self.txtbox.insert('1.0',resultsToPrint)
+
+
+
+
+
+    def runQuery(self):
+
+
+
+
+
+        # Set stem in config
+        self.config.setToStem(self.checkedStem.get())
+
+
+        docList = self.searcher.getDocsForQueryWithExpansion(self.entry_query_text.get(),self.getSelectedCities(), self.checkedSemantics.get(), useStem = self.checkedStem.get())
         resultsToPrint = "  qID  |         DocNo          |  Score   \n"
 
+        self.docsForDominant = docList
 
         windowSizes = [7,24,10]
 
@@ -373,24 +496,6 @@ class QuerySearcher(Frame):
     def runQueryFromFile(self):
 
 
-        import os
-        # Get the file's path
-        path = self.entry_queryFilePath_text.get()
-        if path == '':
-            self.statusLabel['text'] = "Status: Please enter a valid path to query"
-            return
-
-        if not os.path.exists(path):
-            self.statusLabel['text'] = "Status: Path %s , is not valid" % (path)
-            return
-
-
-        # Set stem in config
-        self.config.setToStem(self.checkedStem.get())
-
-
-
-
 
         # # Best Values - 185
         # self.config.BM25_K = 1.6
@@ -410,15 +515,15 @@ class QuerySearcher(Frame):
         #
         # # Write ManyFiles
         #
-        # pathToSaveKB = 'C:/SaveKB'
-        # changePathCounter = 0
-        # pathToDic = pathToSaveKB + '/AxuDic.txt'
-        # pathTrecEval = pathToSaveKB + '/trecAxu.txt'
-        # if not os.path.exists(pathToSaveKB):
-        #     os.mkdir(pathToSaveKB)
+        pathToSaveKB = 'C:/SaveKB'
+        changePathCounter = 0
+        pathToDic = pathToSaveKB + '/AxuDic.txt'
+        pathTrecEval = pathToSaveKB + '/trecAxu.txt'
+        if not os.path.exists(pathToSaveKB):
+            os.mkdir(pathToSaveKB)
 
-        #
-        #
+
+
         # print("*** Started Axu run ***")
         # # StartValue
         # self.config.Axu_Value = 1.0
@@ -456,12 +561,14 @@ class QuerySearcher(Frame):
         #
         #
         # print("*** Finished Axu run ***")
-        #
+
 
 
         # print("*** Started KB run ***")
-
-
+        #
+        # self.config.BM25_K = 1.2
+        #
+        #
         # while self.config.BM25_K < 2.0:
         #
         #
@@ -520,6 +627,30 @@ class QuerySearcher(Frame):
 
 
 
+    @staticmethod
+    def getResultFormatFromResultList(qID:str , runID: str, results:list ) -> (str,str):
+        resultsToWrite = ''
+        resultsToPrint = ""
+        resultsForDominant = []
+        for index in range(0,len(results)):
+            # String to write 'Save Trec_Eval'
+            resultsToWrite += str(qID) + ' 0 ' + str(results[index][0]) + ' ' + str(index) + ' ' + str("{0:.3f}".format(round(results[index][1],3))) + ' ' + str(runID) + '\n'
+
+
+            # String to print in output window
+            lineSize = 44
+            windowSizes = [7, 24, 10]
+
+            values = [str(qID), str(results[index][0]), str("{0:.3f}".format(round(results[index][1], 3)))]
+            for i in range(0, len(values)):
+                dif = windowSizes[i] - len(values[i])
+                before = int(dif / 2)
+                values[i] = ' ' * before + values[i] + ' ' * (dif - before)
+
+            resultsToPrint += "%s|%s|%s\n" % (values[0], values[1], values[2])
+
+            # resultsToPrint += "  %s  |  %s  |  %s  \n" % (str(qID),str(results[index][0]),str("{0:.3f}".format(round(results[index][1],3))) )
+        return resultsToWrite, resultsToPrint
 
 
 
@@ -546,16 +677,15 @@ class QuerySearcher(Frame):
         for query_ID_query in queriesList_ID_query:
 
             docList = self.searcher.getDocsForQueryWithExpansion(query_ID_query[1],self.getSelectedCities(),self.checkedSemantics.get(), useStem = useStem)
-            toWrite, toPrint, resultsForDominant = self.searcher.getResultFormatFromResultList(qID=query_ID_query[0], runID=runID, results=docList)
+            toWrite, toPrint = self.getResultFormatFromResultList(qID=query_ID_query[0], runID=runID, results=docList)
             trec_eval_results_toWrite += toWrite
 
             # Save query_doc to future display
-            #  resultsForDominant = [str(qID),docNo]
-            self.docsForDominant += [resultsForDominant]
+            #  resultsForDominant = [str(qID),docNo,docIndex]
+            self.docsForDominant += docList
 
             trec_eval_results_toPrint += toPrint
 
-    #     TODO - write to a file we need to set in config
 
         return trec_eval_results_toWrite , trec_eval_results_toPrint
 
@@ -581,12 +711,6 @@ class QuerySearcher(Frame):
             print("Can't find stop word path:")
 
 
-
-        stopPath = self.config.get__stopWordPath()
-        stopFile = open(stopPath,'r')
-        stopWordList = stopFile.readlines()
-
-        stopFile.close()
         termsFromNarr = getNarrWithRegex(queryNarr,stopWords=stopWordsDic)
 
         return termsFromNarr
@@ -610,8 +734,8 @@ class QuerySearcher(Frame):
             query = getTagFromText(queryStr,'<title>')
 
             # get narrative
-            termFromNarrative = " ".join(self.getNarrTermsFromQuery(queryStr + "</Narr>"))
-            query += " " +termFromNarrative
+            # termFromNarrative = " ".join(self.getNarrTermsFromQuery(queryStr + "</Narr>"))
+            # query += " " +termFromNarrative
 
             queriesList_ID_query.append((queryID, query))
         return queriesList_ID_query
@@ -662,17 +786,19 @@ class QuerySearcher(Frame):
 
 
 
-    def enableButtons(self):
+    def enableButtons(self, statusEnable = True):
         self.runQueryButton.configure(state = NORMAL)
         self.runQueryFromFileButton.configure(state = NORMAL)
+        self.makeThreeRunsButton.configure(state = NORMAL)
         self.findYishuyotButton.configure(state = NORMAL)
         self.saveTrec_EvalButton.configure(state = NORMAL)
-
-        self.statusLabel['text'] = 'Status: Ready to Search\Shut down'
+        if statusEnable:
+            self.statusLabel['text'] = 'Status: Ready to Search\Shut down'
 
     def disableButtons(self):
         self.runQueryButton.configure(state = DISABLED)
         self.runQueryFromFileButton.configure(state = DISABLED)
+        self.makeThreeRunsButton.configure(state = DISABLED)
         self.findYishuyotButton.configure(state = DISABLED)
         self.saveTrec_EvalButton.configure(state = DISABLED)
 

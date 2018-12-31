@@ -13,26 +13,26 @@ class Ranker:
         self.numberOfDoc_Stemmed = 0
         self.averageDocLength_Stemmed = 0
         if os.path.exists(self.config.get__documentIndexPathStem()):
-            self.numberOfDoc_Stemmed, self.averageDocLength_Stemmed = self.__getDocumentIndex(self.config.get__documentIndexPathStem(), self.dictionary_document_info_stemmed)
+            self.numberOfDoc_Stemmed, self.averageDocLength_Stemmed = self.__initNumOfDocs_AvgLength(self.config.get__documentIndexPathStem(), self.dictionary_document_info_stemmed)
 
         self.numberOfDoc_NotStemmed = 0
         self.averageDocLength_NotStemmed = 0
         self.dictionary_document_info_withoutStem = {}
         if os.path.exists(config.get__documentIndexPathWithoutStem()):
-            self.numberOfDoc_NotStemmed, self.averageDocLength_NotStemmed = self.__getDocumentIndex(self.config.get__documentIndexPathWithoutStem(), self.dictionary_document_info_withoutStem)
+            self.numberOfDoc_NotStemmed, self.averageDocLength_NotStemmed = self.__initNumOfDocs_AvgLength(self.config.get__documentIndexPathWithoutStem(), self.dictionary_document_info_withoutStem)
 
         self.dictionary_city_documents_withoutStem = {}
         if os.path.exists(config.get__cityIndexPathWithoutStem()):
-            self.__getCitiesIndex(config.get__cityIndexPathWithoutStem(), self.dictionary_city_documents_withoutStem)
+            self.__initCitiesIndex(config.get__cityIndexPathWithoutStem(), self.dictionary_city_documents_withoutStem)
 
         self.dictionary_city_documents_Stemmed = {}
         if os.path.exists(config.get__cityIndexPathStem()):
-            self.__getCitiesIndex(config.get__cityIndexPathStem(), self.dictionary_city_documents_Stemmed)
+            self.__initCitiesIndex(config.get__cityIndexPathStem(), self.dictionary_city_documents_Stemmed)
 
 
 
     @staticmethod
-    def __getDocumentIndex(path, dictionary):
+    def __initNumOfDocs_AvgLength(path, dictionary):
         file = open(path,'r',encoding='utf-8')
         fileLines = file.readlines()
         file.close()
@@ -47,8 +47,9 @@ class Ranker:
         return len(fileLines), totalLength/len(fileLines)
         # self.config.setAverageDocLength(totalLength=totalLength, numberOfDocs=len(fileLines))
 
+
     @staticmethod
-    def __getCitiesIndex(path, dictionary):
+    def __initCitiesIndex(path, dictionary):
         file = open(path,'r',encoding='utf-8')
         fileLines = file.readlines()
         file.close()
@@ -69,15 +70,15 @@ class Ranker:
             dictionary[city] = document_positionsList_dict
 
 
-    def convertDocNoListToDocID(self, docNoList : list)-> list:
+    def convertDocNoListToDocID(self, docIndexList : list)-> list:
         documentDictionary = {}
         if self.config.get__toStem():
             documentDictionary = self.dictionary_document_info_stemmed
         else:
             documentDictionary = self.dictionary_document_info_withoutStem
         docIDList = []
-        for docNo_score in docNoList:
-            docIDList.append([documentDictionary[int(docNo_score[0])][0], docNo_score[1], int(docNo_score[0])])
+        for docIndex_score in docIndexList:
+            docIDList.append([documentDictionary[int(docIndex_score[0])][0], docIndex_score[1], int(docIndex_score[0])])
         return docIDList
 
 

@@ -45,17 +45,22 @@ class ConfigClass:
         if self.managersNumber == 1:
             self.managersNumber = 4
         self.filesPerIteration = 10
-        self.minimumTermAppearanceThreshold = 2
+
+        # Minimum SumTf
+        self.minimumTermAppearanceThreshold = 4
 
         self.toStem = False
 
+
+
         # Part B
 
-        # Best Values - 185
-        self.BM25_K = 1.6
+        # Best Values - 189
+        self.BM25_K = 1.5
         self.BM25_B = 0.7
 
         # Best - 188
+        # self.Axu_Value = 6
         self.Axu_Value = 10
 
         # self.Axu_Value = 6

@@ -11,6 +11,7 @@ from concurrent.futures import as_completed
 from Configuration import ConfigClass
 from Indexing.CountriesAPI import CityAPI
 from PreRun import createPreRunData
+from PreRun import copyStopWordToSavedFiles
 from ReadFiles.ReadFile import ReadFile
 import threading
 
@@ -26,7 +27,7 @@ def main():
 
 class MainClass:
 
-    def __init__(self,config=None):
+    def __init__(self, config=None):
 
         if config is None:
             self.config = ConfigClass()
@@ -56,6 +57,8 @@ class MainClass:
         filesIndexTupleList, allDocsTuple, cityDic = createPreRunData(listOfFolders, ReadFile(self.config))
         writeDocsThread = threading.Thread(target=writeListToFile,args=(self.config.getSavedFilesPath(),'allDocs.txt',allDocsTuple,))
         writeDocsThread.start()
+        copyStopWordToSavedFiles(self.config)
+
 
 
         lettersList = list(string.ascii_lowercase)
@@ -149,7 +152,7 @@ class MainClass:
                 for i in range(0, len(allDocsTuple)):
                     docNo = allDocsTuple[i][0]
                     allDocsTuple[i] = [docNo] + unsortedDocs[docNo][:5]
-                    allDocsDominant[i] = [docNo] + [unsortedDocs[docNo][5]]
+                    allDocsDominant[i] = [unsortedDocs[docNo][5]]
 
 
                 os.remove(unsortedDocsPath)
