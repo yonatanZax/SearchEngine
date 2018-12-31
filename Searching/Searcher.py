@@ -190,7 +190,20 @@ class Searcher:
                 expandedQuery += mostSimilarExistingWords
             except Exception as err:
                 pass
-        return expandedQuery
+        finalExtendedQuery = {}
+        for term_sim_appearance in expandedQuery:
+            term = term_sim_appearance[0]
+            sim = term_sim_appearance[1]
+            appearance = term_sim_appearance[2]
+            if finalExtendedQuery.get(term) is None:
+                finalExtendedQuery[term] = (term,sim,appearance,0)
+                continue
+            numberOfAverage = finalExtendedQuery[term][3]
+            newAverageSim = (sim + ((numberOfAverage + 1) * finalExtendedQuery[term][1]) ) / (numberOfAverage + 2)
+            newAppearance = (appearance + ((numberOfAverage + 1) * finalExtendedQuery[term][2]) ) / (numberOfAverage + 2)
+            finalExtendedQuery[term] = (term, newAverageSim, newAppearance, numberOfAverage + 1)
+
+        return finalExtendedQuery.values()
 
 
     @staticmethod

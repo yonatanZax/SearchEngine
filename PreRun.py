@@ -117,20 +117,11 @@ def createPreRunData(fileList: list, fileReader: ReadFile) -> (list,list,dict):
 def copyStopWordToSavedFiles(config):
     from shutil import copyfile
     stopwordPath = config.get__stopWordPath()
-    print(stopwordPath)
     stopwordName = config.get__stopWordFile()
-    print(stopwordName)
     savedFilesPath = config.get__savedFileMainFolder()
-    print(savedFilesPath)
 
     if not os.path.exists(os.path.join(savedFilesPath,stopwordName)):
         copyfile(stopwordPath,os.path.join(savedFilesPath,stopwordName))
 
 
-
-# con = config.ConfigClass()
-# reader = ReadFile(con)
-#
-# fileList = os.listdir(con.get__corpusPath())
-# createPreRunDics(fileList,reader)
 
