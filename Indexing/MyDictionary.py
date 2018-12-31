@@ -86,7 +86,7 @@ class DocumentIndexData:
 
         for score_term in listOfDominantTerms:
             # Format: (term:score),(term,score)
-            ans += '(%s:%s),' % (score_term[1],getStringFormatForFloatValue(2,score_term[0]))
+            ans += '%s:%s,' % (score_term[1],getStringFormatForFloatValue(2,score_term[0]))
 
         return ans.strip(',')
 

@@ -230,6 +230,7 @@ class QuerySearcher(Frame):
 
     def findYishuyot(self):
         from BasicMethods import getDicFromFile
+        from BasicMethods import get2DArrayFromFile
 
         # Set stem in config
         self.config.setToStem(self.checkedStem.get())
@@ -248,22 +249,11 @@ class QuerySearcher(Frame):
         docsFromQuery = self.docsForDominant
         dominantDic = dict()
 
-        dominantDicFromFile = getDicFromFile(path=pathToDominantIndex)
+        dominantDicFromFile = get2DArrayFromFile(path=pathToDominantIndex,sep=',')
 
-        for qid_docNoArray in docsFromQuery:
-            i = 0
-            while i + 1 < len(qid_docNoArray):
-                docNo = qid_docNoArray[i+1]
-                i += 2
-
-                dominantTerms = dominantDicFromFile[docNo][0]
-                splitedTerms = dominantTerms.split(',')
-                for score_term in splitedTerms:
-                    if dominantDic.get(docNo) is None:
-                        dominantDic[docNo] = [score_term.rstrip('\n')]
-                    else:
-                        dominantDic[docNo] += [score_term.rstrip('\n')]
-
+        for docID_score_docIndx in docsFromQuery:
+            dominantEntities = dominantDicFromFile[docID_score_docIndx[2]]
+            dominantDic[docID_score_docIndx[0]] = dominantEntities
 
 
 
@@ -345,6 +335,7 @@ class QuerySearcher(Frame):
         docList = self.searcher.getDocsForQueryWithExpansion(self.entry_query_text.get(),self.getSelectedCities(), semantics, useStem = useStem)
         resultsToPrint = "  qID  |         DocNo          |  Score   \n"
 
+        self.docsForDominant = docList
 
         windowSizes = [7,24,10]
 
@@ -518,6 +509,33 @@ class QuerySearcher(Frame):
 
 
 
+    @staticmethod
+    def getResultFormatFromResultList(qID:str , runID: str, results:list ) -> (str,str):
+        resultsToWrite = ''
+        resultsToPrint = ""
+        resultsForDominant = []
+        for index in range(0,len(results)):
+            # String to write 'Save Trec_Eval'
+            resultsToWrite += str(qID) + ' 0 ' + str(results[index][0]) + ' ' + str(index) + ' ' + str("{0:.3f}".format(round(results[index][1],3))) + ' ' + str(runID) + '\n'
+
+
+            # String to print in output window
+            lineSize = 44
+            windowSizes = [7, 24, 10]
+
+            values = [str(qID), str(results[index][0]), str("{0:.3f}".format(round(results[index][1], 3)))]
+            for i in range(0, len(values)):
+                dif = windowSizes[i] - len(values[i])
+                before = int(dif / 2)
+                values[i] = ' ' * before + values[i] + ' ' * (dif - before)
+
+            resultsToPrint += "%s|%s|%s\n" % (values[0], values[1], values[2])
+
+            # docNo =  str(results[index][0])
+            # resultsForDominant += [str(qID),docNo, str(results[index][2])]
+
+            # resultsToPrint += "  %s  |  %s  |  %s  \n" % (str(qID),str(results[index][0]),str("{0:.3f}".format(round(results[index][1],3))) )
+        return resultsToWrite, resultsToPrint
 
 
 
@@ -544,12 +562,12 @@ class QuerySearcher(Frame):
         for query_ID_query in queriesList_ID_query:
 
             docList = self.searcher.getDocsForQueryWithExpansion(query_ID_query[1],self.getSelectedCities(),self.checkedSemantics.get(), useStem = useStem)
-            toWrite, toPrint, resultsForDominant = self.searcher.getResultFormatFromResultList(qID=query_ID_query[0], runID=runID, results=docList)
+            toWrite, toPrint = self.getResultFormatFromResultList(qID=query_ID_query[0], runID=runID, results=docList)
             trec_eval_results_toWrite += toWrite
 
             # Save query_doc to future display
-            #  resultsForDominant = [str(qID),docNo]
-            self.docsForDominant += [resultsForDominant]
+            #  resultsForDominant = [str(qID),docNo,docIndex]
+            self.docsForDominant += docList
 
             trec_eval_results_toPrint += toPrint
 

@@ -152,7 +152,7 @@ class MainClass:
                 for i in range(0, len(allDocsTuple)):
                     docNo = allDocsTuple[i][0]
                     allDocsTuple[i] = [docNo] + unsortedDocs[docNo][:5]
-                    allDocsDominant[i] = [docNo] + [unsortedDocs[docNo][5]]
+                    allDocsDominant[i] = [unsortedDocs[docNo][5]]
 
 
                 os.remove(unsortedDocsPath)

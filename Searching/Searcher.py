@@ -225,33 +225,6 @@ class Searcher:
         return doc_Score_list[:index]
 
 
-    @staticmethod
-    def getResultFormatFromResultList(qID:str , runID: str, results:list ) -> (str,str):
-        resultsToWrite = ''
-        resultsToPrint = ""
-        resultsForDominant = []
-        for index in range(0,len(results)):
-            # String to write 'Save Trec_Eval'
-            resultsToWrite += str(qID) + ' 0 ' + str(results[index][0]) + ' ' + str(index) + ' ' + str("{0:.3f}".format(round(results[index][1],3))) + ' ' + str(runID) + '\n'
-
-
-            # String to print in output window
-            lineSize = 44
-            windowSizes = [7, 24, 10]
-
-            values = [str(qID), str(results[index][0]), str("{0:.3f}".format(round(results[index][1], 3)))]
-            for i in range(0, len(values)):
-                dif = windowSizes[i] - len(values[i])
-                before = int(dif / 2)
-                values[i] = ' ' * before + values[i] + ' ' * (dif - before)
-
-            resultsToPrint += "%s|%s|%s\n" % (values[0], values[1], values[2])
-
-            docNo =  str(results[index][0])
-            resultsForDominant += [str(qID),docNo]
-
-            # resultsToPrint += "  %s  |  %s  |  %s  \n" % (str(qID),str(results[index][0]),str("{0:.3f}".format(round(results[index][1],3))) )
-        return resultsToWrite, resultsToPrint, resultsForDominant
 
 
     def getDocumentsFromPostingFile(self, term:str) -> str:
