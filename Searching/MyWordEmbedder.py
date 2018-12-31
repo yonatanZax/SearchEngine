@@ -183,6 +183,13 @@ class EmbeddingCreator(object):
         model.build_vocab([list(modelGlove.vocab.keys())], update=True)
         model.intersect_word2vec_format("C:/SavedModel/glove2Word2vec", binary=False, lockf=1.0)
         model.train(sentences, total_examples=total_examples, epochs=model.iter)
+
+        tempVector = model.wv.word_vec(word=word, use_norm=True)
+        words = model.wv.similar_by_vector(tempVector,topn=N)
+        model.wv.similar_by_word()
+
+
+
         if model is not None:
             model.save(self._outputPath)
             print ('model was built successfully')
@@ -198,6 +205,7 @@ class WordEmbeddingUser(EmbeddingCreator):
         super(WordEmbeddingUser, self).__init__(corpusPath=corpusPath,outputPath=modelPath)
         self._modelPath = modelPath
         self._model = None
+
 
     def setModelPath(self, path:str):
         self._modelPath = path
@@ -222,7 +230,9 @@ class WordEmbeddingUser(EmbeddingCreator):
 
     def getTopNSimilarWords(self, word:str ,N:int=5)->list or None:
         try:
-            mostSimilar = self._model.wv.similar_by_word(word=word, topn=N)
+            # mostSimilar = self._model.wv.similar_by_word(word=word, topn=N)
+            tempVector = self._model.wv.word_vec(word=word, use_norm=True)
+            mostSimilar = self._model.wv.similar_by_vector(tempVector, topn=N)
             return mostSimilar
         except Exception as err:
             print (err)

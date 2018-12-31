@@ -531,9 +531,6 @@ class QuerySearcher(Frame):
 
             resultsToPrint += "%s|%s|%s\n" % (values[0], values[1], values[2])
 
-            # docNo =  str(results[index][0])
-            # resultsForDominant += [str(qID),docNo, str(results[index][2])]
-
             # resultsToPrint += "  %s  |  %s  |  %s  \n" % (str(qID),str(results[index][0]),str("{0:.3f}".format(round(results[index][1],3))) )
         return resultsToWrite, resultsToPrint
 

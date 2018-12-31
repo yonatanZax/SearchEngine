@@ -364,9 +364,27 @@ class IterativeTokenizer:
                 tempIndex += 1
                 continue
             if currWord == bigLetters:
-                listOfTerms = [' '.join(textList[index:tempIndex])] + textList[index:tempIndex]
-                listOfTerms.append(currWord)
-                return listOfTerms, tempIndex
+                if self.config.toStem:
+                    listOfTerms = [' '.join(textList[index:tempIndex])]
+                    for term in textList[index:tempIndex]:
+                        term = self.cleanToken(term)
+                        isAllLower = term.islower()
+                        lowerCaseCleanedWord = term.lower()
+                        if self.dictionary_term_stemmedTerm.get(lowerCaseCleanedWord) is None:
+                            afterStem = Stemmer.Stemmer.stemTerm(term)
+                            self.dictionary_term_stemmedTerm[lowerCaseCleanedWord] = afterStem
+                            cleanedWord = afterStem
+                        else:
+                            if isAllLower:
+                                self.dictionary_term_stemmedTerm[lowerCaseCleanedWord] = self.dictionary_term_stemmedTerm[lowerCaseCleanedWord].lower()
+                            cleanedWord = self.dictionary_term_stemmedTerm[lowerCaseCleanedWord]
+                        listOfTerms.append(cleanedWord)
+                    listOfTerms.append(currWord)
+                    return listOfTerms, tempIndex + 1
+                else:
+                    listOfTerms = [' '.join(textList[index:tempIndex])] + textList[index:tempIndex]
+                    listOfTerms.append(currWord)
+                    return listOfTerms, tempIndex + 1
 
             if currWord[0].isupper():
                 bigLetters += currWord[0]
