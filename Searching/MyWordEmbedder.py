@@ -193,10 +193,6 @@ class EmbeddingCreator(object):
         model.intersect_word2vec_format("C:/SavedModel/glove2Word2vec", binary=False, lockf=1.0)
         model.train(sentences, total_examples=total_examples, epochs=model.iter)
 
-        tempVector = model.wv.word_vec(word=word, use_norm=True)
-        words = model.wv.similar_by_vector(tempVector,topn=N)
-        model.wv.similar_by_word()
-
 
 
         if model is not None:
@@ -247,7 +243,7 @@ class WordEmbeddingUser(EmbeddingCreator):
             print (err)
             return None
 
-    def getTopNSimilarWordsFromList(self, wordList: list ,N:int=5)->list or None:
+    def getTopNSimilarWordsFromList(self, wordList: list ,N:int=10)->list or None:
         finalVector = None
         for word in wordList:
             try:
@@ -259,7 +255,7 @@ class WordEmbeddingUser(EmbeddingCreator):
             except :
                 pass
         if finalVector is not None:
-            mostSimilar = self._model.wv.similar_by_vector(finalVector, topn=10)
+            mostSimilar = self._model.wv.similar_by_vector(finalVector, topn=N)
             return mostSimilar
 
         return None
@@ -364,11 +360,16 @@ class WordEmbeddingUser(EmbeddingCreator):
 
 
 
+# corpusPath = "C:/AllDocs"
+# outputPath = "C:/SavedModel/mymodel.model"
+# tempPath = "C:/SavedModel/glove2Word2vec"
+# stopWordsPath = "C:/stop_words.txt"
+# pathOfGlove = "C:/mat100.txt"
 corpusPath = "C:/AllDocs"
 outputPath = "C:/SavedModel/mymodel.model"
 tempPath = "C:/SavedModel/glove2Word2vec"
-stopWordsPath = "C:/stop_words.txt"
-pathOfGlove = "C:/mat100.txt"
+stopWordsPath = "C:/Users/doroy/Documents/SavedModel/stop_words.txt"
+pathOfGlove = "C:/Users/doroy/Documents/SavedModel/glove2Word2vec"
 # manager = EmbeddingCreator(corpusPath=corpusPath,outputPath=outputPath,stopwordsPath=stopWordsPath)
 # manager.createModel()
 from gensim.models import KeyedVectors
@@ -376,6 +377,89 @@ from gensim.models import KeyedVectors
 
 # creator = EmbeddingCreator(corpusPath=corpusPath,outputPath=outputPath,stopwordsPath=stopWordsPath)
 # model = creator.createModelFromGlove(pathOfGlove=pathOfGlove,dimensions=100)
+from gensim.scripts.glove2word2vec import glove2word2vec
+
+# glove2word2vec(pathOfGlove, "C:/SavedModel/glove2Word2vec")
+
+import numpy as np
+from numpy import array
+from Stemmer import Stemmer
+stopWordsDic = {}
+
+try:
+    import os
+
+    path = stopWordsPath
+    with open(path) as f:
+        for word in f.read().splitlines():
+            stopWordsDic[word] = 'a'
+        del stopWordsDic["may"]
+except IOError:
+    print("Can't find path:", stopWordsPath)
+
+def createVector(numbersListOfStrings):
+    vector = []
+    for x in numbersListOfStrings:
+        vector.append(float(x))
+    return vector
+
+
+def createStringListFromVector(numbersListOfStrings):
+    vector = []
+    for x in numbersListOfStrings:
+        stringNum = "%.6f" % x
+        vector.append(stringNum)
+    return vector
+
+file = open(pathOfGlove,'r', encoding='utf-8')
+fileLineList = file.readlines()
+dictionary_term_arr = dict()
+for line in fileLineList[1:]:
+    splitLine = line.split(' ')
+    term = splitLine[0]
+    if stopWordsDic.get(term) is None:
+        stemmedTerm = Stemmer.stemTerm(term)
+        if stemmedTerm is not None:
+            if dictionary_term_arr.get(stemmedTerm) is None:
+
+                vector = createVector(splitLine[1:])
+                numpyArray = array(vector, dtype=np.float64)
+                dictionary_term_arr[stemmedTerm] = [vector, 0]
+            else:
+                numberOfAverage = dictionary_term_arr[stemmedTerm][1]
+                vector = createVector(splitLine[1:])
+                numpyArray = array(vector, dtype=np.float64)
+                newVector = (numpyArray + ((numberOfAverage + 1) * dictionary_term_arr[stemmedTerm][0])) / (numberOfAverage + 2)
+                dictionary_term_arr[stemmedTerm] = [newVector, numberOfAverage + 1]
+
+
+outputNewGlovePath = "C:/Users/doroy/Documents/SavedModel/glove2Word2vec_stemmedAndStopWord"
+with open(outputNewGlovePath,'w+', encoding='utf-8') as outputNewGlovePathFile:
+    firstLine = fileLineList[0].split()
+    firstLine[0] = str(len(dictionary_term_arr))
+    firstLinwToWrite = ' '.join(firstLine) +'\n'
+    outputNewGlovePathFile.write(firstLinwToWrite)
+    count = 0
+    for term, vector_avg in dictionary_term_arr.items():
+        strList = createStringListFromVector(vector_avg[0])
+        count += 1
+        if count == len(dictionary_term_arr):
+            lineToWrite = ' '.join([term] + strList)
+        else:
+            lineToWrite = ' '.join([term] + strList) + '\n'
+
+        outputNewGlovePathFile.write(lineToWrite)
+
+
+
+
+
+
+
+
+
+
+
 
 
 
