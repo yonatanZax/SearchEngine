@@ -169,9 +169,19 @@ class EmbeddingCreator(object):
 
         model.build_vocab(sentences)
         total_examples = model.corpus_count
-        modelGlove = KeyedVectors.load_word2vec_format(pathOfGlove, binary=False)
+
+
+
+         # call glove2word2vec script
+         # default way (through CLI): python -m gensim.scripts.glove2word2vec --input <glove_file> --output <w2v_file>
+        from gensim.scripts.glove2word2vec import glove2word2vec
+        glove2word2vec(pathOfGlove, "C:/SavedModel/glove2Word2vec")
+
+        # model = KeyedVectors.load_word2vec_format(tmp_file)
+
+        modelGlove = KeyedVectors.load_word2vec_format("C:/SavedModel/glove2Word2vec", binary=False)
         model.build_vocab([list(modelGlove.vocab.keys())], update=True)
-        model.intersect_word2vec_format(pathOfGlove, binary=False, lockf=1.0)
+        model.intersect_word2vec_format("C:/SavedModel/glove2Word2vec", binary=False, lockf=1.0)
         model.train(sentences, total_examples=total_examples, epochs=model.iter)
         if model is not None:
             model.save(self._outputPath)
@@ -219,12 +229,33 @@ class WordEmbeddingUser(EmbeddingCreator):
             return None
 
     def getTopNSimilarWordsFromList(self, wordList: list ,N:int=5)->list or None:
-        try:
-            mostSimilar = self._model.most_similar(positive=wordList, topn=N)
+        finalVector = None
+        for word in wordList:
+            try:
+                tempVector = self._model.wv.word_vec(word=word, use_norm=True)
+                if finalVector is None:
+                    finalVector = tempVector
+                else:
+                    finalVector += tempVector
+            except :
+                pass
+        if finalVector is not None:
+            mostSimilar = self._model.wv.similar_by_vector(finalVector, topn=10)
             return mostSimilar
-        except Exception as err:
-            print (err)
-            return None
+
+        return None
+
+
+
+
+
+    # def getTopNSimilarWordsFromList(self, wordList: list ,N:int=5)->list or None:
+    #     try:
+    #         mostSimilar = self._model.most_similar(positive=wordList, topn=N)
+    #         return mostSimilar
+    #     except Exception as err:
+    #         print (err)
+    #         return None
 
     # def expandQuery(self,queryList:list)->list:
     #     if self._model is None:
@@ -312,21 +343,21 @@ class WordEmbeddingUser(EmbeddingCreator):
         plt.show()
 
 
-creator = EmbeddingCreator(corpusPath='../../test/FBIS3-99',outputPath='../../test/mymodel.model',stopwordsPath='../../test/stop_words.txt')
-model = creator.createModelFromGlove(pathOfGlove='../../test/word2vecTest2.txt',dimensions=50)
 
 
-# print (model)
+corpusPath = "C:/AllDocs"
+outputPath = "C:/SavedModel/mymodel.model"
+tempPath = "C:/SavedModel/glove2Word2vec"
+stopWordsPath = "C:/stop_words.txt"
+pathOfGlove = "C:/mat100.txt"
+# manager = EmbeddingCreator(corpusPath=corpusPath,outputPath=outputPath,stopwordsPath=stopWordsPath)
+# manager.createModel()
+from gensim.models import KeyedVectors
+# modelGlove = KeyedVectors.load_word2vec_format("C:/SavedModel/glove2Word2vec", binary=False)
+
+# creator = EmbeddingCreator(corpusPath=corpusPath,outputPath=outputPath,stopwordsPath=stopWordsPath)
+# model = creator.createModelFromGlove(pathOfGlove=pathOfGlove,dimensions=100)
 
 
-# model = gensim.models.Word2Vec.load('../../test/word2vecTest2.txt')
-# model.build_vocab(sentences=sentences,update=True)
-# print('loaded the glove file to model')
-# model.save('../../test/mymodel')
-# print('saved the glove file to model')
-# model = gensim.models.Word2Vec.load('../../test/mymodel')
-# print('loaded the model file to model')
-# model.train(sentences)
-# print('trained the model on corpus')
-#
-# visualizeMyModel(model)
+
+

@@ -18,10 +18,11 @@ class ConfigClass:
         self.toStem = False
 
         # Todo - remove before submit
-        # self.corpusPath = 'D:/corpus'
-        # self.savedFileMainFolder = '..'
-        self.corpusPath = 'C:/Users/doroy/Documents/סמסטר ה/אחזור מידע/עבודה/corpus'
-        self.savedFileMainFolder = 'C:/Users/doroy/Documents/סמסטר ה/אחזור מידע/עבודה/SavedFiles'
+        # self.corpusPath = 'D:/corpus - full'
+        self.corpusPath = 'D:/corpus'
+        self.savedFileMainFolder = '..'
+        # self.corpusPath = 'C:/Users/doroy/Documents/סמסטר ה/אחזור מידע/עבודה/corpus'
+        # self.savedFileMainFolder = 'C:/Users/doroy/Documents/סמסטר ה/אחזור מידע/עבודה/SavedFiles'
 
 
         # self.corpusPath = '../corpus'
@@ -49,8 +50,19 @@ class ConfigClass:
         self.toStem = False
 
         # Part B
-        self.BM25_K = 1.2
-        self.BM25_B = 0.75
+
+        # Best Values - 185
+        self.BM25_K = 1.6
+        self.BM25_B = 0.7
+
+        # Best - 188
+        self.Axu_Value = 10
+
+        # self.Axu_Value = 6
+        # self.BM25_K = 1.2
+        # self.BM25_B = 0.75
+
+
         self.BM25_avgDLength = 100
         self.totalNumberOfDocs = 1000
         self.totalNumberOfTerms = 1000

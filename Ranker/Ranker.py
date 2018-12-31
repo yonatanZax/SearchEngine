@@ -116,7 +116,10 @@ class Ranker:
         positionScore = getPositionsScore(docLength, positionList)
 
         # TODO - calculate the score in more ways
-        joinedScore = BM25Score + 6 * AxiomaticTermWeightingScore
+
+        joinedScore = BM25Score + self.config.Axu_Value * AxiomaticTermWeightingScore
+
+
         # joinedScore = BM25Score + 3*AxiomaticTermWeightingScore + 0.3*positionScore
 
         # if positionList[0] is '-':

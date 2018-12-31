@@ -10,6 +10,8 @@ from Searching.MyWordEmbedder import WordEmbeddingUser
 
 class SearcherIterativeTokenizer(IterativeTokenizer):
 
+
+
     def ruleNBA(self, index: int, textList: list) -> (list,int):
 
         listOfTerms = [textList[index]]
@@ -58,7 +60,7 @@ class Searcher:
 
         self.config = config
         # self.wordEmbedding = WordEmbedding()
-        self.wordEmbedding = WordEmbeddingUser('../../test/mymodel.model')
+        self.wordEmbedding = WordEmbeddingUser('../../../../SavedModel/mymodel.model.wv.syn0.npy')
         if self.wordEmbedding.loadModel():
             print ('WordEmbedding Model was Loaded successfully')
 
@@ -81,10 +83,10 @@ class Searcher:
 
 
 
-
     def getDocsForQueryWithExpansion(self, queryString: str, citiesList: list=None, expend: bool=False, useStem = False):
         """
         get a query and return the docs in the correct order with expanding of the query using the word embedding
+        :param useStem:
         :param expend:
         :param citiesList:
         :param queryString:
@@ -152,8 +154,9 @@ class Searcher:
 
         sorted_dic = sorted(document_score_dictionary.items(), key=lambda kv: kv[1],reverse=True)
         filteredSortedList = self.filterByScores(sorted_dic)
-        # limit = 200
+
         limit = 50
+
         if len(filteredSortedList) < limit:
             limit = len(filteredSortedList)
         return self.ranker.convertDocNoListToDocID(list(filteredSortedList)[:limit])
@@ -163,10 +166,15 @@ class Searcher:
         if self.wordEmbedding is None:
             return None
         expandedQuery = []
+        print('The query is: ',queryList)
+
         for word in queryList:
             try:
                 mostSimilar = self.wordEmbedding.getTopNSimilarWords(word=word.lower())
                 mostSimilarExistingWords = self.getExistingResults(mostSimilar, termDictionary)
+                print ('Existing words in Embedding for the term: ', word.lower())
+                for term_sim_tuple in mostSimilarExistingWords:
+                    print ('\t\t' + term_sim_tuple[0],term_sim_tuple[1])
                 expandedQuery += mostSimilarExistingWords
 
             except Exception as err:
@@ -207,7 +215,7 @@ class Searcher:
         if len(doc_Score_list) == 0:
             return doc_Score_list
         topScore = doc_Score_list[0][1]
-        filterPercent = 0.2
+        filterPercent = 0.05
         # filterPercent = 0.4
         threshold = topScore * filterPercent
         index = 0

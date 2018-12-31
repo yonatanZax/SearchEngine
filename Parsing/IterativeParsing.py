@@ -87,7 +87,7 @@ class IterativeTokenizer:
         self.dictionary_term_stemmedTerm = {}
         try:
             import os
-            path = self.config.stopWordPath
+            path = os.path.join(self.config.get__savedFileMainFolder(),self.config.get__stopWordFile())
             with open(path) as f:
                 for word in f.read().splitlines():
                     self.stopWordsDic[word] = 'a'

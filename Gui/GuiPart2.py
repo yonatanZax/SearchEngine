@@ -7,6 +7,8 @@ from threading import Thread
 
 import os
 
+import nltk
+
 from Main import MainClass
 from Searching.Searcher import Searcher
 
@@ -149,10 +151,10 @@ class QuerySearcher(Frame):
         self.semanticsCheckBox.place(x =self.XstartPixel + 180, y =self.YstartPixel + 310)
 
 
-        self.runQueryButton = Button(self.master, text='Run query', width=15, bg='green', fg='white',command= self.runQuery)
+        self.runQueryButton = Button(self.master, text='Run query', width=15, bg='green', fg='white',command= self.runQueryListener)
         self.runQueryButton.place( x = self.XstartPixel + 100, y = self.YstartPixel + 350)
 
-        self.runQueryFromFileButton = Button(self.master, text='Run query from file', width=15, bg='green', fg='white',command= self.runQueryFromFile)
+        self.runQueryFromFileButton = Button(self.master, text='Run query from file', width=15, bg='green', fg='white',command= self.runQueryFromFileListener)
         self.runQueryFromFileButton.place( x = self.XstartPixel + 260, y = self.YstartPixel + 350)
 
         self.findYishuyotButton = Button(self.master, text='חיפוש יישויות', width=15, bg='blue', fg='white',command= self.findYishuyot)
@@ -291,8 +293,33 @@ class QuerySearcher(Frame):
 
 
 
+    def runQueryListener(self):
+
+        self.disableButtons()
+
+        t = Thread(target=self.runQuery, args=())
+        runQueryThread = Thread(target=self.listener, args=(t, self.enableButtons))
+        t.start()
+        runQueryThread.start()
+
+
+
+
+    def runQueryFromFileListener(self):
+
+        self.disableButtons()
+
+        t = Thread(target=self.runQueryFromFile, args=())
+        runQueryFromFileThread = Thread(target=self.listener, args=(t, self.enableButtons))
+        t.start()
+        runQueryFromFileThread.start()
+
+
 
     def runQuery(self):
+
+
+
         # Get the query
         path = self.entry_query_text.get()
         if path == '':
@@ -360,6 +387,127 @@ class QuerySearcher(Frame):
         self.config.setToStem(self.checkedStem.get())
 
 
+
+
+
+        # # Best Values - 185
+        # self.config.BM25_K = 1.6
+        # self.config.BM25_B = 0.7
+        #
+        # # Best - 188
+        # self.config.Axu_Value = 10
+        #
+        #
+
+
+
+
+
+
+
+        #
+        # # Write ManyFiles
+        #
+        # pathToSaveKB = 'C:/SaveKB'
+        # changePathCounter = 0
+        # pathToDic = pathToSaveKB + '/AxuDic.txt'
+        # pathTrecEval = pathToSaveKB + '/trecAxu.txt'
+        # if not os.path.exists(pathToSaveKB):
+        #     os.mkdir(pathToSaveKB)
+
+        #
+        #
+        # print("*** Started Axu run ***")
+        # # StartValue
+        # self.config.Axu_Value = 1.0
+        #
+        #
+        #
+        # while self.config.Axu_Value < 10.0:
+        #     changePathCounter += 1
+        #     lineToPrint = "num: " + str(changePathCounter) + ' values: ' + ' Axu ' + str(self.config.Axu_Value) +  '\n'
+        #     print(lineToPrint)
+        #
+        #     trecFile = open(pathTrecEval, 'a')
+        #     lineToWrite = "@echo %s" % (lineToPrint)
+        #     lineToWrite += "treceval qrels.txt results_%s.txt\n" % (changePathCounter)
+        #     trecFile.write(lineToWrite)
+        #     trecFile.close()
+        #
+        #     dicFile = open(pathToDic, 'a')
+        #     dicFile.write(lineToPrint)
+        #     dicFile.close()
+        #
+        #     # Get result string from the file
+        #     trec_eval_results_toWrite, trec_eval_results_toPrint = self.runMultipleQueries()
+        #     self.resultsToWrite = trec_eval_results_toWrite
+        #
+        #     fileNamePath = pathToSaveKB + "/results_%s.txt" % (changePathCounter)
+        #
+        #     myFile = open(fileNamePath, 'w')
+        #     myFile.write(trec_eval_results_toWrite)
+        #     myFile.close()
+        #
+        #     self.config.Axu_Value += 0.5
+        #
+        #
+        #
+        #
+        # print("*** Finished Axu run ***")
+        #
+
+
+        # print("*** Started KB run ***")
+
+
+        # while self.config.BM25_K < 2.0:
+        #
+        #
+        #     self.config.BM25_B = 0.6
+        #     while self.config.BM25_B < 1.0:
+        #
+        #
+        #         changePathCounter += 1
+        #         lineToPrint = "num: " + str(changePathCounter) + ' values: ' + ' K ' + str(self.config.BM25_K) + ' B ' + str(
+        #             self.config.BM25_B ) + '\n'
+        #         print(lineToPrint)
+        #
+        #         trecFile = open(pathTrecEval, 'a')
+        #         lineToWrite = "@echo %s" % (lineToPrint)
+        #         lineToWrite += "treceval qrels.txt results_%s.txt\n" % (changePathCounter)
+        #         trecFile.write(lineToWrite)
+        #         trecFile.close()
+        #
+        #         dicFile = open( pathToDic, 'a')
+        #         dicFile.write(
+        #             "num: " + str(changePathCounter) + ' values: ' + ' K ' + str(self.config.BM25_K) + ' B ' + str(
+        #                 self.config.BM25_B) + '\n')
+        #         dicFile.close()
+        #
+        #
+        #
+        #         # Get result string from the file
+        #         trec_eval_results_toWrite, trec_eval_results_toPrint = self.runMultipleQueries()
+        #         self.resultsToWrite = trec_eval_results_toWrite
+        #
+        #         fileNamePath = pathToSaveKB + "/results_%s.txt" % (changePathCounter)
+        #
+        #         myFile = open(fileNamePath,'w')
+        #         myFile.write(trec_eval_results_toWrite)
+        #         myFile.close()
+        #
+        #         self.config.BM25_B += 0.1
+        #
+        #     self.config.BM25_K += 0.1
+        #
+        #
+        # print("*** Finished KB run ***")
+
+
+
+
+
+
         # Get result string from the file
         trec_eval_results_toWrite, trec_eval_results_toPrint = self.runMultipleQueries()
         self.resultsToWrite = trec_eval_results_toWrite
@@ -367,6 +515,11 @@ class QuerySearcher(Frame):
         # Write the results to the output window
         self.txtbox.delete('1.0', END)
         self.txtbox.insert('1.0',trec_eval_results_toPrint)
+
+
+
+
+
 
 
     def runMultipleQueries(self, runID:str = '0'):
