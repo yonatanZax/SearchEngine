@@ -435,18 +435,11 @@ for line in fileLineList[1:]:
 
 outputNewGlovePath = "C:/Users/doroy/Documents/SavedModel/glove2Word2vec_stemmedAndStopWord"
 with open(outputNewGlovePath,'w+', encoding='utf-8') as outputNewGlovePathFile:
-    firstLine = fileLineList[0].split()
-    firstLine[0] = str(len(dictionary_term_arr))
-    firstLinwToWrite = ' '.join(firstLine) +'\n'
-    outputNewGlovePathFile.write(firstLinwToWrite)
-    count = 0
+
     for term, vector_avg in dictionary_term_arr.items():
         strList = createStringListFromVector(vector_avg[0])
-        count += 1
-        if count == len(dictionary_term_arr):
-            lineToWrite = ' '.join([term] + strList)
-        else:
-            lineToWrite = ' '.join([term] + strList) + '\n'
+
+        lineToWrite = ' '.join([term] + strList) + '\n'
 
         outputNewGlovePathFile.write(lineToWrite)
 
