@@ -54,6 +54,7 @@ class MyEmbedderTokenizer(IterativeTokenizer):
 
 
     def parseList(self, termList):
+        from Stemmer import Stemmer
         termList = list(filter(self.filterAll, termList))
 
         finalTermList = []
@@ -69,7 +70,15 @@ class MyEmbedderTokenizer(IterativeTokenizer):
             elif term.count('.') > 0:
                 finalTermList += self.parseList(term.split('.'))
 
-            finalTermList.append(term.strip(',').strip('.'))
+            cleanedWord = term.strip(',').strip('.')
+
+            if self.dictionary_term_stemmedTerm.get(cleanedWord) is None:
+                afterStem = Stemmer.stemTerm(cleanedWord)
+                self.dictionary_term_stemmedTerm[cleanedWord] = afterStem
+            else:
+                afterStem = self.dictionary_term_stemmedTerm[cleanedWord]
+
+            finalTermList.append(afterStem)
 
         return finalTermList
 
