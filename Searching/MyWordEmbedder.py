@@ -194,7 +194,6 @@ class EmbeddingCreator(object):
         model.train(sentences, total_examples=total_examples, epochs=model.iter)
 
 
-
         if model is not None:
             model.save(self._outputPath)
             print ('model was built successfully')
@@ -263,33 +262,6 @@ class WordEmbeddingUser(EmbeddingCreator):
 
 
 
-
-    # def getTopNSimilarWordsFromList(self, wordList: list ,N:int=5)->list or None:
-    #     try:
-    #         mostSimilar = self._model.most_similar(positive=wordList, topn=N)
-    #         return mostSimilar
-    #     except Exception as err:
-    #         print (err)
-    #         return None
-
-    # def expandQuery(self,queryList:list)->list:
-    #     if self._model is None:
-    #         return queryList
-    #     expandedQuery = set()
-    #     for word in queryList:
-    #         if self._model[word.lower()] is not None:
-    #             mostSimilar = self.getTopNSimilarWords(word=word.lower())
-    #             if mostSimilar is not None:
-    #                 expandedQuery = expandedQuery.union(mostSimilar)
-    #
-    #     if len(queryList) > 1:
-    #         lowerList = []
-    #         for w in queryList:
-    #             lowerList.append(w.lower())
-    #         mostSimilar = self.getTopNSimilarWordsFromList(wordList=lowerList)
-    #         if mostSimilar is not None:
-    #             expandedQuery = expandedQuery.union(mostSimilar)
-    #     return list(expandedQuery)
 
     def visualizeMyModel(self):
         if self._model is not None:
@@ -414,7 +386,7 @@ def createStringListFromVector(numbersListOfStrings):
 file = open(pathOfGlove,'r', encoding='utf-8')
 fileLineList = file.readlines()
 dictionary_term_arr = dict()
-for line in fileLineList[1:]:
+for line in fileLineList:
     splitLine = line.split(' ')
     term = splitLine[0]
     if stopWordsDic.get(term) is None:

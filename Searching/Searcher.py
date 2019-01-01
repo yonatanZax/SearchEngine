@@ -1,10 +1,8 @@
-import string
 
 from Parsing.IterativeParsing import IterativeTokenizer
 import os
 
 from Ranker.Ranker import Ranker
-from Searching.WordEmbedding import WordEmbedding
 from Searching.MyWordEmbedder import WordEmbeddingUser
 
 
@@ -12,7 +10,7 @@ class SearcherIterativeTokenizer(IterativeTokenizer):
 
 
 
-    def ruleNBA(self, index: int, textList: list) -> (list,int):
+    def ruleNBA(self, index, textList):
 
         listOfTerms = [textList[index]]
         bigLetters = textList[index][0]
@@ -59,7 +57,6 @@ class Searcher:
         self.termDictionaryWithStem = dataWithStem
 
         self.config = config
-        # self.wordEmbedding = WordEmbedding()
         self.wordEmbedding = WordEmbeddingUser('../../../../SavedModel/mymodel.model.wv.syn0.npy')
         if self.wordEmbedding.loadModel():
             print ('WordEmbedding Model was Loaded successfully')
@@ -83,28 +80,32 @@ class Searcher:
 
 
 
-    def getDocsForQueryWithExpansion(self, queryString: str, citiesList: list=None, expend: bool=False, useStem = False):
+    def getDocsForQueryWithExpansion(self, queryString, citiesList=None, expend=False, useStem = False):
         """
         get a query and return the docs in the correct order with expanding of the query using the word embedding
-        :param useStem:
-        :param expend:
-        :param citiesList:
-        :param queryString:
-        :return:
+        :param useStem: a flag whether to use stemming on query and use stemming posting file
+        :param expend: a flag whether to use the embedding to expand the query.
+        :param citiesList: a List containing cities to return files that include one of the cities
+        :param queryString: the string of the query given by the user/file
+        :return: a list of relevant documents. the list contains a tuple: (docNo, score, docIndex)
         """
 
+        # parse the query
         queryTermDictionary, queryLength = self.iterativeTokenizer.parseText(queryString)
         queryList = list(queryTermDictionary.keys())
         expandedList = []
 
+        # use the correct data depending on the stem state
         if useStem:
             termDictionary = self.termDictionaryWithStem
         else:
             termDictionary = self.termDictionaryNoStem
 
+        # expand the query with wordEmbedding
         if expend:
             expandedList = self.expandQuery(queryList, termDictionary)
 
+        # set the documents we want to retrieve if the user chose cities
         self.documentsByCitiesSet = None
         if len(citiesList) > 0:
             self.documentsByCitiesSet = self.ranker.getDocumentsFromCityList(citiesList=citiesList)
@@ -112,6 +113,7 @@ class Searcher:
         document_score_dictionary = {}
         # Go through the query terms
         for term in queryList:
+            # get the form of the term we want as it is in our data
             termForm = None
             if termDictionary.get(term.lower()) is not None:
                 termForm = term.lower()
@@ -120,10 +122,14 @@ class Searcher:
             else:
                 continue
 
+            # get the path to the posting file of the term
             correctPostingFilePath = self.getDocumentsFromPostingFile(termForm)
+            # get the line in the posting file
             postingLine = int(termDictionary[termForm][2])
+            # gets the files from the posting files and returns then and their score by the current term
             temp_document_score_dictionary = self.getDocumentsScoreFromPostingLine(correctPostingFilePath, termForm, postingLine, useStem = useStem)
 
+            # add the score from the term to the document total score
             for document, score in temp_document_score_dictionary.items():
                 if document_score_dictionary.get(document) is None:
                     document_score_dictionary[document] = score
@@ -132,6 +138,7 @@ class Searcher:
 
         # Go through the terms came back from the WordEmbedding
         for term in expandedList:
+            # get the form of the term we want as it is in our data
             termForm = None
             termEmbeddingScore = term[1]
             termNormalization = term[2]
@@ -142,27 +149,43 @@ class Searcher:
             else:
                 continue
 
+            # get the path to the posting file of the term
             correctPostingFilePath = self.getDocumentsFromPostingFile(termForm)
+            # get the line in the posting file
             postingLine = int(termDictionary[termForm][2])
+            # gets the files from the posting files and returns then and their score by the current term
             temp_document_score_dictionary = self.getDocumentsScoreFromPostingLine(correctPostingFilePath, termForm, postingLine, useStem = useStem)
 
+            # add the score from the term to the document total score for the terms that came from the expansions
             for document, score in temp_document_score_dictionary.items():
+                # normalize the score of the words came back from embedding
                 if document_score_dictionary.get(document) is None:
                     document_score_dictionary[document] = score * termEmbeddingScore * termNormalization
                 else:
                     document_score_dictionary[document] += ((score * termEmbeddingScore) * termNormalization)
 
+        # sort the dict values by score
         sorted_dic = sorted(document_score_dictionary.items(), key=lambda kv: kv[1],reverse=True)
+        # filter the documents that are too irrelevant
         filteredSortedList = self.filterByScores(sorted_dic)
 
         limit = 50
-
+        # return 50 max documents
         if len(filteredSortedList) < limit:
             limit = len(filteredSortedList)
+        #     convert the docs back to their name from indexes numbers
         return self.ranker.convertDocNoListToDocID(list(filteredSortedList)[:limit])
 
 
-    def expandQuery(self, queryList:list, termDictionary:dict)->list or None:
+
+    def expandQuery(self, queryList, termDictionary):
+        """
+        This function expand the query using the word embedding, filtering what is unnecessary ad the the normalization\n
+        :param queryList: a list of the terms of the query\n
+        :param termDictionary: the current working dictionary\n
+        :return: a list of tuples of words for expansion of the query (term,sim,normalization)\n
+        """
+
         if self.wordEmbedding is None:
             return None
         expandedQuery = []
@@ -170,11 +193,10 @@ class Searcher:
 
         for word in queryList:
             try:
+                # get the similar words
                 mostSimilar = self.wordEmbedding.getTopNSimilarWords(word=word.lower())
+                # filter non existing words
                 mostSimilarExistingWords = self.getExistingResults(mostSimilar, termDictionary)
-                print ('Existing words in Embedding for the term: ', word.lower())
-                for term_sim_tuple in mostSimilarExistingWords:
-                    print ('\t\t' + term_sim_tuple[0],term_sim_tuple[1])
                 expandedQuery += mostSimilarExistingWords
 
             except Exception as err:
@@ -190,6 +212,8 @@ class Searcher:
                 expandedQuery += mostSimilarExistingWords
             except Exception as err:
                 pass
+
+        # merge words that appear several times and set the normalization and similarity to equal the average of the values
         finalExtendedQuery = {}
         for term_sim_appearance in expandedQuery:
             term = term_sim_appearance[0]
@@ -207,15 +231,23 @@ class Searcher:
 
 
     @staticmethod
-    def getExistingResults(mostSimilar:list, termDictionary:dict)->list:
+    def getExistingResults(mostSimilar, termDictionary):
+        """
+        checks which words exist in the working dictionary
+        :param mostSimilar: words from embedding
+        :param termDictionary: working dictionary
+        :return:
+        """
         finalList = []
         if mostSimilar is not None:
             existingList = []
+            # filter non exising words
             for term_sim_tuple in mostSimilar:
                 term = term_sim_tuple[0]
                 if termDictionary.get(term) is not None:
                     existingList.append(term_sim_tuple)
             existingListSize = len(existingList)
+            # set the similarity and normalization to be the equal
             if existingListSize > 0:
                 for term_sim_tuple in existingList:
                     term = term_sim_tuple[0]
@@ -224,7 +256,12 @@ class Searcher:
         return finalList
 
     @staticmethod
-    def filterByScores(doc_Score_list: list)-> list:
+    def filterByScores(doc_Score_list):
+        """
+        filter documents that their score is to different from the top document
+        :param doc_Score_list: lst of documents
+        :return: a filtered list of the same type as received
+        """
         if len(doc_Score_list) == 0:
             return doc_Score_list
         topScore = doc_Score_list[0][1]
@@ -240,7 +277,12 @@ class Searcher:
 
 
 
-    def getDocumentsFromPostingFile(self, term:str) -> str:
+    def getDocumentsFromPostingFile(self, term):
+        """
+        gets the path to the posting file depending on the term
+        :param term:
+        :return: path of the correct file
+        """
         folderAsChar = term[0]
         if not term[0].isalpha():
             folderAsChar = '#'
@@ -263,7 +305,15 @@ class Searcher:
 
 
 
-    def getDocumentsScoreFromPostingLine(self, postingFilePath:str, term:str, line:int, useStem = False) -> dict:
+    def getDocumentsScoreFromPostingLine(self, postingFilePath, term, line, useStem = False):
+        """
+        get the documents from the posting file and runs it through the ranker to get their score
+        :param postingFilePath:
+        :param term:
+        :param line:
+        :param useStem:
+        :return:
+        """
 
         if useStem:
             termDictionary = self.termDictionaryWithStem
@@ -281,7 +331,7 @@ class Searcher:
         gapAccumulator = 0
         document_rank_dictionary = {}
 
-
+        # go through the posting line using the gaps to ge the correct number of the document
         TermDocumentsList = fileLine.split(',')
         for documentSegment in TermDocumentsList:
             # docID#DF#positions:
@@ -289,6 +339,7 @@ class Searcher:
             gapAccumulator += int(splitDocumentInfo[0])
             if self.documentsByCitiesSet is not None and gapAccumulator not in self.documentsByCitiesSet:
                 continue
+            #     get the score from ranker
             termScoreInDoc = self.ranker.getScore(docID=gapAccumulator, docDF=int(splitDocumentInfo[1]), positionList=splitDocumentInfo[2].split(':'), termDF=int(termDictionary[term][0]))
             document_rank_dictionary[gapAccumulator] = termScoreInDoc
 

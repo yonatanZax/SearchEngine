@@ -33,6 +33,12 @@ class Ranker:
 
     @staticmethod
     def __getDocumentIndex(path, dictionary):
+        """
+        Initialize the document dictionary from the given path of the document index
+        :param path:
+        :param dictionary:
+        :return:
+        """
         file = open(path,'r',encoding='utf-8')
         fileLines = file.readlines()
         file.close()
@@ -45,10 +51,15 @@ class Ranker:
             dictionary[lineNumber] = splitLine
             totalLength += int(splitLine[3])
         return len(fileLines), totalLength/len(fileLines)
-        # self.config.setAverageDocLength(totalLength=totalLength, numberOfDocs=len(fileLines))
 
     @staticmethod
     def __getCitiesIndex(path, dictionary):
+        """
+        Initialize the cities dictionary from the given path
+        :param path:
+        :param dictionary:
+        :return:
+        """
         file = open(path,'r',encoding='utf-8')
         fileLines = file.readlines()
         file.close()
@@ -69,7 +80,12 @@ class Ranker:
             dictionary[city] = document_positionsList_dict
 
 
-    def convertDocNoListToDocID(self, docNoList : list)-> list:
+    def convertDocNoListToDocID(self, docNoList):
+        """
+        converting the documentindex numbers to their real names
+        :param docNoList:
+        :return:
+        """
         documentDictionary = {}
         if self.config.get__toStem():
             documentDictionary = self.dictionary_document_info_stemmed
@@ -81,7 +97,12 @@ class Ranker:
         return docIDList
 
 
-    def getDocumentsFromCityList(self, citiesList: list)-> set:
+    def getDocumentsFromCityList(self, citiesList):
+        """
+        get a list of cities and retrieved the documents for those cities
+        :param citiesList:
+        :return:
+        """
         cityDictionary = {}
         if self.config.get__toStem():
             cityDictionary = self.dictionary_document_info_stemmed
@@ -94,10 +115,19 @@ class Ranker:
 
 
 
-    def getScore(self, docID:str, docDF:int, positionList:list, termDF:int) -> float:
+    def getScore(self, docID, docDF, positionList, termDF):
+        """
+        get the score for the document considering the information it received
+        :param docID: the number representing the document to get its data from the document index
+        :param docDF: the number of times the term appear in the document
+        :param positionList: a list of all the locations of the term in the document
+        :param termDF: number of documents the term appears in
+        :return: the score of the document for the term
+        """
         docLength = 0
         avgDocLength = 0.0
         numberOfDocs = 0
+        # get the current working data information
         if self.config.get__toStem():
             docLength = int(self.dictionary_document_info_stemmed[docID][2])
             avgDocLength = self.averageDocLength_Stemmed
@@ -115,8 +145,6 @@ class Ranker:
         docLength = int(docLength)
         positionScore = getPositionsScore(docLength, positionList)
 
-        # TODO - calculate the score in more ways
-
         joinedScore = BM25Score + self.config.Axu_Value * AxiomaticTermWeightingScore
 
 
@@ -131,13 +159,12 @@ class Ranker:
 
 
 
-    def getBM25Score(self, docDF:int, termDF:int, documentLength:int, docLengthAvg:int, numOfDocs:int)->float:
+    def getBM25Score(self, docDF, termDF, documentLength, docLengthAvg, numOfDocs):
         """
+        compute the bm25 score
         BM25:
         F(q,d) = SIGMA[c(w,q)*((k+1)*c(w,d))/((c(w,d)+k*(1-b+b*|D|/avd(D)))*Log((M-c(w,d)+0.5)/(df(w)+0.5))]
         """
-
-
 
         mone = (self.config.BM25_K + 1) * docDF
 
@@ -152,7 +179,7 @@ class Ranker:
         return score
 
     @staticmethod
-    def getAxiomaticTermWeightingScore(docDF:int, termDF:int, documentLength:int, docLengthAvg:float, numOfDocs:int):
+    def getAxiomaticTermWeightingScore(docDF, termDF, documentLength, docLengthAvg, numOfDocs):
 #         https://pdfs.semanticscholar.org/94c9/30d010c17f3edc0df39ea99fd311d33327c1.pdf
 
         mone = docDF * math.pow(numOfDocs,0.35)
@@ -163,6 +190,12 @@ class Ranker:
 
 
 def getPositionsScore(length, listOfPositionsWithGaps):
+    """
+    compute the score of by the positions
+    :param length:
+    :param listOfPositionsWithGaps:
+    :return:
+    """
     score = 0
     lastPos = 0
     for pos in listOfPositionsWithGaps:
