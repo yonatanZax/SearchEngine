@@ -7,7 +7,6 @@ class Document:
         self.docNo = docNo
         self.termDocDictionary_term_termData = termDocDictionary
         self.docLength = docLength
-        # self.mostFrequentTermNumber = maxTFDoc
         self.city = city
         self.language = language
 

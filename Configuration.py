@@ -92,11 +92,11 @@ class ConfigClass:
         self.documentsIndexPath = savedFilePath + '/docIndex'
 
 
-    def setAverageDocLength(self, totalLength:float, numberOfDocs:int) :
+    def setAverageDocLength(self, totalLength, numberOfDocs) :
         self.BM25_avgDLength = totalLength / numberOfDocs
         self.totalNumberOfDocs = numberOfDocs
 
-    def setTotalNumberOfTerms(self, numNoStem:int, numWithStem:int):
+    def setTotalNumberOfTerms(self, numNoStem, numWithStem):
         self.totalNumberOfTermsNoStem = numNoStem
         self.totalNumberOfTermsWithStem = numWithStem
 

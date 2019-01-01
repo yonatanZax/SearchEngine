@@ -59,7 +59,7 @@ def getTagDicFromDocument(documentAsString):
 
 
 
-def createPreRunData(fileList: list, fileReader: ReadFile) -> (list,list,dict):
+def createPreRunData(fileList, fileReader):
     '''
     This method creates two dictionaries:
     0. File_Index list - every file name is connected to it's first doc index
@@ -99,12 +99,7 @@ def createPreRunData(fileList: list, fileReader: ReadFile) -> (list,list,dict):
                         if not tagDic.get('city') == '':
                             cityDic[tagDic.get('city')] = True
 
-                # For testing only
-                #     else:
-                #         print('test')
-                #
-                # else:
-                #     print('test')
+
 
         # After all the documents, add a tuple of <FileName,index>
         filesIndexTupleList.append([fileName,firstFileIndex])
@@ -126,11 +121,4 @@ def copyStopWordToSavedFiles(config):
     if not os.path.exists(os.path.join(savedFilesPath,stopwordName)):
         copyfile(stopwordPath,os.path.join(savedFilesPath,stopwordName))
 
-
-
-# con = config.ConfigClass()
-# reader = ReadFile(con)
-#
-# fileList = os.listdir(con.get__corpusPath())
-# createPreRunDics(fileList,reader)
 

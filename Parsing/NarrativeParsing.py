@@ -5,7 +5,7 @@ import lxml.html
 narrStopWords = ["purposes","refer","refers","include","prescribed","issues","must","contain","discuss","discussing","considered","relevant","document","documents"]
 
 
-def parseText(text: str, stopWordsDic: dict) -> list:
+def parseText(text, stopWordsDic):
 
 
     for w in narrStopWords:
@@ -86,30 +86,3 @@ def getNarrWithRegex(narrText,stopWords):
 
     return totalList
 
-
-
-
-
-
-
-
-text = '''
-
-Documents discussing the following issues are relevant:
-
- - projected and actual impact on the life styles of the British 
- - Long term changes to economic policy and relations
- - major changes to other transportation systems linked with 
-   the Continent
-
-Documents discussing the following issues are not relevant:
-
- - expense and construction schedule 
- - routine marketing ploys by other channel crossers (i.e.,
-   schedule changes, price drops, etc.) 
-
-
-'''
-
-
-# getNarrWithRegex(text,dict())

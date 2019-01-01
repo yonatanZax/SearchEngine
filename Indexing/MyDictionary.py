@@ -13,9 +13,11 @@ class MyDictionary:
         termInDictionary = updateTermToDictionaryByTheRules(self.dictionary_term_dicData, termString)
         termDicData = self.dictionary_term_dicData.get(termInDictionary)
         if termDicData is None:
+
             # add new term
             termDicData = DictionaryData()
             self.dictionary_term_dicData[termInDictionary] = termDicData
+
         # add the doc to the term posting line
         termDicData.addDocument(docID=docNoAsIndex, docTF_int=termFrequency,termPositions= termPositions)
 
@@ -110,11 +112,13 @@ class CityIndexData:
     def getDocLocationsAsString(self):
         lastDoc = 0
         ans = ''
+
         for doc, locations in sorted(self.dictionary_doc_locations.items(),key=lambda kv: int(kv[0])):
+            # doc is the index of doc - make gap
             docWithGap = str(int(doc) - lastDoc)
             lastDoc = int(doc)
             ans += '#'.join([docWithGap,locations]) + ','
-        # ans = ','.join(['#'.join([doc,locations]) for doc,locations in sorted(self.dictionary_doc_locations.items())])
+
         return ans.rstrip(',')
 
 # get the format of the term how its saved in the dictionary or none if its not in the dictionary

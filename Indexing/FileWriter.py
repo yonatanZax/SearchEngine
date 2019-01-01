@@ -10,25 +10,30 @@ class FileWriter:
     def cleanIndex(self,indexer):
         currentFileNumber = self.counter
         self.counter += 1
+
         # headLineToWrite = 'term|DF|sumTF|DOC#TF#Position:*,*'
         for dictionaryKey, dictionaryVal in indexer.myDictionaryByLetters.items():
             self.writeDictionaryToFile(dictionaryKey + str(indexer.ID) + "_" + str(currentFileNumber),dictionaryVal)
+
 
     def writeDictionaryToFile(self,fileName, dictionaryToWrite):
 
         path = self.config.savedFilePath + '\\' + fileName[0] + '\\' + fileName
 
         lineToWrite = ""
+
         # Iter over all the terms in the dictionary and create a string to write
         for term, termData in sorted(dictionaryToWrite.dictionary_term_dicData.items()):
             if len(termData.string_docID_tf_positions) > 0:
                 lineToWrite += term + "|" + termData.toString() + "\n"
+
                 # cleans the posting dictionary
                 termData.cleanPostingData()
 
         # write to the end of the file at one time on another thread
         if len(lineToWrite) > 0:
             self.writeToFile(path, lineToWrite)
+
 
     def cleanDocuments(self,dictionaryToWrite):
         path = self.config.documentsIndexPath
@@ -49,7 +54,7 @@ class FileWriter:
         from BasicMethods import getStringSizeInBytes
 
         lineToWritePost = ""
-        lineToWriteDic = ""
+
         index = 0
         pathForPosting = outputFile + 'PostingFolder'
         os.mkdir(pathForPosting)
@@ -71,6 +76,7 @@ class FileWriter:
 
             if getStringSizeInBytes(lineToWritePost) + getStringSizeInBytes(line[1]) < postingMaxSize:
 
+                # Dictionary line format: Term|df|sumTf|postingLine
                 currentLineDic = '|'.join((line[0][0], str(line[0][1]), str(line[0][2]), str(index)))
 
                 index += 1
@@ -83,6 +89,7 @@ class FileWriter:
                     self.writeToFile(pathForPosting + lastTerm + '_post', lineToWritePost.rstrip('\n'))
 
                 index = 0
+
                 currentLineDic = '|'.join((line[0][0], str(line[0][1]), str(line[0][2]), str(index)))
                 index += 1
                 ListToWriteDic.append(currentLineDic)
@@ -104,7 +111,7 @@ class FileWriter:
 
 
     @staticmethod
-    def sortPostingLineAndUseGaps(lineToSort:str):
+    def sortPostingLineAndUseGaps(lineToSort):
         splitLine = lineToSort.rstrip(',').split(',')
         # TODO - when we move to using number only user a lambda like this: int(item.split('#')[0])
         # Sorting

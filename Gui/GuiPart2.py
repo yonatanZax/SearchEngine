@@ -655,7 +655,7 @@ class QuerySearcher(Frame):
 
 
 
-    def runMultipleQueries(self, runID:str = '0'):
+    def runMultipleQueries(self, runID = '0'):
         queriesList_ID_query = self.readQueriesFiles()
         trec_eval_results_toWrite = ''
         trec_eval_results_toPrint = "  qID  |          DocNo         |  Score   \n"
@@ -676,6 +676,8 @@ class QuerySearcher(Frame):
 
         for query_ID_query in queriesList_ID_query:
 
+            print("\n\n\t*** Stem = ",useStem)
+
             docList = self.searcher.getDocsForQueryWithExpansion(query_ID_query[1],self.getSelectedCities(),self.checkedSemantics.get(), useStem = useStem)
             toWrite, toPrint = self.getResultFormatFromResultList(qID=query_ID_query[0], runID=runID, results=docList)
             trec_eval_results_toWrite += toWrite
@@ -692,7 +694,7 @@ class QuerySearcher(Frame):
 
 
 
-    def getNarrTermsFromQuery(self,queryStr)->list:
+    def getNarrTermsFromQuery(self,queryStr):
         from Parsing.NarrativeParsing import getNarrWithRegex
 
         queryNarr = getTagFromText(queryStr, "<narr> Narrative:", "</Narr>")
@@ -721,7 +723,7 @@ class QuerySearcher(Frame):
 
 
 
-    def readQueriesFiles(self)-> list:
+    def readQueriesFiles(self):
 
 
 
@@ -775,6 +777,10 @@ class QuerySearcher(Frame):
 
         except Exception as ex:
             print(ex)
+
+
+
+        self.statusLabel['text'] = 'Status: Ready to Search\Shut down'
 
 
 

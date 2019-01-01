@@ -67,7 +67,7 @@ class Parse:
 
 
     @staticmethod
-    def addTitleToDic(termDictionary, titleTermDictionary)-> dict:
+    def addTitleToDic(termDictionary, titleTermDictionary):
         from Indexing.Document import TermData
         for term in titleTermDictionary.keys():
             if termDictionary.get(term.lower()) is not None:

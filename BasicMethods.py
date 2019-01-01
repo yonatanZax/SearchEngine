@@ -105,29 +105,13 @@ def getAppendingPlusOnly(file_name):
 
 
 
-def checkIfFileExists(path):
-    import os.path
-    exist = os.path.exists(path)
-    return exist
-
-
-
-def getColumnIndexFromHeadLline(headlineAsArray, colName):
-    colIndex = -1
-    for i in range(0, len(headlineAsArray)):
-        if headlineAsArray[i] == colName or headlineAsArray[i] == colName + '\n':
-            colIndex = i
-
-    return colIndex
-
-
-
 def getStringSizeInBytes(string):
+    # String size in bytes
     return len(string.encode('utf-8'))
 
 
 
-def writeListToFile(path:str,fileName:str,listToWrite:list,useNewLine = True):
+def writeListToFile(path,fileName,listToWrite,useNewLine = True):
     import os
 
     if not os.path.exists(path) or len(listToWrite) == 0:
@@ -149,6 +133,7 @@ def writeListToFile(path:str,fileName:str,listToWrite:list,useNewLine = True):
 
 def get2DArrayFromFile(path, sep = '|'):
 
+    # returns a 2D array from file by sep
     try:
         myFile = open(path,'r')
 
@@ -171,6 +156,7 @@ def get2DArrayFromFile(path, sep = '|'):
 
 def getDicFromFile(path, sep = '|'):
 
+    # returns a dic from file by sep
     try:
         myFile = open(path,'r')
 

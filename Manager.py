@@ -11,12 +11,11 @@ import os
 class MyManager:
 
     def __init__(self, managerID, filesIndexTupleList, lettersList, config):
+
+        # Init class fields
         self.ID = managerID
-
         self.config = config
-
         self.filesIndexTupleList = filesIndexTupleList
-
         self.indexer = Indexer(managerID,config=config)
         self.fileReader = ReadFile(config=self.config)
         self.fileWriter = FileWriter(self.config)
@@ -25,10 +24,9 @@ class MyManager:
 
 
 
-
-
-
     def updateProgressBar(self, value, posting_merge):
+
+        # Write file to indicate the progress bar
         path = self.config.get__savedFilePath() + '/Progress/%s' % (posting_merge)
         fileName = str(self.ID) + '_' + str(value)
 
@@ -36,15 +34,17 @@ class MyManager:
             myFile = open(path + '/' + fileName, 'w')
             myFile.close()
 
+
+
     def run(self):
 
+        # init values
         start = datetime.now()
-
         counter = 0
         numberOfDocuments = 0
-
         totalCount = 0
 
+        # Iterate over files in list - read, parse, index
         filesPerIteration = self.config.filesPerIteration
         for fileName, index in self.filesIndexTupleList:
             documentIndex = 0
@@ -58,15 +58,14 @@ class MyManager:
                 self.indexer.addNewDoc(parsedDocument,docNoAsIndex=index + documentIndex)
                 documentIndex += 1
 
+            # Flush the indexer
             if counter == filesPerIteration:
                 totalCount += counter
                 self.updateProgressBar(totalCount,'Posting')
                 self.indexer.flushMemory()
                 counter = 0
 
-
-
-
+        # Flush the indexer
         if counter != 0:
             totalCount += counter
             self.updateProgressBar(totalCount,'Posting')
@@ -74,16 +73,17 @@ class MyManager:
 
         finishedParsing = datetime.now()
         parsingTime = finishedParsing - start
-
-
         print("Manager " , str(self.ID) , " Finished parsing all files, Parsed: " , str(numberOfDocuments), " Docs, Took: ", str(parsingTime.seconds))
 
+
+
+        # Done parsing!! start local merge
         self.indexer.merge()
 
         finishedMerging = datetime.now()
         mergingTime = finishedMerging - finishedParsing
 
-
+        # Done local merge!!
         print("Manager " , str(self.ID) , " Finished merging his files, Took: " , str(mergingTime.seconds))
 
         return numberOfDocuments, parsingTime.seconds, mergingTime.seconds
@@ -94,34 +94,39 @@ class MyManager:
         import os
         from concurrent.futures import ThreadPoolExecutor
 
+        # Init fields
         start = datetime.now()
-
         merger = Merger(self.config)
-
         sumOfTerms = 0
-
         executor = ThreadPoolExecutor()
         futureList = []
-
         progressCounter = 0
 
+
+        # Iterate over the letters in letter list
         for letter in self.lettersList:
 
             filesInLetterFolder = os.listdir(self.config.savedFilePath + "\\" + letter)
+
+            # Make global merge
             mergedList = merger.merge(filesInLetterFolder)
 
+            # Update progress bar
             if mergedList is None:
                 progressCounter += 50
                 self.updateProgressBar(progressCounter + int(self.config.get_numOfFiles() / self.config.managersNumber),
                                        'Merge')
                 continue
 
+            # Add future to list
             future = executor.submit(self.fileWriter.writeMergedFile,mergedList, self.config.savedFilePath + "\\" + letter + "\\",)
             futureList.append(future)
 
+            # update progress bar
             progressCounter += 50
             self.updateProgressBar(progressCounter + int(self.config.get_numOfFiles()/self.config.managersNumber),'Merge')
 
+        # Get values from future list
         for future in as_completed(futureList):
             sumOfTerms += future.result()
 
@@ -129,6 +134,7 @@ class MyManager:
 
         mergingTime = finish - start
 
+        # Close ThreadPoolExecutor
         executor.shutdown()
 
         return sumOfTerms, mergingTime.seconds
