@@ -105,9 +105,9 @@ class Ranker:
         """
         cityDictionary = {}
         if self.config.get__toStem():
-            cityDictionary = self.dictionary_document_info_stemmed
+            cityDictionary = self.dictionary_city_documents_Stemmed
         else:
-            cityDictionary = self.dictionary_document_info_withoutStem
+            cityDictionary = self.dictionary_city_documents_withoutStem
         documentsDict = set()
         for city in citiesList:
             documentsDict.update(cityDictionary[city].keys())

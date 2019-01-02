@@ -210,6 +210,8 @@ class QuerySearcher(Frame):
             cb.toggle()
         self.start = end
 
+
+
     def getSelectedCities(self):
         selectedCities = []
         for var in self.checkVar_CityList:
@@ -478,40 +480,25 @@ class QuerySearcher(Frame):
     def runQuery(self):
 
 
-
-
-
         # Set stem in config
         self.config.setToStem(self.checkedStem.get())
 
 
         docList = self.searcher.getDocsForQueryWithExpansion(self.entry_query_text.get(),self.getSelectedCities(), self.checkedSemantics.get(), useStem = self.checkedStem.get())
-        resultsToPrint = "  qID  |         DocNo          |  Score   \n"
 
         self.docsForDominant = docList
 
-        windowSizes = [7,24,10]
+
+        header = "  qID  |          DocNo         |  Score   \n"
+
+        toWrite, toPrint = self.getResultFormatFromResultList(qID='0',runID='0',results=docList)
+        self.resultsToWrite = toWrite
 
 
-        for file_score in docList:
-            values = ['0', str(file_score[0]), str("{0:.3f}".format(round(file_score[1], 3)))]
-
-            # Insert to dominant list
-
-
-
-
-            for i in range(0,len(values)):
-                dif = windowSizes[i] - len(values[i])
-                before = int(dif/2)
-                values[i] = ' '*before + values[i] + ' '*(dif-before)
-
-            resultsToPrint += "%s|%s|%s\n" % (values[0],values[1],values[2])
-            # resultsToPrint += "  %s  |  %s  |  %s  \n" % ('0', str(file_score[0]), str("{0:.3f}".format(round(file_score[1], 3))))
 
         # Write the results to the output window
         self.txtbox.delete('1.0',END)
-        self.txtbox.insert('1.0',resultsToPrint)
+        self.txtbox.insert('1.0', header + toPrint)
 
         self.normalStatus()
 
@@ -697,6 +684,8 @@ class QuerySearcher(Frame):
             self.makeThreeRunsButton.configure(state=NORMAL)
             self.findYishuyotButton.configure(state=NORMAL)
             self.saveTrec_EvalButton.configure(state=NORMAL)
+            self.part1Button.configure(state=NORMAL)
+
 
 
         except:
@@ -704,6 +693,7 @@ class QuerySearcher(Frame):
 
 
     def disableButtons(self):
+        self.part1Button.configure(state=DISABLED)
         self.runQueryButton.configure(state = DISABLED)
         self.runQueryFromFileButton.configure(state = DISABLED)
         self.makeThreeRunsButton.configure(state = DISABLED)
