@@ -32,7 +32,7 @@ class QuerySearcher(Frame):
 
         Frame.__init__(self, master)
         self.grid()
-        # self.filesDone = 0
+
         self.numOfFilesPerIteration = config.get__filesPerIteration()
 
         self.XstartPixel = 60
@@ -67,7 +67,7 @@ class QuerySearcher(Frame):
 
 
         def queryPath():
-            # print("Choose query file path...")
+
             query_path = filedialog.askopenfilename()
             self.entry_queryFilePath_text.set(query_path)
 
@@ -77,7 +77,7 @@ class QuerySearcher(Frame):
 
 
 
-        label_querySaveFilePath = Label(self.master, text="Save Query:", width=10, font=("bold", 10))
+        label_querySaveFilePath = Label(self.master, text="Save Results:", width=10, font=("bold", 10))
         label_querySaveFilePath.place( x = self.XstartPixel + 50,  y = self.YstartPixel + 165)
         self.entry_querySaveFilePath_text = StringVar()
         self.entry_querySaveFilePath_text.set("")
@@ -125,18 +125,6 @@ class QuerySearcher(Frame):
 
 
 
-
-
-
-        # list1 = ['NYC', 'TEL-AVIV', 'PARIS']
-        # c = StringVar()
-        # self.droplist = OptionMenu(self.master, c, *list1)
-        # self.droplist.config(width=15)
-        # c.set('Select')
-        # self.droplist.place( x = self.XstartPixel + 180, y = self.YstartPixel + 220)
-
-
-
         label_stemming = Label(self.master, text="Stemming", width=10, font=("bold", 10))
         label_stemming.place( x = self.XstartPixel + 200, y = self.YstartPixel + 290)
         self.checkedStem = BooleanVar()
@@ -163,7 +151,7 @@ class QuerySearcher(Frame):
 
 
 
-        self.findYishuyotButton = Button(self.master, text='חיפוש יישויות', width=15, bg='blue', fg='white',command= self.findYishuyot)
+        self.findYishuyotButton = Button(self.master, text='Show Entities', width=15, bg='blue', fg='white',command= self.findYishuyot)
         self.findYishuyotButton.place( x = self.XstartPixel + 180, y = self.YstartPixel + 390)
 
 
@@ -303,11 +291,21 @@ class QuerySearcher(Frame):
         pathToSaveQuery = self.entry_querySaveFilePath_text.get()
 
         if pathToSaveQuery == '':
-            self.statusLabel['text'] = "Status: Please enter a valid path to query"
+            self.statusLabel['text'] = "Status: Please enter a valid path to save query"
             return
 
         if not os.path.exists(pathToSaveQuery):
             self.statusLabel['text'] = "Status: Path %s , is not valid" % (pathToSaveQuery)
+            return
+
+
+
+        if self.dataNoStem is None:
+            self.statusLabel['text'] = "Status: Data NoStem is missing"
+            return
+
+        if self.dataWithStem is None:
+            self.statusLabel['text'] = "Status: Data WithStem is missing"
             return
 
 
@@ -333,12 +331,16 @@ class QuerySearcher(Frame):
         useStem = self.checkedStem.get()
 
         if useStem and self.dataWithStem is None:
-            self.statusLabel['text'] = "Status: Data with stem is None"
+            self.statusLabel['text'] = "Status: Data with stem is missing"
             return
 
         if not useStem and self.dataNoStem is None:
-            self.statusLabel['text'] = "Status: Data without stem is None"
+            self.statusLabel['text'] = "Status: Data without stem is missing"
             return
+
+
+
+
 
 
         self.disableButtons()
@@ -366,7 +368,14 @@ class QuerySearcher(Frame):
 
 
         # Set stem in config
-        self.config.setToStem(self.checkedStem.get())
+        stem = self.checkedStem.get()
+        self.config.setToStem(stem)
+
+        if stem and self.dataWithStem is None:
+            self.statusLabel['text'] = "Status: Data WithStem is missing"
+            return
+
+
 
 
 
@@ -390,6 +399,9 @@ class QuerySearcher(Frame):
         # 2. results_Stem_noSem
         # 3. results_Stem_Sem
 
+
+
+
         pathToSaveQuery = self.entry_querySaveFilePath_text.get()
 
 
@@ -412,6 +424,7 @@ class QuerySearcher(Frame):
         fileName = "results_%s.txt" % ("Stem_noSem")
         destPath = os.path.join(pathForThreeRuns,fileName )
         self.config.setToStem(True)
+        self.checkedStem.set(True)
         self.checkedSemantics.set(False)
 
         self.runQueryFromFile()
@@ -423,6 +436,7 @@ class QuerySearcher(Frame):
         destPath = os.path.join(pathForThreeRuns,fileName )
         self.config.setToStem(True)
         self.checkedSemantics.set(True)
+        self.checkedStem.set(True)
 
         self.runQueryFromFile()
         self.saveTrec_Eval()
@@ -435,13 +449,16 @@ class QuerySearcher(Frame):
         self.checkedStem.set(False)
 
         resultsToPrint = '''
-        
-* Files are saved in %s 
-* 1. Results for No stemming and No Semantics 
+* Files are saved in path:
+    %s
+
+* Results for NoStem and No Semantics 
     file: results_noStem_noSem.txt
-* 2. Results for With stemming and No Semantics 
+
+* Results for WithStem and No Semantics 
     file: results_Stem_noSem.txt
-* 3. Results for With stemming and With Semantics 
+
+* Results for WithStem and With Semantics 
     file: results_Stem_Sem.txt
         
         '''  % (pathForThreeRuns)
@@ -449,6 +466,10 @@ class QuerySearcher(Frame):
         # Write the results to the output window
         self.txtbox.delete('1.0',END)
         self.txtbox.insert('1.0',resultsToPrint)
+
+
+        self.normalStatus()
+
 
 
 
@@ -492,130 +513,11 @@ class QuerySearcher(Frame):
         self.txtbox.delete('1.0',END)
         self.txtbox.insert('1.0',resultsToPrint)
 
+        self.normalStatus()
+
+
 
     def runQueryFromFile(self):
-
-
-
-        # # Best Values - 185
-        # self.config.BM25_K = 1.6
-        # self.config.BM25_B = 0.7
-        #
-        # # Best - 188
-        # self.config.Axu_Value = 10
-        #
-        #
-
-
-
-
-
-
-
-        #
-        # # Write ManyFiles
-        #
-        pathToSaveKB = 'C:/SaveKB'
-        changePathCounter = 0
-        pathToDic = pathToSaveKB + '/AxuDic.txt'
-        pathTrecEval = pathToSaveKB + '/trecAxu.txt'
-        if not os.path.exists(pathToSaveKB):
-            os.mkdir(pathToSaveKB)
-
-
-
-        # print("*** Started Axu run ***")
-        # # StartValue
-        # self.config.Axu_Value = 1.0
-        #
-        #
-        #
-        # while self.config.Axu_Value < 10.0:
-        #     changePathCounter += 1
-        #     lineToPrint = "num: " + str(changePathCounter) + ' values: ' + ' Axu ' + str(self.config.Axu_Value) +  '\n'
-        #     print(lineToPrint)
-        #
-        #     trecFile = open(pathTrecEval, 'a')
-        #     lineToWrite = "@echo %s" % (lineToPrint)
-        #     lineToWrite += "treceval qrels.txt results_%s.txt\n" % (changePathCounter)
-        #     trecFile.write(lineToWrite)
-        #     trecFile.close()
-        #
-        #     dicFile = open(pathToDic, 'a')
-        #     dicFile.write(lineToPrint)
-        #     dicFile.close()
-        #
-        #     # Get result string from the file
-        #     trec_eval_results_toWrite, trec_eval_results_toPrint = self.runMultipleQueries()
-        #     self.resultsToWrite = trec_eval_results_toWrite
-        #
-        #     fileNamePath = pathToSaveKB + "/results_%s.txt" % (changePathCounter)
-        #
-        #     myFile = open(fileNamePath, 'w')
-        #     myFile.write(trec_eval_results_toWrite)
-        #     myFile.close()
-        #
-        #     self.config.Axu_Value += 0.5
-        #
-        #
-        #
-        #
-        # print("*** Finished Axu run ***")
-
-
-
-        # print("*** Started KB run ***")
-        #
-        # self.config.BM25_K = 1.2
-        #
-        #
-        # while self.config.BM25_K < 2.0:
-        #
-        #
-        #     self.config.BM25_B = 0.6
-        #     while self.config.BM25_B < 1.0:
-        #
-        #
-        #         changePathCounter += 1
-        #         lineToPrint = "num: " + str(changePathCounter) + ' values: ' + ' K ' + str(self.config.BM25_K) + ' B ' + str(
-        #             self.config.BM25_B ) + '\n'
-        #         print(lineToPrint)
-        #
-        #         trecFile = open(pathTrecEval, 'a')
-        #         lineToWrite = "@echo %s" % (lineToPrint)
-        #         lineToWrite += "treceval qrels.txt results_%s.txt\n" % (changePathCounter)
-        #         trecFile.write(lineToWrite)
-        #         trecFile.close()
-        #
-        #         dicFile = open( pathToDic, 'a')
-        #         dicFile.write(
-        #             "num: " + str(changePathCounter) + ' values: ' + ' K ' + str(self.config.BM25_K) + ' B ' + str(
-        #                 self.config.BM25_B) + '\n')
-        #         dicFile.close()
-        #
-        #
-        #
-        #         # Get result string from the file
-        #         trec_eval_results_toWrite, trec_eval_results_toPrint = self.runMultipleQueries()
-        #         self.resultsToWrite = trec_eval_results_toWrite
-        #
-        #         fileNamePath = pathToSaveKB + "/results_%s.txt" % (changePathCounter)
-        #
-        #         myFile = open(fileNamePath,'w')
-        #         myFile.write(trec_eval_results_toWrite)
-        #         myFile.close()
-        #
-        #         self.config.BM25_B += 0.1
-        #
-        #     self.config.BM25_K += 0.1
-        #
-        #
-        # print("*** Finished KB run ***")
-
-
-
-
-
 
         # Get result string from the file
         trec_eval_results_toWrite, trec_eval_results_toPrint = self.runMultipleQueries()
@@ -624,6 +526,9 @@ class QuerySearcher(Frame):
         # Write the results to the output window
         self.txtbox.delete('1.0', END)
         self.txtbox.insert('1.0',trec_eval_results_toPrint)
+
+        self.normalStatus()
+
 
 
 
@@ -638,7 +543,7 @@ class QuerySearcher(Frame):
 
 
             # String to print in output window
-            lineSize = 44
+            # lineSize = 44
             windowSizes = [7, 24, 10]
 
             values = [str(qID), str(results[index][0]), str("{0:.3f}".format(round(results[index][1], 3)))]
@@ -649,7 +554,7 @@ class QuerySearcher(Frame):
 
             resultsToPrint += "%s|%s|%s\n" % (values[0], values[1], values[2])
 
-            # resultsToPrint += "  %s  |  %s  |  %s  \n" % (str(qID),str(results[index][0]),str("{0:.3f}".format(round(results[index][1],3))) )
+
         return resultsToWrite, resultsToPrint
 
 
@@ -676,8 +581,6 @@ class QuerySearcher(Frame):
 
         for query_ID_query in queriesList_ID_query:
 
-            print("\n\n\t*** Stem = ",useStem)
-
             docList = self.searcher.getDocsForQueryWithExpansion(query_ID_query[1],self.getSelectedCities(),self.checkedSemantics.get(), useStem = useStem)
             toWrite, toPrint = self.getResultFormatFromResultList(qID=query_ID_query[0], runID=runID, results=docList)
             trec_eval_results_toWrite += toWrite
@@ -688,9 +591,7 @@ class QuerySearcher(Frame):
 
             trec_eval_results_toPrint += toPrint
 
-
         return trec_eval_results_toWrite , trec_eval_results_toPrint
-
 
 
 
@@ -714,12 +615,7 @@ class QuerySearcher(Frame):
 
 
         termsFromNarr = getNarrWithRegex(queryNarr,stopWords=stopWordsDic)
-
         return termsFromNarr
-
-        #
-        # print("\nNarr:\n")
-        # print(termsFromNarr)
 
 
 
@@ -779,8 +675,7 @@ class QuerySearcher(Frame):
             print(ex)
 
 
-
-        self.statusLabel['text'] = 'Status: Ready to Search\Shut down'
+        self.normalStatus()
 
 
 
@@ -791,15 +686,22 @@ class QuerySearcher(Frame):
 
 
 
+    def normalStatus(self):
+        self.statusLabel['text'] = 'Status: Ready to Search\Shut down'
 
-    def enableButtons(self, statusEnable = True):
-        self.runQueryButton.configure(state = NORMAL)
-        self.runQueryFromFileButton.configure(state = NORMAL)
-        self.makeThreeRunsButton.configure(state = NORMAL)
-        self.findYishuyotButton.configure(state = NORMAL)
-        self.saveTrec_EvalButton.configure(state = NORMAL)
-        if statusEnable:
-            self.statusLabel['text'] = 'Status: Ready to Search\Shut down'
+
+    def enableButtons(self):
+        try:
+            self.runQueryButton.configure(state=NORMAL)
+            self.runQueryFromFileButton.configure(state=NORMAL)
+            self.makeThreeRunsButton.configure(state=NORMAL)
+            self.findYishuyotButton.configure(state=NORMAL)
+            self.saveTrec_EvalButton.configure(state=NORMAL)
+
+
+        except:
+            pass
+
 
     def disableButtons(self):
         self.runQueryButton.configure(state = DISABLED)

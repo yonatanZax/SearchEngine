@@ -23,7 +23,7 @@ class EngineBuilder(Frame):
         self.mainManager = mainManager
         Frame.__init__(self, master)
         self.grid()
-        # self.filesDone = 0
+
         self.numOfFilesPerIteration = config.get__filesPerIteration()
 
         self.XstartPixel = 60
@@ -354,10 +354,16 @@ class EngineBuilder(Frame):
             self.dataStem = totalDict_withStem
 
 
+        pathToLanguages = self.config.get__savedFileMainFolder() + "/languages"
+        if os.path.exists(pathToLanguages):
+            languageFile = open(pathToLanguages, 'r')
+            languageList = languageFile.readlines()
+
+            self.setLanguagesDropList(languageList)
+
+
+
         self.part2Button.configure(state = NORMAL)
-
-
-
 
 
 
@@ -450,27 +456,25 @@ class EngineBuilder(Frame):
     def deleteEngine(self):
         import shutil
         saveMainFolderPath = str(self.entry_postingPath.get())
-        self.config.setSaveMainFolderPath(self.setMainPathString(saveMainFolderPath))
-        if self.entry_postingPath.get() == '' or self.entry_corpusPath.get() == '':
-            self.statusLabel['text'] = 'Status: %s invalid path to delete' % (saveMainFolderPath,)
-            return
 
-        if not os.path.exists(saveMainFolderPath + '/SavedFiles'):
+        if self.entry_postingPath.get() == '':
             self.statusLabel['text'] = 'Status: %s invalid path to delete' % (saveMainFolderPath,)
             return
 
 
-        shutil.rmtree(self.config.get__savedFileMainFolder())
+        pathToDelete = saveMainFolderPath + '/SavedFiles'
+        if not os.path.exists(pathToDelete):
+            self.statusLabel['text'] = 'Status: %s invalid path to delete' % (saveMainFolderPath,)
+            return
+
+
+        shutil.rmtree(pathToDelete)
         print("Folder was deleted successfully..")
 
         self.setProgressBar()
 
-        self.buildButton.configure(state=NORMAL)
-        self.deleteButton.configure(state=DISABLED)
-        self.showDicButton.configure(state = DISABLED)
-        self.uploadDicButton.configure(state = DISABLED)
-
-        self.statusLabel['text'] = 'Status: Folder %s was deleted' % (self.config.get__savedFileMainFolder())
+        self.enableButtons()
+        self.statusLabel['text'] = 'Deleted: Folder %s ' % (pathToDelete)
 
 
 
@@ -502,8 +506,8 @@ class EngineBuilder(Frame):
             return
 
 
-        self.config.setSaveMainFolderPath(self.setMainPathString(saveMainFolderPath),True)
-
+        saveMainFolderPath = self.setMainPathString(saveMainFolderPath)
+        self.config.setSaveMainFolderPath(saveMainFolderPath,True)
 
         print("Posting path:     ", saveMainFolderPath)
 
@@ -549,14 +553,8 @@ class EngineBuilder(Frame):
 
         timeItTook, maxParsingTime, totalMerging, totalNumberOfTerms, totalNumberOfDocuments ,mergedLanguagesSet = future.result()
 
+        self.setLanguagesDropList(mergedLanguagesSet)
 
-        if len(mergedLanguagesSet) > 0:
-            self.droplist.destroy()
-            c = StringVar()
-            self.droplist = OptionMenu(self.master, c, *mergedLanguagesSet)
-            self.droplist.config(width=15)
-            c.set('Select')
-            self.droplist.place(x=self.XstartPixel + 180, y=self.YstartPixel + 190)
 
 
         self.setBuildDetails(timeItTook, maxParsingTime, totalMerging, totalNumberOfTerms, totalNumberOfDocuments)
@@ -603,8 +601,6 @@ class EngineBuilder(Frame):
         self.uploadDicButton.configure(state = NORMAL)
 
 
-        self.statusLabel['text'] = 'Status: Ready to Build\Shut down'
-
     def disableButtons(self):
         self.buildButton.configure(state = DISABLED)
         self.deleteButton.configure(state = DISABLED)
@@ -620,6 +616,17 @@ class EngineBuilder(Frame):
         else:
             return newPath + '/SavedFiles'
 
+
+
+    def setLanguagesDropList(self,languageList):
+
+        if len(languageList) > 0:
+            self.droplist.destroy()
+            c = StringVar()
+            self.droplist = OptionMenu(self.master, c, *languageList)
+            self.droplist.config(width=15)
+            c.set('Select')
+            self.droplist.place(x=self.XstartPixel + 180, y=self.YstartPixel + 190)
 
 
 

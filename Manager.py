@@ -37,6 +37,11 @@ class MyManager:
 
 
     def run(self):
+        """
+        The main function of the manager
+        runs the parsing, indexing and merging of his files
+        :return:numberOfDocuments:int, parsingTime.seconds:int, mergingTime.seconds:int
+        """
 
         # init values
         start = datetime.now()
@@ -50,22 +55,26 @@ class MyManager:
             documentIndex = 0
             counter += 1
             documentsList = self.fileReader.readTextFile(fileName)
+            # Iterate over every document in the file
             for document in documentsList:
+                # parse the document
                 parsedDocument = self.parser.parseDoc(document)
                 if parsedDocument is None:
                     continue
                 numberOfDocuments += 1
+                # index the document data
                 self.indexer.addNewDoc(parsedDocument,docNoAsIndex=index + documentIndex)
                 documentIndex += 1
-
-            # Flush the indexer
+            # every set number of times flush the data to the disk
             if counter == filesPerIteration:
                 totalCount += counter
                 self.updateProgressBar(totalCount,'Posting')
                 self.indexer.flushMemory()
                 counter = 0
 
-        # Flush the indexer
+
+
+        # is there is data that haven't been flush flush it now..
         if counter != 0:
             totalCount += counter
             self.updateProgressBar(totalCount,'Posting')
@@ -73,11 +82,10 @@ class MyManager:
 
         finishedParsing = datetime.now()
         parsingTime = finishedParsing - start
+
+
         print("Manager " , str(self.ID) , " Finished parsing all files, Parsed: " , str(numberOfDocuments), " Docs, Took: ", str(parsingTime.seconds))
-
-
-
-        # Done parsing!! start local merge
+        # start merging the data that the manager created
         self.indexer.merge()
 
         finishedMerging = datetime.now()
@@ -90,6 +98,10 @@ class MyManager:
 
 
     def merge(self):
+        """
+        This function will start the merging final process. every manager will merge the letters he was responsible for
+        :return: sumOfTerms:int, mergingTime.seconds:int
+        """
         from Indexing.KWayMerge import Merger
         import os
         from concurrent.futures import ThreadPoolExecutor
@@ -102,8 +114,7 @@ class MyManager:
         futureList = []
         progressCounter = 0
 
-
-        # Iterate over the letters in letter list
+        # Iterate over every letter the manager is responsible
         for letter in self.lettersList:
 
             filesInLetterFolder = os.listdir(self.config.savedFilePath + "\\" + letter)

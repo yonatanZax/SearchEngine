@@ -176,7 +176,20 @@ class MainClass:
         pool.shutdown()
         print("Number of files Processed: " , str(len(listOfFolders)))
 
-        return timeItTook.seconds, maxParsingTime, totalMerging, totalNumberOfTerms, totalNumberOfDocuments, sorted(mergedLanguagesSet)
+
+        # Write Languages to file
+        languages = list(sorted(mergedLanguagesSet))
+        pathToLanguages = self.config.get__savedFileMainFolder() + "/languages"
+        if os.path.exists(pathToLanguages):
+            os.remove(pathToLanguages)
+
+        languageFile = open(pathToLanguages,'a')
+        for language in languages:
+            languageFile.write(language + '\n')
+        languageFile.close()
+
+
+        return timeItTook.seconds, maxParsingTime, totalMerging, totalNumberOfTerms, totalNumberOfDocuments, languages
 
     @staticmethod
     def run( manager):

@@ -27,11 +27,6 @@ class Parse:
                     if len(tagDic.get('text')) > 10:
                         onlyText = tagDic.get('text')
 
-                        # findTextSquared = onlyText.find('[Text]')
-                        # if findTextSquared > 0:
-                        #     onlyText = onlyText[findTextSquared + len('[Text]'):]
-                        # if len(onlyText) <= 10:
-                        #     return None
 
                         # Add new doc to 'allDocsDic'
                         docNo = tagDic['docNo']
@@ -52,9 +47,6 @@ class Parse:
 
 
         except Exception as e:
-            # print('DocNo: ',docNo)
-            # print('Error spliting docs in parse, e: ',e)
-            # print("Error - Parse - parseText")
             return None
 
 

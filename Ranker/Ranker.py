@@ -82,9 +82,8 @@ class Ranker:
 
     def convertDocNoListToDocID(self, docIndexList):
         """
-        Initialize the document dictionary from the given path of the document index
-        :param path:
-        :param dictionary:
+        converting the documentindex numbers to their real names
+        :param docIndexList:
         :return:
         """
         documentDictionary = {}
@@ -100,9 +99,8 @@ class Ranker:
 
     def getDocumentsFromCityList(self, citiesList):
         """
-        Initialize the document dictionary from the given path of the document index
-        :param path:
-        :param dictionary:
+        get a list of cities and retrieved the documents for those cities
+        :param citiesList:
         :return:
         """
         cityDictionary = {}
@@ -126,9 +124,9 @@ class Ranker:
         :param termDF: number of documents the term appears in
         :return: the score of the document for the term
         """
-        docLength = 0
-        avgDocLength = 0.0
-        numberOfDocs = 0
+        docLength = 1
+        avgDocLength = 1.0
+        numberOfDocs = 1
 
         # get the current working data information
         if self.config.get__toStem():
@@ -140,24 +138,26 @@ class Ranker:
             avgDocLength = self.averageDocLength_NotStemmed
             numberOfDocs = self.numberOfDoc_NotStemmed
 
+
+        # Compute score
         BM25Score = self.getBM25Score(docDF=docDF, termDF=termDF, documentLength=docLength, docLengthAvg=avgDocLength, numOfDocs=numberOfDocs)
-
         AxiomaticTermWeightingScore = self.getAxiomaticTermWeightingScore(docDF=docDF, termDF=termDF, documentLength=docLength, docLengthAvg=avgDocLength, numOfDocs=numberOfDocs)
-
-        # Add positionScore
-        docLength = int(docLength)
-        positionScore = getPositionsScore(docLength, positionList)
-
         joinedScore = BM25Score + self.config.Axu_Value * AxiomaticTermWeightingScore
 
+
+
+
+        # Not used
+        # Add positionScore
+        docLength = int(docLength)
+        # positionScore = getPositionsScore(docLength, positionList)
 
         # joinedScore = BM25Score + 3*AxiomaticTermWeightingScore + 0.3*positionScore
 
         # if positionList[0] is '-':
         #     joinedScore *= 1.5
 
-        # return positionScore
-        # return AxiomaticTermWeightingScore
+
         return joinedScore
 
 

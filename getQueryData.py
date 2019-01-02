@@ -4,7 +4,7 @@ from BasicMethods import getTagFromText
 from PreRun import getTagDicFromDocument
 from Configuration import ConfigClass
 from ReadFiles.ReadFile import ReadFile
-import DataFrames.frames as df
+#import DataFrames.frames as df
 
 originalDataPath = "../qData"
 qrelsPath = "%s/qrels.txt" % (originalDataPath,)
@@ -92,13 +92,13 @@ def getDocsData(fileReader,listOfFolders,id_termsList):
 
 
 
-        frameToWrite = df.createDataFrameByColumns(columnNamesAsArray,listOfColumns)
+#        frameToWrite = df.createDataFrameByColumns(columnNamesAsArray,listOfColumns)
 
         pathToWrite = saveFolder + '/' + qId + '.txt'
         if os.path.exists(pathToWrite):
             os.remove(pathToWrite)
 
-        df.writeDataframeToFile(frameToWrite, pathToWrite)
+ #       df.writeDataframeToFile(frameToWrite, pathToWrite)
 
 
 

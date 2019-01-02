@@ -11,6 +11,7 @@ class SearcherIterativeTokenizer(IterativeTokenizer):
 
 
     def ruleNBA(self, index, textList):
+        # United States America USA -> ["United","States","America","USA","United States America"]
 
         listOfTerms = [textList[index]]
         bigLetters = textList[index][0]
@@ -58,7 +59,7 @@ class Searcher:
 
         self.config = config
 
-        self.wordEmbedding = WordEmbeddingUser(modelPath="C:/SavedModel/mymodel.model")
+        self.wordEmbedding = WordEmbeddingUser(modelPath="SavedModel/mymodel.model")
         if self.wordEmbedding.loadModel():
             print ('WordEmbedding Model was Loaded successfully')
 
@@ -190,7 +191,7 @@ class Searcher:
         if self.wordEmbedding is None:
             return None
         expandedQuery = []
-        print('The query is: ',queryList)
+        # print('The query is: ',queryList)
 
         for word in queryList:
             try:
@@ -198,6 +199,8 @@ class Searcher:
                 mostSimilar = self.wordEmbedding.getTopNSimilarWords(word=word.lower())
                 # filter non existing words
                 mostSimilarExistingWords = self.getExistingResults(mostSimilar, termDictionary)
+                # print("term:", word)
+                # print(mostSimilarExistingWords)
                 expandedQuery += mostSimilarExistingWords
 
             except Exception as err:
@@ -242,7 +245,7 @@ class Searcher:
         finalList = []
         if mostSimilar is not None:
             existingList = []
-            # filter non exising words
+            # filter non existing words
             for term_sim_tuple in mostSimilar:
                 term = term_sim_tuple[0]
                 if termDictionary.get(term) is not None:
@@ -277,14 +280,19 @@ class Searcher:
         if len(doc_Score_list) == 0:
             return doc_Score_list
         topScore = doc_Score_list[0][1]
-        # filterPercent = 0.1
+        # filterPercent = 0.2
         filterPercent = 0.4
         threshold = topScore * filterPercent
-        index = 0
-        for index in range(0,len(doc_Score_list)):
+
+        index = 20
+        if len(doc_Score_list) <= 20:
+            return doc_Score_list
+
+        for index in range(20,len(doc_Score_list)):
             if doc_Score_list[index][1] < threshold:
                 break
-        return doc_Score_list[:index]
+
+        return doc_Score_list[0:index]
 
 
 

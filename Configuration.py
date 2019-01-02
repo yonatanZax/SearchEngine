@@ -18,26 +18,9 @@ class ConfigClass:
         self.toStem = False
 
         # Todo - remove before submit
-        # self.corpusPath = 'D:/corpus - full'
-        self.corpusPath = 'D:/corpus'
-        self.savedFileMainFolder = '..'
-        # self.corpusPath = 'C:/Users/doroy/Documents/סמסטר ה/אחזור מידע/עבודה/corpus'
-        # self.savedFileMainFolder = 'C:/Users/doroy/Documents/סמסטר ה/אחזור מידע/עבודה/SavedFiles'
 
-
-        # self.corpusPath = '../corpus'
-        # self.savedFileMainFolder = '../SavedFiles'
-        # if not os.path.exists(self.savedFileMainFolder):
-        #     os.mkdir(self.savedFileMainFolder)
-        # self.setSaveMainFolderPath(self.savedFileMainFolder)
-        # self.savedFilePath = self.saveFilesWithoutStem + '/SavedFiles'
-        #
-        # self.stopWordPath = self.corpusPath + "/" + self.stopWordFile
-        # self.listOfFoldersLength = len(os.listdir(self.corpusPath))
-        # self.documentsIndexPath = self.savedFilePath + '/docIndex'
-
-
-
+        self.corpusPath = ''
+        self.savedFileMainFolder = ''
 
 
 
@@ -60,12 +43,8 @@ class ConfigClass:
         self.BM25_B = 0.7
 
         # Best - 188
-        # self.Axu_Value = 6
         self.Axu_Value = 10
 
-        # self.Axu_Value = 6
-        # self.BM25_K = 1.2
-        # self.BM25_B = 0.75
 
 
         self.BM25_avgDLength = 100
@@ -81,7 +60,6 @@ class ConfigClass:
         self.corpusPath = newPath
         self.stopWordPath = self.corpusPath + "/" + self.stopWordFile
         self.listOfFoldersLength = len(os.listdir(self.corpusPath))
-        print('corpus path changed')
 
 
     def setSavedFilePath(self,newPath):
@@ -99,6 +77,8 @@ class ConfigClass:
     def setTotalNumberOfTerms(self, numNoStem, numWithStem):
         self.totalNumberOfTermsNoStem = numNoStem
         self.totalNumberOfTermsWithStem = numWithStem
+
+
 
     def setSaveMainFolderPath(self,newPath,delete=False):
         if not os.path.exists(newPath):
