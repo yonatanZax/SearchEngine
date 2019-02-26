@@ -1,6 +1,7 @@
 from BasicMethods import getStringFormatForFloatValue
 
 
+
 class MyDictionary:
 
     def __init__(self):
@@ -9,6 +10,7 @@ class MyDictionary:
 
     # assuming termString gets in all CAP or all LOW letters already from parser
     def addTerm(self, termString, docNo, termFrequency, termPositions,docNoAsIndex=0):
+
 
         termInDictionary = updateTermToDictionaryByTheRules(self.dictionary_term_dicData, termString)
         termDicData = self.dictionary_term_dicData.get(termInDictionary)
@@ -20,6 +22,7 @@ class MyDictionary:
 
         # add the doc to the term posting line
         termDicData.addDocument(docID=docNoAsIndex, docTF_int=termFrequency,termPositions= termPositions)
+
 
 
 
@@ -58,7 +61,9 @@ class DictionaryData:
 
 class DocumentIndexData:
 
+
     def __init__(self, max_tf, uniqueTermsCount, docLength, city = '',language = '', dominantTerm = []):
+
         self.max_tf = max_tf
         self.uniqueTermCount = uniqueTermsCount
         self.docLength = docLength
@@ -72,6 +77,7 @@ class DocumentIndexData:
                 # score_term = score
                 if score_term[0] > 0:
                     self.dominantTerms.append(score_term)
+
 
 
     def toString(self):
@@ -91,8 +97,6 @@ class DocumentIndexData:
             ans += '%s:%s,' % (score_term[1],getStringFormatForFloatValue(2,score_term[0]))
 
         return ans.strip(',')
-
-
 
 class CityIndexData:
 
@@ -120,6 +124,7 @@ class CityIndexData:
             ans += '#'.join([docWithGap,locations]) + ','
 
         return ans.rstrip(',')
+
 
 # get the format of the term how its saved in the dictionary or none if its not in the dictionary
 def getTermDictionaryForm(dictionary, termString):

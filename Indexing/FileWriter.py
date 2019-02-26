@@ -22,6 +22,7 @@ class FileWriter:
 
         lineToWrite = ""
 
+
         # Iter over all the terms in the dictionary and create a string to write
         for term, termData in sorted(dictionaryToWrite.dictionary_term_dicData.items()):
             if len(termData.string_docID_tf_positions) > 0:
@@ -43,7 +44,9 @@ class FileWriter:
 
         lineToWrite = ""
         for docNo, documentData in sorted(dictionaryToWrite.items()):
+
             lineToWrite += (str(docNo) + "|" + documentData.toString() + "\n")
+
 
         # write to the end of the file at one time on another thread
         self.writeToFile(path, lineToWrite)
@@ -72,6 +75,7 @@ class FileWriter:
 
             lastTerm = currentTerm
             currentTerm = line[0][0]
+
             sortedPostingLine = self.sortPostingLineAndUseGaps(line[1])
 
             if getStringSizeInBytes(lineToWritePost) + getStringSizeInBytes(line[1]) < postingMaxSize:
@@ -84,17 +88,20 @@ class FileWriter:
                 ListToWriteDic.append(currentLineDic)
                 lineToWritePost += sortedPostingLine + "\n"
 
+
             else:
                 if len(lineToWritePost) > 0:
                     self.writeToFile(pathForPosting + lastTerm + '_post', lineToWritePost.rstrip('\n'))
 
                 index = 0
 
+
                 currentLineDic = '|'.join((line[0][0], str(line[0][1]), str(line[0][2]), str(index)))
                 index += 1
                 ListToWriteDic.append(currentLineDic)
                 lineToWritePost = ''
                 lineToWritePost += sortedPostingLine + "\n"
+
 
 
 
@@ -108,6 +115,7 @@ class FileWriter:
         self.writeToFile(outputFile + "mergedFile_dic", lineToWriteDic)
 
         return len(ListToWriteDic)
+
 
 
     @staticmethod

@@ -3,7 +3,6 @@
 
 import os
 from datetime import datetime
-
 import copy
 
 from Manager import MyManager
@@ -19,6 +18,7 @@ import threading
 
 from BasicMethods import writeListToFile, getDicFromFile, get2DArrayFromFile
 
+
 config = None
 
 def main():
@@ -26,6 +26,9 @@ def main():
     mainManager = MainClass()
     mainManager.GUIRun()
 
+
+    mainManager = MainClass()
+    mainManager.GUIRun()
 
 class MainClass:
 
@@ -35,6 +38,7 @@ class MainClass:
             self.config = ConfigClass()
         else:
             self.config = config
+
         self.cityAPI = CityAPI()
 
     def GUIRun(self):
@@ -43,6 +47,7 @@ class MainClass:
         print("***   Main Start   ***")
         root = GuiMainView.Tk()
         root = GuiMainView.setWindowSizeAndPosition(root)
+
         root.title("SearchEngine")
 
         guiFrame = GuiMainView.EngineBuilder(root, mainManager=self, config=self.config)
@@ -62,7 +67,6 @@ class MainClass:
         copyStopWordToSavedFiles(self.config)
 
 
-
         lettersList = list(string.ascii_lowercase)
         lettersList.append('#')
 
@@ -74,6 +78,7 @@ class MainClass:
             filesIndexTupleListPerManager = []
             for j in range(i,len(filesIndexTupleList),managersNumber):
                 filesIndexTupleListPerManager.append(filesIndexTupleList[j])
+
 
             lettersListPerManager = []
 
@@ -129,6 +134,7 @@ class MainClass:
         # UpdateProgress
         self.updateProgressBar(len(listOfFolders),'Posting')
 
+
         totalNumberOfTerms = 0
         maxSecondMergeTime = 0
 
@@ -170,6 +176,7 @@ class MainClass:
 
 
 
+
         finishTime = datetime.now()
         timeItTook = finishTime - startTime
 
@@ -192,6 +199,7 @@ class MainClass:
 
 
         return timeItTook.seconds, maxParsingTime, totalMerging, totalNumberOfTerms, totalNumberOfDocuments, languages
+
 
     @staticmethod
     def run( manager):

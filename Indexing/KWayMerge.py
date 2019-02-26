@@ -43,8 +43,10 @@ class MyHeap(object):
        else:
            self.data = []
 
+
    def size(self):
         return len(self.data)
+
 
    def push(self, item):
        heapq.heappush(self.data, item)
@@ -135,7 +137,6 @@ class Merger:
                         self._heap.push(MergeDataClass(str(splittedLine[0].lower()), splittedLine[0], splittedLine[1],
                                                        splittedLine[2], splittedLine[3], currentValIndex,
                                                        currentVal[6]))
-
 
 
 

@@ -27,7 +27,6 @@ def convertTMBT_toNum(tmbtString, letter=None):
 
 
 def convertNumToMoneyFormat(numAsString):
-
     # from num to dollar format
     numAsFloat = float(removeCommasFromNumber(numAsString.rstrip('.')))
     moduloMillion = numAsFloat/1000000
@@ -37,7 +36,6 @@ def convertNumToMoneyFormat(numAsString):
             moduloMillion = int(moduloMillion)
         return (str("{0:.2f}".format(round(moduloMillion,2))).rstrip('0').rstrip('.') + ' M')
     else:
-
         return str(str("{0:.2f}".format(round(numAsFloat,2))).rstrip('0').rstrip('.'))
 
 

@@ -29,6 +29,7 @@ class TermData:
     def getTermFrequency(self):
         return self._termFrequency
 
+
     def getPositions(self):
         return self._positionStringWithGaps
 
@@ -39,6 +40,9 @@ class TermData:
         self._termFrequency += 1
         self._positionStringWithGaps = '-:' + self._positionStringWithGaps
 
+
+    def toString(self):
+        return '#'.join([str(self._termFrequency), self._positionStringWithGaps])
 
 
 

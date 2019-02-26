@@ -127,15 +127,16 @@ def writeListToFile(path,fileName,listToWrite,useNewLine = True):
 
         myFile.close()
 
+
     except Exception as ex:
         print(ex)
 
 
 def get2DArrayFromFile(path, sep = '|'):
-
     # returns a 2D array from file by sep
     try:
         myFile = open(path,'r')
+
 
         with myFile:
             lines = myFile.readlines()

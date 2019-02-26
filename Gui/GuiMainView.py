@@ -3,17 +3,15 @@ import string
 import tkinter
 from tkinter import *
 from tkinter import filedialog
-
 from threading import Thread
-
 import os
-
 
 from BasicMethods import get2DArrayFromFile , getDicFromFile
 from Gui.TkinterTable import TableView
 
 
 class EngineBuilder(Frame):
+
 
     def __init__(self, master, mainManager, config, dataNoStem=None,dataWithStem = None):
         self.master = master
@@ -33,10 +31,10 @@ class EngineBuilder(Frame):
         label_0 = Label(self.master, text="Search Engine", width=20, font=("bold", 30))
         label_0.place( x = self.XstartPixel + 20, y = self.YstartPixel + 40)
 
+
         self.part2Button = Button(self.master, text='Part2', width=10, bg='blue', fg='white',command= self.switchPart2)
         self.part2Button.place(x = self.XstartPixel + 450, y = self.YstartPixel + 0)
         self.part2Button.configure(state = DISABLED)
-
 
 
         label_corpusPath = Label(self.master, text="Corpus path:", width=10, font=("bold", 10))
@@ -73,10 +71,6 @@ class EngineBuilder(Frame):
         self.corpusPathButton.place( x = self.XstartPixel + 380, y = self.YstartPixel + 125)
         self.postingPathButton = Button(self.master, text='Find', width=5, fg='black',command= postingPath)
         self.postingPathButton.place( x = self.XstartPixel + 380, y = self.YstartPixel + 155)
-
-
-
-
 
 
 
@@ -121,6 +115,7 @@ class EngineBuilder(Frame):
 
 
 
+
         label_postingPath = Label(self.master, text="Dictionary:", width=20, font=("bold", 10))
         label_postingPath.place( x = self.XstartPixel + 30, y = self.YstartPixel + 380)
 
@@ -144,6 +139,7 @@ class EngineBuilder(Frame):
 
         self.statusLabel = Label(self.master, text="Status: Ready to Build\Shut down", width = 40, font = ("bold", 10))
         self.statusLabel.place( x = self.XstartPixel + 60, y = self.YstartPixel + 650)
+
 
 
 
@@ -224,6 +220,7 @@ class EngineBuilder(Frame):
         self.label_mergeProgress['text'] = self.merge_progressLabel + linesAsString + '] 00%'
 
 
+
     def updateProgress(self, posting_merge):
         flag = True
         import os
@@ -294,7 +291,9 @@ class EngineBuilder(Frame):
                     continue
                 linesAsString += ' '
 
+
             percentString = str(percent * 2)
+
             if len(percentString) == 1:
                 percentString = '0' + percentString
 
@@ -306,6 +305,7 @@ class EngineBuilder(Frame):
 
 
     def load(self):
+
 
 
         savedMainFolder = self.config.get__savedFileMainFolder()
@@ -380,7 +380,9 @@ class EngineBuilder(Frame):
             self.statusLabel['text'] = 'Status: Enter a valid path to posting'
             return
 
+
         self.config.setSaveMainFolderPath(self.setMainPathString(self.entry_postingPath.get()))
+
 
         check = self.checked.get()
         self.config.setToStem(check)
@@ -423,6 +425,7 @@ class EngineBuilder(Frame):
 
         if self.config.toStem:
             if self.dataStem is None:
+
                 self.statusLabel['text'] = 'Status (stem is checked): upload before Show'
                 return
             else:
@@ -430,6 +433,7 @@ class EngineBuilder(Frame):
 
         else:
             if self.dataNoStem is None:
+
                 self.statusLabel['text'] = 'Status (stem not checked): upload before Show'
                 return
             else:
@@ -439,11 +443,13 @@ class EngineBuilder(Frame):
 
         self.disableButtons()
         self.part2Button.configure(state = NORMAL)
+
         print('Display dictionary')
 
         self.statusLabel['text'] = 'Status: preparing a nice table to view terms'
 
         self.displayClass = TableView(data, ['Term', 'df', 'sumTF', '# Posting'])
+
 
 
 
@@ -457,6 +463,7 @@ class EngineBuilder(Frame):
         import shutil
         saveMainFolderPath = str(self.entry_postingPath.get())
 
+
         if self.entry_postingPath.get() == '':
             self.statusLabel['text'] = 'Status: %s invalid path to delete' % (saveMainFolderPath,)
             return
@@ -464,15 +471,15 @@ class EngineBuilder(Frame):
 
         pathToDelete = saveMainFolderPath + '/SavedFiles'
         if not os.path.exists(pathToDelete):
+
             self.statusLabel['text'] = 'Status: %s invalid path to delete' % (saveMainFolderPath,)
             return
 
 
+
         shutil.rmtree(pathToDelete)
         print("Folder was deleted successfully..")
-
         self.setProgressBar()
-
         self.enableButtons()
         self.statusLabel['text'] = 'Deleted: Folder %s ' % (pathToDelete)
 
@@ -509,12 +516,14 @@ class EngineBuilder(Frame):
         saveMainFolderPath = self.setMainPathString(saveMainFolderPath)
         self.config.setSaveMainFolderPath(saveMainFolderPath,True)
 
+
         print("Posting path:     ", saveMainFolderPath)
 
 
         self.disableButtons()
 
         print("\n***    ManagerRun    ***\n")
+
 
         self.setProgressBar()
 
@@ -559,14 +568,13 @@ class EngineBuilder(Frame):
 
         self.setBuildDetails(timeItTook, maxParsingTime, totalMerging, totalNumberOfTerms, totalNumberOfDocuments)
 
+
         print("Number of Terms: " , str(totalNumberOfTerms))
         print("Number of Docs: " , str(totalNumberOfDocuments))
         print("Parsing Time: " , str(converSecondsToTime(maxParsingTime)))
         print("Merging Time: " , str(converSecondsToTime(totalMerging)))
         print("Everything took: " , str(converSecondsToTime(timeItTook)))
         self.enableButtons()
-
-
 
 
 
@@ -632,6 +640,8 @@ class EngineBuilder(Frame):
 
 
 
+
+
 def setWindowSizeAndPosition(root):
 
     w = 600  # width for the Tk root
@@ -650,6 +660,7 @@ def setWindowSizeAndPosition(root):
     root.geometry('%dx%d+%d+%d' % (w, h, x, y))
 
     return root
+
 
 
 

@@ -2,6 +2,7 @@ from Parsing.IterativeParsing import IterativeTokenizer
 from BasicMethods import getTagFromText
 from PreRun import getTagDicFromDocument
 
+
 class Parse:
 
     def __init__(self,config):
@@ -20,7 +21,6 @@ class Parse:
         city = ''
         language = ''
         try:
-
             tagDic = getTagDicFromDocument(documentAsString)
             if tagDic:
                 if not tagDic.get('text') is None:

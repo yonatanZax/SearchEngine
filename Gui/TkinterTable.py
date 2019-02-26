@@ -19,6 +19,7 @@ class App(Frame):
         self.CreateGUI()
         self.LoadTable()
         width = 170 * len(headLineAsArray)
+
         width = "%sx800" % (width)
         parent.geometry(width)
 
@@ -37,6 +38,7 @@ class App(Frame):
         for head in headers:
             self.treeview.heading(head, text=head)
             self.treeview.column(head, anchor='center', width=150)
+
 
         self.treeview.pack(side='left',fill='y')
 
@@ -57,10 +59,12 @@ class App(Frame):
 
 
 
+
 class TableView:
 
     def __init__(self,dataDic:dict ,headLineAsArray: list):
         self.data = dataDic
+
         self.headLine = headLineAsArray
 
     def run(self):

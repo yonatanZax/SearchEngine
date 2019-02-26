@@ -14,13 +14,15 @@ class ConfigClass:
         self.savedFileMainFolder = ''
         self.saveFilesWithStem = self.savedFileMainFolder + "/WithStem"
         self.saveFilesWithoutStem = self.savedFileMainFolder + "/WithoutStem"
+
         self.stopWordFile = 'stop_words.txt'
         self.toStem = False
 
-        # Todo - remove before submit
+
 
         self.corpusPath = ''
         self.savedFileMainFolder = ''
+
 
 
 
@@ -33,7 +35,6 @@ class ConfigClass:
         self.minimumTermAppearanceThreshold = 4
 
         self.toStem = False
-
 
 
         # Part B
@@ -52,6 +53,7 @@ class ConfigClass:
         self.totalNumberOfTerms = 1000
 
 
+
         print('Project was created successfully..')
 
 
@@ -60,6 +62,7 @@ class ConfigClass:
         self.corpusPath = newPath
         self.stopWordPath = self.corpusPath + "/" + self.stopWordFile
         self.listOfFoldersLength = len(os.listdir(self.corpusPath))
+
 
 
     def setSavedFilePath(self,newPath):
@@ -161,6 +164,7 @@ class ConfigClass:
     def get__stopWordFile(self):
         return self.stopWordFile
 
+
     def get__stopWordPath(self):
         return self.stopWordPath
 
@@ -187,6 +191,7 @@ class ConfigClass:
 
     def get__cityIndexPathWithoutStem(self):
         return self.saveFilesWithoutStem + '/cityIndex'
+
 
     def get__savedFilePath(self):
         return self.savedFilePath

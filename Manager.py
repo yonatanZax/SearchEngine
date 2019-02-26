@@ -16,6 +16,7 @@ class MyManager:
         self.ID = managerID
         self.config = config
         self.filesIndexTupleList = filesIndexTupleList
+
         self.indexer = Indexer(managerID,config=config)
         self.fileReader = ReadFile(config=self.config)
         self.fileWriter = FileWriter(self.config)
@@ -27,6 +28,7 @@ class MyManager:
     def updateProgressBar(self, value, posting_merge):
 
         # Write file to indicate the progress bar
+
         path = self.config.get__savedFilePath() + '/Progress/%s' % (posting_merge)
         fileName = str(self.ID) + '_' + str(value)
 
@@ -58,10 +60,12 @@ class MyManager:
             # Iterate over every document in the file
             for document in documentsList:
                 # parse the document
+
                 parsedDocument = self.parser.parseDoc(document)
                 if parsedDocument is None:
                     continue
                 numberOfDocuments += 1
+
                 # index the document data
                 self.indexer.addNewDoc(parsedDocument,docNoAsIndex=index + documentIndex)
                 documentIndex += 1
@@ -86,6 +90,7 @@ class MyManager:
 
         print("Manager " , str(self.ID) , " Finished parsing all files, Parsed: " , str(numberOfDocuments), " Docs, Took: ", str(parsingTime.seconds))
         # start merging the data that the manager created
+
         self.indexer.merge()
 
         finishedMerging = datetime.now()

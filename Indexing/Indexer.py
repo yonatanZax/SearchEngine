@@ -60,6 +60,7 @@ class TopList():
 
 
 
+
 class Indexer:
 
     def __init__(self, indexerID,config):
@@ -69,10 +70,10 @@ class Indexer:
 
         self.myDictionaryByLetters = {}
 
-        # Init a dictionary with letters dictionaries
         for letter in string.ascii_lowercase[:26]:
             self.myDictionaryByLetters[letter] = MyDictionary()
         self.myDictionaryByLetters["#"] = MyDictionary()
+
 
         # init fields
         self.documents_dictionary = {}
@@ -153,6 +154,10 @@ class Indexer:
                                                  dominantTerm=dominantTerms.getSortedList())
 
 
+            except Exception as ex:
+            # print("CITYERROR: " + str(ex) + " " + str(docNo) + " " + str(document.city))
+                x=1
+
         # Add doc to document dictionary
         self.documents_dictionary[docNo] = newDocumentIndexData
 
@@ -174,10 +179,9 @@ class Indexer:
                 self.city_dictionary[document.city].addDocumentToCity(docNoAsIndex, positions)
 
         # If language doesnt exists - add to language dic
+
         if len(document.language) > 1 and self.languagesDic.get(document.language) is None:
             self.languagesDic[document.language] = True
-
-
 
 
     def flushMemory(self):
@@ -186,11 +190,12 @@ class Indexer:
         self.fileWriter.cleanIndex(self)
 
         # Write docs to temp docFile
+
         self.fileWriter.cleanDocuments(self.documents_dictionary)
         self.documents_dictionary = {}
 
         self.flushIndicator += 1
-        # Every 10 flushes - clean the letter dictionary
+
         if self.flushIndicator == 10:
             self.flushIndicator = 0
             for letter in string.ascii_lowercase[:26]:
@@ -213,13 +218,16 @@ class Indexer:
         from concurrent.futures import ThreadPoolExecutor
 
         merger = Merger(config=self.config)
+
         savedFilesPathList = list(string.ascii_lowercase)
         savedFilesPathList.append('#')
+
 
         executor = ThreadPoolExecutor()
         futureList = []
 
         # merge local 'small' files
+
         for folder in savedFilesPathList:
             letterFilesList = os.listdir(self.config.savedFilePath + "\\" + folder)
             fileToMergeList = []
@@ -229,6 +237,7 @@ class Indexer:
 
             progressCounter = 0
 
+
             # Iter over letterList and if file belongs to ID - add to merge list
             for letterFile in letterFilesList:
 
@@ -237,10 +246,12 @@ class Indexer:
                     fileToMergeList.append(letterFile)
                     if iteration == filesPerIteration:
                         # update progress
+
                         progressCounter += 10*iteration
                         self.updateProgressBar(progressCounter, 'Merge')
 
                         iteration = 0
+
                         # merge the list
                         mergedList = merger.merge(fileToMergeList)
                         if mergedList is None:
@@ -249,10 +260,12 @@ class Indexer:
                         # Create future - Write the merged tempFiles
                         future = executor.submit(self.fileWriter.writeMergedFileTemp,mergedList, self.config.savedFilePath + "\\" + folder + "\\" + str(folder[0]) + str(self.ID) + "-" + str(counter))
                         # add future
+
                         futureList.append(future)
                         fileToMergeList = []
 
                         counter += 1
+
 
             # If greater than half - also make a temp file
             if iteration > filesPerIteration / 2:
@@ -276,12 +289,13 @@ class Indexer:
             for future in futureList:
                 future.result()
 
+
             # Add files to mergeList
+
             letterFilesList = os.listdir(self.config.savedFilePath + "\\" + folder)
             for letterFile in letterFilesList:
                 if letterFile[1] == str(self.ID):
                     fileToMergeList.append(letterFile)
-
 
             # Merge the list - add future
             mergedList = merger.merge(fileToMergeList)
