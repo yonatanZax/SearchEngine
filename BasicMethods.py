@@ -105,33 +105,38 @@ def getAppendingPlusOnly(file_name):
 
 
 
-def checkIfFileExists(path):
-    import os.path
-    exist = os.path.exists(path)
-    return exist
-
-
-
-def getColumnIndexFromHeadLline(headlineAsArray, colName):
-    colIndex = -1
-    for i in range(0, len(headlineAsArray)):
-        if headlineAsArray[i] == colName or headlineAsArray[i] == colName + '\n':
-            colIndex = i
-
-    return colIndex
-
-
-
 def getStringSizeInBytes(string):
+    # String size in bytes
     return len(string.encode('utf-8'))
 
 
 
+def writeListToFile(path,fileName,listToWrite,useNewLine = True):
+    import os
 
-def get2DArrayFromFile(path, sep = '|'):
+    if not os.path.exists(path) or len(listToWrite) == 0:
+        return
 
     try:
+        myFile = open(path + '/' + fileName,'a')
+
+        for line in listToWrite:
+            if useNewLine:
+                myFile.write('|'.join(line) + '\n')
+            else: myFile.write('|'.join(line))
+
+        myFile.close()
+
+
+    except Exception as ex:
+        print(ex)
+
+
+def get2DArrayFromFile(path, sep = '|'):
+    # returns a 2D array from file by sep
+    try:
         myFile = open(path,'r')
+
 
         with myFile:
             lines = myFile.readlines()
@@ -139,17 +144,50 @@ def get2DArrayFromFile(path, sep = '|'):
             twoDArray = []
 
             for line in lines:
+                line = line.rstrip('\n')
                 lineAsArray = line.split(sep)
-                lineAsArray[len(lineAsArray)-1] = lineAsArray[len(lineAsArray)-1][:-1]
                 twoDArray.append(lineAsArray)
 
             return twoDArray
 
+    except Exception as ex:
+        print("Error while converting file to 2D array, E: ",ex)
 
 
 
+def getDicFromFile(path, sep = '|'):
+
+    # returns a dic from file by sep
+    try:
+        myFile = open(path,'r')
+
+        with myFile:
+            lines = myFile.readlines()
+            myFile.close()
+            myDict = {}
+
+            for line in lines:
+                lineAsArray = line.split(sep)
+                myDict[lineAsArray[0]] = lineAsArray[1:]
+
+            return myDict
 
     except Exception as ex:
         print("Error while converting file to 2D array, E: ",ex)
 
+
+def getTagFromText(textAsString,tag1,tag2='\n'):
+    find = textAsString.find(tag1)
+    if find == -1:
+        return ''
+    start =  find + len(tag1)
+    end = textAsString[start:].find(tag2)
+    content = textAsString[start:start+end]
+    return content.strip(' ')
+
+
+
+def getStringFormatForFloatValue(numOfDigits,valueAsFloat):
+    formatString = "{0:.%sf}" % (str(numOfDigits))
+    return str(formatString.format(round(valueAsFloat, numOfDigits)))
 

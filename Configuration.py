@@ -16,14 +16,43 @@ class ConfigClass:
         self.saveFilesWithoutStem = self.savedFileMainFolder + "/WithoutStem"
 
         self.stopWordFile = 'stop_words.txt'
+        self.toStem = False
+
+
+
+        self.corpusPath = ''
+        self.savedFileMainFolder = ''
+
+
+
 
         self.managersNumber = os.cpu_count()
         if self.managersNumber == 1:
             self.managersNumber = 4
         self.filesPerIteration = 10
-        self.minimumTermAppearanceThreshold = 2
+
+        # Minimum SumTf
+        self.minimumTermAppearanceThreshold = 4
 
         self.toStem = False
+
+
+        # Part B
+
+        # Best Values - 189
+        self.BM25_K = 1.5
+        self.BM25_B = 0.7
+
+        # Best - 188
+        self.Axu_Value = 10
+
+
+
+        self.BM25_avgDLength = 100
+        self.totalNumberOfDocs = 1000
+        self.totalNumberOfTerms = 1000
+
+
 
         print('Project was created successfully..')
 
@@ -33,7 +62,7 @@ class ConfigClass:
         self.corpusPath = newPath
         self.stopWordPath = self.corpusPath + "/" + self.stopWordFile
         self.listOfFoldersLength = len(os.listdir(self.corpusPath))
-        print('corpus path changed')
+
 
 
     def setSavedFilePath(self,newPath):
@@ -43,6 +72,14 @@ class ConfigClass:
     def setDocumentsIndex(self,savedFilePath):
         self.documentsIndexPath = savedFilePath + '/docIndex'
 
+
+    def setAverageDocLength(self, totalLength, numberOfDocs) :
+        self.BM25_avgDLength = totalLength / numberOfDocs
+        self.totalNumberOfDocs = numberOfDocs
+
+    def setTotalNumberOfTerms(self, numNoStem, numWithStem):
+        self.totalNumberOfTermsNoStem = numNoStem
+        self.totalNumberOfTermsWithStem = numWithStem
 
 
 
@@ -127,6 +164,7 @@ class ConfigClass:
     def get__stopWordFile(self):
         return self.stopWordFile
 
+
     def get__stopWordPath(self):
         return self.stopWordPath
 
@@ -141,6 +179,19 @@ class ConfigClass:
 
     def get__documentsIndexPath(self):
         return self.documentsIndexPath
+
+    def get__documentIndexPathStem(self):
+        return self.saveFilesWithStem + '/docIndex'
+
+    def get__documentIndexPathWithoutStem(self):
+        return self.saveFilesWithoutStem + '/docIndex'
+
+    def get__cityIndexPathStem(self):
+        return self.saveFilesWithStem + '/cityIndex'
+
+    def get__cityIndexPathWithoutStem(self):
+        return self.saveFilesWithoutStem + '/cityIndex'
+
 
     def get__savedFilePath(self):
         return self.savedFilePath

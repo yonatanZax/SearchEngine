@@ -87,7 +87,8 @@ class IterativeTokenizer:
         self.dictionary_term_stemmedTerm = {}
         try:
             import os
-            path = self.config.stopWordPath
+            path = os.path.join(self.config.get__savedFileMainFolder(),self.config.get__stopWordFile())
+
             with open(path) as f:
                 for word in f.read().splitlines():
                     self.stopWordsDic[word] = 'a'
@@ -165,15 +166,16 @@ class IterativeTokenizer:
         t = lxml.html.fromstring(text)
         text = t.text_content()
 
-        text = text.replace("\n", ' ').replace('\t', ' ').replace('{', '').replace('}', '').replace('[', '').replace(']',
-                                                                                                                   '').replace(
-            '\"', '').replace('\'', '').replace('(', '').replace(')', '').replace('?', '').replace('!', '').replace('#',
-                                                                                                                    '').replace(
-            '@', '').replace('/', '').replace('\\', '').replace('_', '').replace('>', '').replace('<', '').replace('`',
-                                                                                                                   '').replace(
-            '~', '').replace(';', '').replace(':', '').replace('*', '').replace('+', '').replace('|', '').replace('&',
-                                                                                                                  '').replace(
-            '=', '')
+        text = text.replace("'s",'').replace("\n", ' ').replace('\t', ' ').replace('{', ' ').replace('}', ' ').replace('[', ' ').replace(']',
+                                                                                                                   ' ').replace(
+            '\"', ' ').replace('\'', ' ').replace('(', ' ').replace(')', ' ').replace('?', ' ').replace('!', ' ').replace('#',
+                                                                                                                    ' ').replace(
+            '@', ' ').replace('/', ' ').replace('\\', ' ').replace('_', ' ').replace('>', ' ').replace('<', ' ').replace('`',
+                                                                                                                   ' ').replace(
+            '~', ' ').replace(';', ' ').replace(':', ' ').replace('*', ' ').replace('+', ' ').replace('|', ' ').replace('&',
+                                                                                                                  ' ').replace(
+            '=', ' ')
+
         text = re.sub(r'[-]+','-',text)
         text = re.sub(r'[.]+', '.', text)
         text = re.sub(r'[,]+', ',', text)
@@ -333,13 +335,14 @@ class IterativeTokenizer:
                         isAllLower = cleanedWord.islower()
                         lowerCaseCleanedWord = cleanedWord.lower()
                         if self.dictionary_term_stemmedTerm.get(lowerCaseCleanedWord) is None:
-                            afterStem = Stemmer.Stemmer.stemTerm(lowerCaseCleanedWord)
+                            afterStem = Stemmer.Stemmer.stemTerm(cleanedWord)
+
                             self.dictionary_term_stemmedTerm[lowerCaseCleanedWord] = afterStem
                             cleanedWord = afterStem
                         else:
                             if isAllLower:
-                                self.dictionary_term_stemmedTerm[lowerCaseCleanedWord] = \
-                                self.dictionary_term_stemmedTerm[lowerCaseCleanedWord].lower()
+                                self.dictionary_term_stemmedTerm[lowerCaseCleanedWord] = self.dictionary_term_stemmedTerm[lowerCaseCleanedWord].lower()
+
                             cleanedWord = self.dictionary_term_stemmedTerm[lowerCaseCleanedWord]
 
                     if self.stopWordsDic.get(cleanedWord.lower()) is None:
@@ -365,9 +368,28 @@ class IterativeTokenizer:
                 tempIndex += 1
                 continue
             if currWord == bigLetters:
-                listOfTerms = [' '.join(textList[index:tempIndex])] + textList[index:tempIndex]
-                listOfTerms.append(currWord)
-                return listOfTerms, tempIndex
+                if self.config.toStem:
+                    listOfTerms = [' '.join(textList[index:tempIndex])]
+                    for term in textList[index:tempIndex]:
+                        term = self.cleanToken(term)
+                        isAllLower = term.islower()
+                        lowerCaseCleanedWord = term.lower()
+                        if self.dictionary_term_stemmedTerm.get(lowerCaseCleanedWord) is None:
+                            afterStem = Stemmer.Stemmer.stemTerm(term)
+                            self.dictionary_term_stemmedTerm[lowerCaseCleanedWord] = afterStem
+                            cleanedWord = afterStem
+                        else:
+                            if isAllLower:
+                                self.dictionary_term_stemmedTerm[lowerCaseCleanedWord] = self.dictionary_term_stemmedTerm[lowerCaseCleanedWord].lower()
+                            cleanedWord = self.dictionary_term_stemmedTerm[lowerCaseCleanedWord]
+                        listOfTerms.append(cleanedWord)
+                    listOfTerms.append(currWord)
+                    return listOfTerms, tempIndex + 1
+                else:
+                    listOfTerms = [' '.join(textList[index:tempIndex])] + textList[index:tempIndex]
+                    listOfTerms.append(currWord)
+                    return listOfTerms, tempIndex + 1
+
 
             if currWord[0].isupper():
                 bigLetters += currWord[0]

@@ -10,27 +10,31 @@ class FileWriter:
     def cleanIndex(self,indexer):
         currentFileNumber = self.counter
         self.counter += 1
+
         # headLineToWrite = 'term|DF|sumTF|DOC#TF#Position:*,*'
         for dictionaryKey, dictionaryVal in indexer.myDictionaryByLetters.items():
             self.writeDictionaryToFile(dictionaryKey + str(indexer.ID) + "_" + str(currentFileNumber),dictionaryVal)
 
+
     def writeDictionaryToFile(self,fileName, dictionaryToWrite):
-
-
 
         path = self.config.savedFilePath + '\\' + fileName[0] + '\\' + fileName
 
         lineToWrite = ""
+
+
         # Iter over all the terms in the dictionary and create a string to write
         for term, termData in sorted(dictionaryToWrite.dictionary_term_dicData.items()):
             if len(termData.string_docID_tf_positions) > 0:
                 lineToWrite += term + "|" + termData.toString() + "\n"
+
                 # cleans the posting dictionary
                 termData.cleanPostingData()
 
         # write to the end of the file at one time on another thread
         if len(lineToWrite) > 0:
             self.writeToFile(path, lineToWrite)
+
 
     def cleanDocuments(self,dictionaryToWrite):
         path = self.config.documentsIndexPath
@@ -40,7 +44,9 @@ class FileWriter:
 
         lineToWrite = ""
         for docNo, documentData in sorted(dictionaryToWrite.items()):
-            lineToWrite += (docNo + "|" + documentData.toString() + "\n")
+
+            lineToWrite += (str(docNo) + "|" + documentData.toString() + "\n")
+
 
         # write to the end of the file at one time on another thread
         self.writeToFile(path, lineToWrite)
@@ -51,7 +57,7 @@ class FileWriter:
         from BasicMethods import getStringSizeInBytes
 
         lineToWritePost = ""
-        lineToWriteDic = ""
+
         index = 0
         pathForPosting = outputFile + 'PostingFolder'
         os.mkdir(pathForPosting)
@@ -70,24 +76,32 @@ class FileWriter:
             lastTerm = currentTerm
             currentTerm = line[0][0]
 
+            sortedPostingLine = self.sortPostingLineAndUseGaps(line[1])
+
             if getStringSizeInBytes(lineToWritePost) + getStringSizeInBytes(line[1]) < postingMaxSize:
+
+                # Dictionary line format: Term|df|sumTf|postingLine
+                currentLineDic = '|'.join((line[0][0], str(line[0][1]), str(line[0][2]), str(index)))
 
                 index += 1
 
-                currentLineDic = '|'.join((line[0][0], str(line[0][1]), str(line[0][2]), str(index)))
-
                 ListToWriteDic.append(currentLineDic)
-                lineToWritePost += line[1] + "\n"
+                lineToWritePost += sortedPostingLine + "\n"
+
 
             else:
                 if len(lineToWritePost) > 0:
                     self.writeToFile(pathForPosting + lastTerm + '_post', lineToWritePost.rstrip('\n'))
 
                 index = 0
+
+
                 currentLineDic = '|'.join((line[0][0], str(line[0][1]), str(line[0][2]), str(index)))
+                index += 1
                 ListToWriteDic.append(currentLineDic)
                 lineToWritePost = ''
-                lineToWritePost += line[1] + "\n"
+                lineToWritePost += sortedPostingLine + "\n"
+
 
 
 
@@ -101,6 +115,31 @@ class FileWriter:
         self.writeToFile(outputFile + "mergedFile_dic", lineToWriteDic)
 
         return len(ListToWriteDic)
+
+
+
+    @staticmethod
+    def sortPostingLineAndUseGaps(lineToSort):
+        splitLine = lineToSort.rstrip(',').split(',')
+        # TODO - when we move to using number only user a lambda like this: int(item.split('#')[0])
+        # Sorting
+        twoDListOfPosting = []
+        for line in splitLine:
+            twoDListOfPosting.append(line.split('#'))
+        sorted_twoDListOfPosting = sorted(twoDListOfPosting, key=lambda item: int(item[0]))
+
+        # Change to Gaps
+        lastDocumentNumber = 0
+        SortedGapedPostingLineList = []
+        for document in sorted_twoDListOfPosting:
+            gap = int(document[0]) - lastDocumentNumber
+            lastDocumentNumber = int(document[0])
+            document[0] = str(gap)
+            SortedGapedPostingLineList.append('#'.join(document))
+
+        sortedLine = ','.join(SortedGapedPostingLineList)
+        return sortedLine
+
 
     def writeMergedFileTemp(self,finalList, outputFile):
         lineToWrite = ""

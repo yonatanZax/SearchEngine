@@ -1,25 +1,27 @@
 import shutil
 import string
+import tkinter
 from tkinter import *
 from tkinter import filedialog
-
 from threading import Thread
-
 import os
 
-
-from BasicMethods import get2DArrayFromFile
+from BasicMethods import get2DArrayFromFile , getDicFromFile
 from Gui.TkinterTable import TableView
 
 
 class EngineBuilder(Frame):
 
-    def __init__(self, master, mainManager, config):
+
+    def __init__(self, master, mainManager, config, dataNoStem=None,dataWithStem = None):
+        self.master = master
         self.config = config
+        self.dataNoStem = dataNoStem
+        self.dataStem = dataWithStem
         self.mainManager = mainManager
         Frame.__init__(self, master)
         self.grid()
-        # self.filesDone = 0
+
         self.numOfFilesPerIteration = config.get__filesPerIteration()
 
         self.XstartPixel = 60
@@ -29,6 +31,10 @@ class EngineBuilder(Frame):
         label_0 = Label(self.master, text="Search Engine", width=20, font=("bold", 30))
         label_0.place( x = self.XstartPixel + 20, y = self.YstartPixel + 40)
 
+
+        self.part2Button = Button(self.master, text='Part2', width=10, bg='blue', fg='white',command= self.switchPart2)
+        self.part2Button.place(x = self.XstartPixel + 450, y = self.YstartPixel + 0)
+        self.part2Button.configure(state = DISABLED)
 
 
         label_corpusPath = Label(self.master, text="Corpus path:", width=10, font=("bold", 10))
@@ -65,12 +71,6 @@ class EngineBuilder(Frame):
         self.corpusPathButton.place( x = self.XstartPixel + 380, y = self.YstartPixel + 125)
         self.postingPathButton = Button(self.master, text='Find', width=5, fg='black',command= postingPath)
         self.postingPathButton.place( x = self.XstartPixel + 380, y = self.YstartPixel + 155)
-
-
-
-        self.dataStem = None
-        self.dataNoStem = None
-        self.headline = None
 
 
 
@@ -111,15 +111,8 @@ class EngineBuilder(Frame):
 
 
         # Set Progress bar
-        linesAsString = ''
-        for i in range(0, 51):
-            if i % 4 == 0:
-                continue
-            linesAsString += ' '
-        self.posting_progressLabel = "Posting Progress:     ["
-        self.merge_progressLabel = "Merge Progress:       ["
-        self.label_postingProgress['text'] = self.posting_progressLabel + linesAsString + '] 00%'
-        self.label_mergeProgress['text'] = self.merge_progressLabel + linesAsString + '] 00%'
+        self.setProgressBar()
+
 
 
 
@@ -146,6 +139,85 @@ class EngineBuilder(Frame):
 
         self.statusLabel = Label(self.master, text="Status: Ready to Build\Shut down", width = 40, font = ("bold", 10))
         self.statusLabel.place( x = self.XstartPixel + 60, y = self.YstartPixel + 650)
+
+
+
+
+
+
+    def switchPart2(self):
+
+
+        if self.entry_postingPath.get() == '':
+            self.statusLabel['text'] = 'Status: Enter a path to posting'
+            return
+
+
+        saveMainFolderPath = str(self.entry_postingPath.get())
+        if not os.path.exists(saveMainFolderPath):
+            self.statusLabel['text'] = 'Status: %s path not exists' % (saveMainFolderPath,)
+            return
+
+        if '/SavedFiles' not in saveMainFolderPath :
+            saveMainFolderPath += '/SavedFiles'
+            self.config.setSaveMainFolderPath(saveMainFolderPath)
+
+
+
+        if self.dataStem is None and self.dataNoStem is None:
+            self.statusLabel['text'] = 'Status: No data available, please upload'
+            return
+
+        pathToStopWords = saveMainFolderPath + "/" + self.config.stopWordFile
+        if os.path.exists(pathToStopWords):
+            self.config.stopWordPath = pathToStopWords
+
+        else:
+            self.statusLabel['text'] = 'Status: No stop words file'
+            return
+
+
+        self.config.setToStem(False)
+        self.checked.set(False)
+
+
+        from Gui.GuiPart2 import QuerySearcher
+        self.master.destroy()
+        self.master = Tk()
+        setWindowSizeAndPosition(self.master)
+        self.master.title("SearchEngine")
+        guiFrame = QuerySearcher(self.master, mainManager=self, config=self.config,cityList=self.getCityList(),dataNoStem=self.dataNoStem,dataWithStem=self.dataStem)
+        guiFrame.mainloop()
+
+
+    def getCityList(self):
+        cityIndexPath = self.config.getSavedFilesPath() + '/cityIndex'
+        list = []
+
+        if os.path.exists(cityIndexPath):
+            myFile = open(cityIndexPath,'r')
+            listFromFile = myFile.readlines()
+
+            for line in listFromFile:
+                splitedLine = line.split('|')
+                list.append(splitedLine[0])
+
+        return list
+
+
+
+    def setProgressBar(self):
+
+        # Set Progress bar
+        linesAsString = ''
+        for i in range(0, 51):
+            if i % 4 == 0:
+                continue
+            linesAsString += ' '
+        self.posting_progressLabel = "Posting Progress:     ["
+        self.merge_progressLabel = "Merge Progress:       ["
+        self.label_postingProgress['text'] = self.posting_progressLabel + linesAsString + '] 00%'
+        self.label_mergeProgress['text'] = self.merge_progressLabel + linesAsString + '] 00%'
 
 
 
@@ -219,7 +291,9 @@ class EngineBuilder(Frame):
                     continue
                 linesAsString += ' '
 
-            percentString = str(percent*2)
+
+            percentString = str(percent * 2)
+
             if len(percentString) == 1:
                 percentString = '0' + percentString
 
@@ -233,30 +307,63 @@ class EngineBuilder(Frame):
     def load(self):
 
 
-        savedFolderPath = self.config.get__savedFilePath()
+
+        savedMainFolder = self.config.get__savedFileMainFolder()
+        savedNoStem = savedMainFolder + '/WithoutStem'
+        savedWithStem = savedMainFolder + '/WithStem'
+
+
         lettersList = list(string.ascii_lowercase)
         lettersList.append('#')
 
 
-        totalList = []
+        totalDict_noStem = dict()
+        totalDict_withStem = dict()
+
         for letter in lettersList:
-            path = savedFolderPath + '/' + letter + '/' + 'mergedFile_dic'
-            if not os.path.exists(path):
-                self.enableButtons()
-                self.statusLabel['text'] = 'Need to build (Check if stem is clicked)'
-                print('Location not found', path)
-                return
-            arrayFromFile = get2DArrayFromFile(path=path)
-            totalList = totalList + arrayFromFile
+
+            pathNoStem = savedNoStem + '/' + letter + '/' + 'mergedFile_dic'
+            if os.path.exists(pathNoStem):
+
+                letterDicFromFile = getDicFromFile(path=pathNoStem)
+
+                if len(totalDict_noStem) == 0:
+                    totalDict_noStem = letterDicFromFile
+                else:
+                    totalDict_noStem.update(letterDicFromFile)
 
 
-        self.headline = ['Term', 'df', 'sumTF', '# Posting']
-        if self.config.toStem:
-            self.dataStem = totalList
+            pathWithStem = savedWithStem + '/' + letter + '/' + 'mergedFile_dic'
+            if os.path.exists(pathWithStem):
+
+                letterDicFromFile = getDicFromFile(path=pathWithStem)
+
+                if len(totalDict_noStem) == 0:
+                    totalDict_withStem = letterDicFromFile
+                else:
+                    totalDict_withStem.update(letterDicFromFile)
+
+        if len(totalDict_noStem) == 0:
+            self.dataNoStem = None
         else:
-            self.dataNoStem = totalList
+            self.dataNoStem = totalDict_noStem
+
+        if len(totalDict_withStem) == 0:
+            self.dataStem = None
+        else:
+            self.dataStem = totalDict_withStem
 
 
+        pathToLanguages = self.config.get__savedFileMainFolder() + "/languages"
+        if os.path.exists(pathToLanguages):
+            languageFile = open(pathToLanguages, 'r')
+            languageList = languageFile.readlines()
+
+            self.setLanguagesDropList(languageList)
+
+
+
+        self.part2Button.configure(state = NORMAL)
 
 
 
@@ -273,7 +380,9 @@ class EngineBuilder(Frame):
             self.statusLabel['text'] = 'Status: Enter a valid path to posting'
             return
 
-        self.config.setSaveMainFolderPath(self.entry_postingPath.get() + '/SavedFiles')
+
+        self.config.setSaveMainFolderPath(self.setMainPathString(self.entry_postingPath.get()))
+
 
         check = self.checked.get()
         self.config.setToStem(check)
@@ -313,15 +422,18 @@ class EngineBuilder(Frame):
         self.config.setToStem(check)
         data = None
 
+
         if self.config.toStem:
-            if self.dataStem is None or self.headline is None:
+            if self.dataStem is None:
+
                 self.statusLabel['text'] = 'Status (stem is checked): upload before Show'
                 return
             else:
                 data = self.dataStem
 
         else:
-            if self.dataNoStem is None or self.headline is None:
+            if self.dataNoStem is None:
+
                 self.statusLabel['text'] = 'Status (stem not checked): upload before Show'
                 return
             else:
@@ -330,11 +442,14 @@ class EngineBuilder(Frame):
 
 
         self.disableButtons()
+        self.part2Button.configure(state = NORMAL)
+
         print('Display dictionary')
 
         self.statusLabel['text'] = 'Status: preparing a nice table to view terms'
 
-        self.displayClass = TableView(data, self.headline)
+        self.displayClass = TableView(data, ['Term', 'df', 'sumTF', '# Posting'])
+
 
 
 
@@ -347,24 +462,26 @@ class EngineBuilder(Frame):
     def deleteEngine(self):
         import shutil
         saveMainFolderPath = str(self.entry_postingPath.get())
-        self.config.setSaveMainFolderPath(saveMainFolderPath)
-        if self.entry_postingPath.get() == '' or self.entry_corpusPath.get() == '':
+
+
+        if self.entry_postingPath.get() == '':
             self.statusLabel['text'] = 'Status: %s invalid path to delete' % (saveMainFolderPath,)
             return
 
-        if not os.path.exists(saveMainFolderPath + '/SavedFiles'):
+
+        pathToDelete = saveMainFolderPath + '/SavedFiles'
+        if not os.path.exists(pathToDelete):
+
             self.statusLabel['text'] = 'Status: %s invalid path to delete' % (saveMainFolderPath,)
             return
 
 
-        shutil.rmtree(self.config.get__savedFileMainFolder())
+
+        shutil.rmtree(pathToDelete)
         print("Folder was deleted successfully..")
-        self.buildButton.configure(state=NORMAL)
-        self.deleteButton.configure(state=DISABLED)
-        self.showDicButton.configure(state = DISABLED)
-        self.uploadDicButton.configure(state = DISABLED)
-
-        self.statusLabel['text'] = 'Status: Folder %s was deleted' % (self.config.get__savedFileMainFolder())
+        self.setProgressBar()
+        self.enableButtons()
+        self.statusLabel['text'] = 'Deleted: Folder %s ' % (pathToDelete)
 
 
 
@@ -395,7 +512,10 @@ class EngineBuilder(Frame):
             self.statusLabel['text'] = 'Status: %s path not exists' % (saveMainFolderPath,)
             return
 
-        self.config.setSaveMainFolderPath(saveMainFolderPath + '/SavedFiles',True)
+
+        saveMainFolderPath = self.setMainPathString(saveMainFolderPath)
+        self.config.setSaveMainFolderPath(saveMainFolderPath,True)
+
 
         print("Posting path:     ", saveMainFolderPath)
 
@@ -403,6 +523,9 @@ class EngineBuilder(Frame):
         self.disableButtons()
 
         print("\n***    ManagerRun    ***\n")
+
+
+        self.setProgressBar()
 
         from datetime import datetime
         time = datetime.now().strftime('%H:%M:%S')
@@ -438,23 +561,20 @@ class EngineBuilder(Frame):
         from Parsing.ConvertMethods import converSecondsToTime
 
         timeItTook, maxParsingTime, totalMerging, totalNumberOfTerms, totalNumberOfDocuments ,mergedLanguagesSet = future.result()
+
+        self.setLanguagesDropList(mergedLanguagesSet)
+
+
+
+        self.setBuildDetails(timeItTook, maxParsingTime, totalMerging, totalNumberOfTerms, totalNumberOfDocuments)
+
+
         print("Number of Terms: " , str(totalNumberOfTerms))
         print("Number of Docs: " , str(totalNumberOfDocuments))
         print("Parsing Time: " , str(converSecondsToTime(maxParsingTime)))
         print("Merging Time: " , str(converSecondsToTime(totalMerging)))
         print("Everything took: " , str(converSecondsToTime(timeItTook)))
         self.enableButtons()
-
-
-        self.droplist.destroy()
-        c = StringVar()
-        self.droplist = OptionMenu(self.master, c, *mergedLanguagesSet)
-        self.droplist.config(width=15)
-        c.set('Select')
-        self.droplist.place( x = self.XstartPixel + 180, y = self.YstartPixel + 190)
-        self.setBuildDetails(timeItTook, maxParsingTime, totalMerging, totalNumberOfTerms, totalNumberOfDocuments)
-
-
 
 
 
@@ -488,13 +608,33 @@ class EngineBuilder(Frame):
         self.showDicButton.configure(state = NORMAL)
         self.uploadDicButton.configure(state = NORMAL)
 
-        self.statusLabel['text'] = 'Status: Ready to Build\Shut down'
 
     def disableButtons(self):
         self.buildButton.configure(state = DISABLED)
         self.deleteButton.configure(state = DISABLED)
         self.showDicButton.configure(state = DISABLED)
         self.uploadDicButton.configure(state = DISABLED)
+        self.part2Button.configure(state = DISABLED)
+
+
+
+    def setMainPathString(self,newPath):
+        if newPath.endswith("SavedFiles"):
+            return newPath
+        else:
+            return newPath + '/SavedFiles'
+
+
+
+    def setLanguagesDropList(self,languageList):
+
+        if len(languageList) > 0:
+            self.droplist.destroy()
+            c = StringVar()
+            self.droplist = OptionMenu(self.master, c, *languageList)
+            self.droplist.config(width=15)
+            c.set('Select')
+            self.droplist.place(x=self.XstartPixel + 180, y=self.YstartPixel + 190)
 
 
 
@@ -502,7 +642,24 @@ class EngineBuilder(Frame):
 
 
 
+def setWindowSizeAndPosition(root):
 
+    w = 600  # width for the Tk root
+    h = 700  # height for the Tk root
+
+    # get screen width and height
+    ws = root.winfo_screenwidth()  # width of the screen
+    hs = root.winfo_screenheight()  # height of the screen
+
+    # calculate x and y coordinates for the Tk root window
+    x = (ws / 2) - (w / 2)
+    y = (hs / 2) - (h / 2)
+
+    # set the dimensions of the screen
+    # and where it is placed
+    root.geometry('%dx%d+%d+%d' % (w, h, x, y))
+
+    return root
 
 
 

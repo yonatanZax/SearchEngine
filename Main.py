@@ -1,12 +1,22 @@
+# ***   DONE    ***
+
 
 import os
 from datetime import datetime
+import copy
+
 from Manager import MyManager
 from concurrent.futures import ProcessPoolExecutor
 from concurrent.futures import ThreadPoolExecutor
 from concurrent.futures import as_completed
 from Configuration import ConfigClass
 from Indexing.CountriesAPI import CityAPI
+from PreRun import createPreRunData
+from PreRun import copyStopWordToSavedFiles
+from ReadFiles.ReadFile import ReadFile
+import threading
+
+from BasicMethods import writeListToFile, getDicFromFile, get2DArrayFromFile
 
 
 config = None
@@ -17,11 +27,18 @@ def main():
     mainManager.GUIRun()
 
 
+    mainManager = MainClass()
+    mainManager.GUIRun()
+
 class MainClass:
 
-    def __init__(self):
+    def __init__(self, config=None):
 
-        self.config = ConfigClass()
+        if config is None:
+            self.config = ConfigClass()
+        else:
+            self.config = config
+
         self.cityAPI = CityAPI()
 
     def GUIRun(self):
@@ -29,7 +46,8 @@ class MainClass:
 
         print("***   Main Start   ***")
         root = GuiMainView.Tk()
-        root.geometry('600x700')
+        root = GuiMainView.setWindowSizeAndPosition(root)
+
         root.title("SearchEngine")
 
         guiFrame = GuiMainView.EngineBuilder(root, mainManager=self, config=self.config)
@@ -42,6 +60,13 @@ class MainClass:
         listOfFolders = os.listdir(self.config.get__corpusPath())
         listOfFolders.remove(self.config.get__stopWordFile())
 
+        # PreRun
+        filesIndexTupleList, allDocsTuple, cityDic = createPreRunData(listOfFolders, ReadFile(self.config))
+        writeDocsThread = threading.Thread(target=writeListToFile,args=(self.config.getSavedFilesPath(),'allDocs.txt',allDocsTuple,))
+        writeDocsThread.start()
+        copyStopWordToSavedFiles(self.config)
+
+
         lettersList = list(string.ascii_lowercase)
         lettersList.append('#')
 
@@ -50,16 +75,17 @@ class MainClass:
 
         for i in range(0, managersNumber):
 
-            folderListPerManager = []
-            for j in range(i,len(listOfFolders),managersNumber):
-                folderListPerManager.append(listOfFolders[j])
+            filesIndexTupleListPerManager = []
+            for j in range(i,len(filesIndexTupleList),managersNumber):
+                filesIndexTupleListPerManager.append(filesIndexTupleList[j])
+
 
             lettersListPerManager = []
 
             for j in range(i,len(lettersList), managersNumber):
                 lettersListPerManager.append(lettersList[j])
 
-            manager = MyManager(managerID=i, folderList=folderListPerManager,
+            manager = MyManager(managerID=i, filesIndexTupleList=filesIndexTupleListPerManager,
                                 lettersList=lettersListPerManager, config=self.config)
 
             managersList.append(manager)
@@ -105,11 +131,8 @@ class MainClass:
         print("Term Posting took: " + str(timeItTook.seconds) + " seconds")
 
         firstManagerToFinish = True
-
-
         # UpdateProgress
         self.updateProgressBar(len(listOfFolders),'Posting')
-
 
 
         totalNumberOfTerms = 0
@@ -126,6 +149,31 @@ class MainClass:
                 firstManagerToFinish = False
                 self.getCitiesDataAndWriteItASync(dictionary_city_cityData, citiesFutureDic)
 
+                # Merge docFiles:
+
+                allDocsTuplePath = self.config.getSavedFilesPath() + '/allDocs.txt'
+                allDocsTuple = get2DArrayFromFile(allDocsTuplePath)
+                allDocsDominant = copy.deepcopy(allDocsTuple)
+                unsortedDocsPath = self.config.getSavedFilesPath() + '/docIndex'
+                unsortedDocs = getDicFromFile(unsortedDocsPath)
+
+                for i in range(0, len(allDocsTuple)):
+                    docNo = allDocsTuple[i][0]
+                    allDocsTuple[i] = [docNo] + unsortedDocs[docNo][:5]
+                    allDocsDominant[i] = [unsortedDocs[docNo][5]]
+
+
+                os.remove(unsortedDocsPath)
+                os.remove(allDocsTuplePath)
+                # Split docIndex:
+                # 1. docIndex
+                # 2. Dominant terms
+                writeListToFile(self.config.getSavedFilesPath(), '/docIndex', allDocsTuple, True)
+                writeListToFile(self.config.getSavedFilesPath(), '/docDominantIndex', allDocsDominant, False)
+
+
+
+
 
 
 
@@ -137,7 +185,21 @@ class MainClass:
         pool.shutdown()
         print("Number of files Processed: " , str(len(listOfFolders)))
 
-        return timeItTook.seconds, maxParsingTime, totalMerging, totalNumberOfTerms, totalNumberOfDocuments, sorted(mergedLanguagesSet)
+
+        # Write Languages to file
+        languages = list(sorted(mergedLanguagesSet))
+        pathToLanguages = self.config.get__savedFileMainFolder() + "/languages"
+        if os.path.exists(pathToLanguages):
+            os.remove(pathToLanguages)
+
+        languageFile = open(pathToLanguages,'a')
+        for language in languages:
+            languageFile.write(language + '\n')
+        languageFile.close()
+
+
+        return timeItTook.seconds, maxParsingTime, totalMerging, totalNumberOfTerms, totalNumberOfDocuments, languages
+
 
     @staticmethod
     def run( manager):

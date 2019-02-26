@@ -43,6 +43,11 @@ class MyHeap(object):
        else:
            self.data = []
 
+
+   def size(self):
+        return len(self.data)
+
+
    def push(self, item):
        heapq.heappush(self.data, item)
 
@@ -90,12 +95,20 @@ class Merger:
                     os.remove(openFile.name)
 
                     # enqueue the first line to the priority  queue
+                    if len(fileList) == 0:
+                        continue
+
                     firstLine = fileList[0]
                     splittedfirstLine = firstLine.split('|')
                     # the format is: termLowerCase=0, term=1, DF=2, sumDF=3, Posting=4,Index=5,file=6
                     self._heap.push(MergeDataClass(splittedfirstLine[0].lower(), splittedfirstLine[0], splittedfirstLine[1], splittedfirstLine[2],splittedfirstLine[3], 0, fileList))
+
         except PermissionError as err:
             print ('Error while opening files in Merge',str(err.filename))
+
+        if self._heap.size() == 0:
+            return None
+
 
         try:
             FinalDictionary = {}
@@ -112,14 +125,20 @@ class Merger:
             currentValFile = currentVal[6]
 
 
-            # read next line from current file
-            read_line = currentVal[6][currentValIndex]
-            # check that this file has not ended
-            if len(read_line) != 0:
-                splittedLine = read_line.split('|')
-                # add next element from current file
-                if currentValIndex < len(currentVal[6]):
-                    self._heap.push(MergeDataClass(str(splittedLine[0].lower()), splittedLine[0], splittedLine[1], splittedLine[2], splittedLine[3], currentValIndex, currentVal[6]))
+
+            if currentValIndex < len(currentVal[6]):
+                # read next line from current file
+                read_line = currentVal[6][currentValIndex]
+                # check that this file has not ended
+                if len(read_line) != 0:
+                    splittedLine = read_line.split('|')
+                    # add next element from current file
+                    if currentValIndex < len(currentVal[6]):
+                        self._heap.push(MergeDataClass(str(splittedLine[0].lower()), splittedLine[0], splittedLine[1],
+                                                       splittedLine[2], splittedLine[3], currentValIndex,
+                                                       currentVal[6]))
+
+
 
             # 3. While queue not empty
             # dequeue head (m, i,f) of queue

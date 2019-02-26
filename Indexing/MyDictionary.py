@@ -1,3 +1,6 @@
+from BasicMethods import getStringFormatForFloatValue
+
+
 
 class MyDictionary:
 
@@ -6,16 +9,20 @@ class MyDictionary:
 
 
     # assuming termString gets in all CAP or all LOW letters already from parser
-    def addTerm(self, termString, docNo, termFrequency, termPositions):
+    def addTerm(self, termString, docNo, termFrequency, termPositions,docNoAsIndex=0):
+
 
         termInDictionary = updateTermToDictionaryByTheRules(self.dictionary_term_dicData, termString)
         termDicData = self.dictionary_term_dicData.get(termInDictionary)
         if termDicData is None:
+
             # add new term
             termDicData = DictionaryData()
             self.dictionary_term_dicData[termInDictionary] = termDicData
+
         # add the doc to the term posting line
-        termDicData.addDocument(docID=docNo, docTF_int=termFrequency,termPositions= termPositions)
+        termDicData.addDocument(docID=docNoAsIndex, docTF_int=termFrequency,termPositions= termPositions)
+
 
 
 
@@ -54,21 +61,42 @@ class DictionaryData:
 
 class DocumentIndexData:
 
-    def __init__(self, max_tf, uniqueTermsCount, docLength, city = '',language = ''):
+
+    def __init__(self, max_tf, uniqueTermsCount, docLength, city = '',language = '', dominantTerm = []):
+
         self.max_tf = max_tf
         self.uniqueTermCount = uniqueTermsCount
         self.docLength = docLength
         self.city = city.upper()
         self.language = language
+        self.dominantTerms = []
+
+        if len(dominantTerm) > 0:
+            for score_term in dominantTerm:
+
+                # score_term = score
+                if score_term[0] > 0:
+                    self.dominantTerms.append(score_term)
+
+
 
     def toString(self):
         '''
         max_tf|uniqueTermCount|docLength|city|language
         :return:
         '''
-        ans = '|'.join([str(self.max_tf) , str(self.uniqueTermCount), str(self.docLength) ,str(self.city),self.language])
+        ans = '|'.join([str(self.max_tf) , str(self.uniqueTermCount), str(self.docLength) ,str(self.city),self.language, self.dominantTermPrintFormat(self.dominantTerms)])
         return ans
 
+
+    def dominantTermPrintFormat(self, listOfDominantTerms):
+        ans = ""
+
+        for score_term in listOfDominantTerms:
+            # Format: (term:score),(term,score)
+            ans += '%s:%s,' % (score_term[1],getStringFormatForFloatValue(2,score_term[0]))
+
+        return ans.strip(',')
 
 class CityIndexData:
 
@@ -86,11 +114,17 @@ class CityIndexData:
         self.dictionary_doc_locations[docID] = locations
 
     def getDocLocationsAsString(self):
-        # ansList = []
-        # for doc, locations in sorted(self.dictionary_doc_locations.items()):
-        #     ansList.append('|'.join())
-        ans = ','.join(['#'.join([doc,locations]) for doc,locations in sorted(self.dictionary_doc_locations.items())])
-        return ans
+        lastDoc = 0
+        ans = ''
+
+        for doc, locations in sorted(self.dictionary_doc_locations.items(),key=lambda kv: int(kv[0])):
+            # doc is the index of doc - make gap
+            docWithGap = str(int(doc) - lastDoc)
+            lastDoc = int(doc)
+            ans += '#'.join([docWithGap,locations]) + ','
+
+        return ans.rstrip(',')
+
 
 # get the format of the term how its saved in the dictionary or none if its not in the dictionary
 def getTermDictionaryForm(dictionary, termString):
