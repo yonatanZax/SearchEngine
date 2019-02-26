@@ -3,7 +3,7 @@ IR Search engine project, Part 1 and Part 2
 
 
 * Important:
-1. Check the import list at the bottom of this file before running the exe file.
+1. Check the import list at the bottom of this file before running the executable file.
 	* The folder "import files.zip" contains some of the imports for the project.
 
 2. Check that at least 'Corpus size' is available in the Posting's path on the disk.
@@ -30,58 +30,6 @@ How to use the engine:
 		- You can choose to use Stem and Sementics by checking the check-box
 		- After the run you can save the output to a file. make sure you chose a directory path at 'Save Results'
 		- You can see the most dominant Entities of the files that came back from the query by clicking 'Show Entities'		
-
- 
-Gui details part 2: ( From top to bottom ) 
-	
-	* Gui has a single window, very intuitive to work with.
-	* At that bottom there is a status line for the user.
-	* While process is running, some buttons will be DISABLED until its done.
-
-	Query file path - two options
-			1. Enter query's path
-			2. Find the directory with a searchable window (click the 'Browse' button).
-	
-	Save results path - two options
-			1. Enter wanted path.
-			2. Find the directory with a searchable window (click the 'Browse' button).
-			
-	Cities - 
-			It's posible to choose one or more cities from the list.
-			* Note that the list will pressent cities only if found in corpus.
-			
-			
-	Checkboxes:
-			1. " Stemming " : Use stemming
-			
-	
-	Run query button - 
-		This button runs the query written in the textbox "Query"
-		* To make sure the path is valid:
-			1. Checks that the textbox is not empty.
-		
-	Run query from file button - 
-		Run all the queries in the file and displays it in the output window.
-			1. Checks that the query file path exists.
-			
-	Make Three Runs button - 
-		From the Query path creates three result files.
-		Runs:
-			1. noStem noSem
-			2. Stem noSem
-			3. Stem Sem
-			
-	Show Entities Button - 
-		After a run is printed in the output window.
-		User can view the top5 five entities for every doc in the list.
-	
-	
-	Save to Trec_Eval Button - 
-		* Checks the given path in the Save results textbox.
-		Saves the results in a new file called: "results.txt".
-		* Note that it will override the prev file if exists.
-			
-			
 
 
 Gui details part 1: ( From top to bottom )
@@ -152,9 +100,66 @@ Gui details part 1: ( From top to bottom )
 						Everything took:  0:25:55
 	
 	Status bar - 
-			Changes by the current state.
+			Changes according to the current state.
 			Displays detailed information to the user.
 			
+
+
+
+
+ 
+Gui details part 2: ( From top to bottom ) 
+	
+	* Gui has a single window, very intuitive to work with.
+	* At that bottom there is a status line for the user.
+	* While process is running, some buttons will be DISABLED until its done.
+
+	Query file path - two options
+			1. Enter query's path
+			2. Find the directory with a searchable window (click the 'Browse' button).
+	
+	Save results path - two options
+			1. Enter wanted path.
+			2. Find the directory with a searchable window (click the 'Browse' button).
+			
+	Cities - 
+			It's posible to choose one or more cities from the list.
+			* Note that the list will pressent cities only if found in corpus.
+			
+			
+	Checkboxes:
+			1. " Stemming " : Use stemming
+			
+	
+	Run query button - 
+		This button runs the query written in the textbox "Query"
+		* To make sure the path is valid:
+			1. Checks that the textbox is not empty.
+		
+	Run query from file button - 
+		Run all the queries in the file and displays it in the output window.
+			1. Checks that the query file path exists.
+			
+	Make Three Runs button - 
+		From the Query path creates three result files.
+		Runs:
+			1. noStem noSem
+			2. Stem noSem
+			3. Stem Sem
+			
+	Show Entities Button - 
+		After a run is printed in the output window.
+		User can view the top5 five entities for every doc in the list.
+	
+	
+	Save to Trec_Eval Button - 
+		* Checks the given path in the Save results textbox.
+		Saves the results in a new file called: "results.txt".
+		* Note that it will override the prev file if exists.
+			
+			
+
+
 
 			
 # Import list:
